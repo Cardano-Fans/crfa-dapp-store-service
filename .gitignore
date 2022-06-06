@@ -12,3 +12,4 @@ out/
 .settings
 .classpath
 .factorypath
+crfa-cardano-dapp-store-dev.db
