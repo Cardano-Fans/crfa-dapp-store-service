@@ -1,0 +1,19 @@
+[Unit]
+Description     = CRFA Dapp Store Service
+Wants           = network-online.target
+After           = network-online.target
+
+[Service]
+User            = crfa
+Type            = simple
+WorkingDirectory= /opt/crfa-dapp-store
+ExecStart       = /bin/bash -c '/opt/crfa-dapp-store-service/crfa-dapp-store-service.sh'
+KillSignal=SIGINT
+RestartKillSignal=SIGINT
+TimeoutStopSec=2
+LimitNOFILE=32768
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy	= multi-user.target

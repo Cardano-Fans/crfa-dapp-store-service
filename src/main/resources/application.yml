@@ -1,0 +1,15 @@
+micronaut:
+  http:
+    client:
+      read-timeout: 25m
+      read-idle-timeout: 25m
+      num-of-threads: 25
+
+  application:
+    name: crfa-dapp-store-service
+  server:
+    port: 8080
+
+dryRunMode: false
+env: dev
+dbPath: crfa-cardano-dapp-store-dev.db
