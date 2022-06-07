@@ -10,12 +10,11 @@ import jakarta.inject.Singleton;
 @Produces
 @Singleton
 @Requires(classes = { DappReleaseNotFoundException.class} )
-public class DappReleaseNotFoundHandler implements ExceptionHandler<DappReleaseNotFoundException, HttpResponse> {
-
+public class DappReleaseNotFoundHandler implements ExceptionHandler<DappReleaseNotFoundException, HttpResponse<String>> {
 
     @Override
-    public HttpResponse handle(HttpRequest request, DappReleaseNotFoundException exception) {
-        return HttpResponse.notFound();
+    public HttpResponse<String> handle(HttpRequest request, DappReleaseNotFoundException exception) {
+        return HttpResponse.notFound(exception.getMessage());
     }
 
 }

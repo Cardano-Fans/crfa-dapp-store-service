@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 
 import static java.lang.Integer.MAX_VALUE;
 
@@ -192,6 +193,17 @@ public class DappService {
 
                 for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
                     var contractAddress = scriptItem.getContractAddress();
+
+                    Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
+                        dappRelease.setAuditLink(audit.getAuditLink());
+                        dappRelease.setAuditor(audit.getAuditor());
+                        // todo audit type
+                    });
+
+                    Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
+                        dappRelease.setContractOpenSource(contract.getOpenSource());
+                        dappRelease.setContractLink(contract.getContractLink());
+                    });
 
                     Long invocationsPerHash = null;
                     if (scriptItem.getPurpose() == Purpose.SPEND) {

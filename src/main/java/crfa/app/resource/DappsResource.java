@@ -36,7 +36,7 @@ public class DappsResource {
         var maybeDappRelease = dappReleasesRepository.findByReleaseKey(releaseKey);
 
         if (maybeDappRelease.isEmpty()) {
-            throw new DappReleaseNotFoundException();
+            throw new DappReleaseNotFoundException("Dapp release key not found: " + releaseKey);
         }
 
         var dappRelease = maybeDappRelease.get();

@@ -33,4 +33,10 @@ public class ScriptItem {
 
     boolean hasAudit;
 
+    @Nullable
+    Audit audit;
+
+    @Nullable
+    Contract contract;
+
 }
