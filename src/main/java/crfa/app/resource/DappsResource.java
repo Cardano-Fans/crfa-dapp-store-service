@@ -32,7 +32,9 @@ public class DappsResource {
     }
 
     @Get(uri = "/by-release-key/{releaseKey}", produces = "application/json")
-    public DappScriptsResponse listScriptsResponse(@PathVariable String releaseKey) throws DappReleaseNotFoundException {
+    public DappScriptsResponse listScriptsResponse(@PathVariable String releaseKey,
+                                                   @QueryValue Optional<SortBy> sortBy,
+                                                   @QueryValue Optional<SortOrder> sortOrder) throws DappReleaseNotFoundException {
         var maybeDappRelease = dappReleasesRepository.findByReleaseKey(releaseKey);
 
         if (maybeDappRelease.isEmpty()) {
@@ -41,7 +43,7 @@ public class DappsResource {
 
         var dappRelease = maybeDappRelease.get();
 
-        var releaseItems = dappReleaseItemRepository.listReleaseItems(releaseKey);
+        var releaseItems = dappReleaseItemRepository.listReleaseItems(releaseKey, sortBy, sortOrder);
 
         return DappScriptsResponse.builder()
                 .release(dappRelease)

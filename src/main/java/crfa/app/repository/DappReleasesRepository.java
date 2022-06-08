@@ -11,6 +11,7 @@ import crfa.app.domain.SortOrder;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +29,9 @@ public class DappReleasesRepository {
     private String dbPath;
 
     private Dao<DAppRelease, String> dAppResultItemDao;
+
+    @Inject
+    private RepositoryColumnConverter repositoryColumnConverter;
 
     @EventListener
     public void onStartup(ServerStartupEvent event) throws SQLException {
@@ -71,8 +75,8 @@ public class DappReleasesRepository {
     }
 
     public List<DAppRelease> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) {
-        var decomposedSortBy = decomposeSortBy(sortBy);
-        var decomposedSortOrder = decomposeSortOrder(sortOrder);
+        var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
+        var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
         try {
             QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
@@ -84,38 +88,6 @@ public class DappReleasesRepository {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
-    }
-
-    private String decomposeSortBy(Optional<SortBy> sortBy) {
-        var sby = sortBy.orElse(SortBy.SCRIPTS_INVOKED);
-
-        if (sby == SortBy.SCRIPTS_INVOKED) {
-            return "script_invocations";
-        }
-        if (sby == SortBy.SCRIPTS_LOCKED) {
-            return "scripts_locked";
-        }
-        if (sby == SortBy.TRANSACTIONS_COUNT) {
-            return "trx_count";
-        }
-        if (sby == SortBy.TOTAL_VALUE_LOCKED) {
-            return "total_value_locked";
-        }
-        if (sby == SortBy.FULL_NAME) {
-            return "full_name";
-        }
-
-        return "trx_count";
-    }
-
-    private boolean decomposeSortOrder(Optional<SortOrder> sortOrder) {
-        var so = sortOrder.orElse(SortOrder.DESC);
-
-        if (so == SortOrder.ASC) {
-            return true;
-        }
-
-        return false;
     }
 
     public void upsertDAppRelease(DAppRelease dAppRelease) {
