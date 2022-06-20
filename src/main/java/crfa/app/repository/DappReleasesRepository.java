@@ -48,25 +48,59 @@ public class DappReleasesRepository {
         createDbsIfNecessary();
     }
 
-    public Long totalScriptsLocked() throws SQLException {
+    public int getMaxReleaseVersion(String id) {
         QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
 
-        return statementBuilder.query()
-                .stream().map(DAppRelease::getScriptsLocked).reduce(0L, Long::sum);
+        try {
+            return Optional.ofNullable(statementBuilder
+                    .selectColumns("release_number")
+                    .orderBy("release_number", false)
+                    .limit(1L)
+                    .where().eq("id", id)
+                    .queryForFirst())
+                    .map(DAppRelease::getReleaseNumber)
+                    .orElse(-1);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
     }
 
-    public Long totalContractTransactionsCount() throws SQLException {
+    public Long totalScriptsLocked() {
         QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
 
-        return statementBuilder.query()
-                .stream().map(DAppRelease::getTransactionsCount).reduce(0L, Long::sum);
+        try {
+            return statementBuilder.query()
+                    .stream().map(DAppRelease::getScriptsLocked).reduce(0L, Long::sum);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
     }
 
-    public Long totalScriptInvocations() throws SQLException {
+    public Long totalContractTransactionsCount() {
         QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
 
-        return statementBuilder.query()
-                .stream().map(DAppRelease::getScriptInvocationsCount).reduce(0L, Long::sum);
+        try {
+            return statementBuilder
+                    .query()
+                    .stream().map(DAppRelease::getTransactionsCount).reduce(0L, Long::sum);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Long totalScriptInvocations() {
+        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
+
+        try {
+            return statementBuilder.query()
+                    .stream().map(DAppRelease::getScriptInvocationsCount).reduce(0L, Long::sum);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
     }
 
     public Optional<DAppRelease> findByReleaseKey(String releaseKey) {

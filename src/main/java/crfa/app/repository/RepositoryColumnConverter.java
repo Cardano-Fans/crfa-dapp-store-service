@@ -9,7 +9,14 @@ import java.util.Optional;
 @Singleton
 public class RepositoryColumnConverter {
 
+    private static final SortBy DEFAULT_SORT_BY = SortBy.SCRIPTS_INVOKED;
+    private static final SortOrder DEFAULT_SORT_ORDER = SortOrder.DESC;
+
     public Optional<String> decomposeSortBy(Optional<SortBy> sortBy) {
+        if (sortBy.isEmpty()) {
+            return decomposeSortBy(Optional.of(DEFAULT_SORT_BY));
+        }
+
         return sortBy.flatMap(sby -> {
             if (sby == SortBy.SCRIPTS_INVOKED) {
                 return Optional.of("script_invocations");
@@ -27,11 +34,15 @@ public class RepositoryColumnConverter {
                 return Optional.of("full_name");
             }
 
-            return Optional.empty();
+            return decomposeSortBy(Optional.of(DEFAULT_SORT_BY));
         });
     }
 
     public Optional<Boolean> decomposeSortOrder(Optional<SortOrder> sortOrder) {
+        if (sortOrder.isEmpty()) {
+            return decomposeSortOrder(Optional.of(DEFAULT_SORT_ORDER));
+        }
+
         return sortOrder.flatMap(so -> {
             if (so == SortOrder.ASC) {
                 return Optional.of(true);

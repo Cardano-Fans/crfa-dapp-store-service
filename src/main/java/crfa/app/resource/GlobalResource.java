@@ -26,7 +26,7 @@ public class GlobalResource {
     private RedissonClient redissonClient;
 
     @Get(uri = "/stats", produces = "application/json")
-    public Global global() throws Exception {
+    public Global global() {
 
         return Global.builder()
                 .adaPriceEUR(adaPriceRepository.getLatestPrice("EUR")
