@@ -9,8 +9,8 @@ import jakarta.inject.Singleton;
 
 @Produces
 @Singleton
-@Requires(classes = { DappReleaseNotFoundException.class} )
-public class DappReleaseNotFoundHandler implements ExceptionHandler<DappReleaseNotFoundException, HttpResponse<String>> {
+@Requires(classes = DappReleaseNotFoundException.class )
+public class DappReleaseNotFoundExceptionHandler implements ExceptionHandler<DappReleaseNotFoundException, HttpResponse<String>> {
 
     @Override
     public HttpResponse<String> handle(HttpRequest request, DappReleaseNotFoundException exception) {

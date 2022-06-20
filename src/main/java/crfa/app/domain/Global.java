@@ -12,11 +12,9 @@ import java.math.BigDecimal;
 public class Global {
 
 
-    long totalTransactionsCount;
-
     long totalSmartContractsTransactionCount;
 
-    long totalTVL;
+    long totalScriptsLocked;
 
     long totalScriptInvocationsCount;
 

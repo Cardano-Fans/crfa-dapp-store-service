@@ -28,12 +28,6 @@ public class GlobalResource {
     @Get(uri = "/stats", produces = "application/json")
     public Global global() throws Exception {
 
-        var transactionsCount = redissonClient
-                .getAtomicLong("total_transactions_count");
-
-//        var totalSmartContractTransactions = redissonClient
-//                .getAtomicLong("total_transactions_count_by_contract_addresses");
-
         return Global.builder()
                 .adaPriceEUR(adaPriceRepository.getLatestPrice("EUR")
                         .map(AdaPricePerDay::getPrice)
@@ -43,10 +37,9 @@ public class GlobalResource {
                         .map(AdaPricePerDay::getPrice)
                         .map(BigDecimal::valueOf)
                         .orElse(null))
-//                .totalSmartContractsTransactionCount(totalSmartContractTransactions.get())
+                .totalScriptsLocked(dappReleasesRepository.totalScriptsLocked())
+                .totalSmartContractsTransactionCount(dappReleasesRepository.totalContractTransactionsCount())
                 .totalScriptInvocationsCount(dappReleasesRepository.totalScriptInvocations())
-                .totalTVL(dappReleasesRepository.scriptsLocked())
-                .totalTransactionsCount(transactionsCount.get())
                 .build();
     }
 

@@ -8,6 +8,7 @@ import com.j256.ormlite.table.TableUtils;
 import crfa.app.domain.DAppReleaseItem;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
+import crfa.app.resource.InvalidParameterException;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
@@ -16,6 +17,7 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,15 +48,22 @@ public class DappReleaseItemRepository {
         createDbsIfNecessary();
     }
 
-    public List<DAppReleaseItem> listReleaseItems(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) {
+    public List<DAppReleaseItem> listReleaseItems(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         try {
             var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
             var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
+            if (decomposedSortBy.isEmpty()) {
+                throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
+            }
+            if (decomposedSortOrder.isEmpty()) {
+                throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
+            }
+
             QueryBuilder<DAppReleaseItem, String> statementBuilder = dappReleaseItemDao.queryBuilder();
 
             return statementBuilder
-                    .orderBy(decomposedSortBy, decomposedSortOrder)
+                    .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
                     .where().eq("release_key", releaseKey)
                     .query();
         } catch (SQLException e) {

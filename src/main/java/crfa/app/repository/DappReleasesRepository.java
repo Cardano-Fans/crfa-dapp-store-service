@@ -8,6 +8,7 @@ import com.j256.ormlite.table.TableUtils;
 import crfa.app.domain.DAppRelease;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
+import crfa.app.resource.InvalidParameterException;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
@@ -16,6 +17,7 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,11 +48,18 @@ public class DappReleasesRepository {
         createDbsIfNecessary();
     }
 
-    public Long scriptsLocked() throws SQLException {
+    public Long totalScriptsLocked() throws SQLException {
         QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
 
         return statementBuilder.query()
                 .stream().map(DAppRelease::getScriptsLocked).reduce(0L, Long::sum);
+    }
+
+    public Long totalContractTransactionsCount() throws SQLException {
+        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
+
+        return statementBuilder.query()
+                .stream().map(DAppRelease::getTransactionsCount).reduce(0L, Long::sum);
     }
 
     public Long totalScriptInvocations() throws SQLException {
@@ -74,15 +83,22 @@ public class DappReleasesRepository {
         }
     }
 
-    public List<DAppRelease> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) {
+    public List<DAppRelease> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
         var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
+
+        if (decomposedSortBy.isEmpty()) {
+            throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
+        }
+        if (decomposedSortOrder.isEmpty()) {
+            throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
+        }
 
         try {
             QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
 
             return statementBuilder
-                    .orderBy(decomposedSortBy, decomposedSortOrder)
+                    .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);

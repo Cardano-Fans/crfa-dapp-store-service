@@ -9,36 +9,36 @@ import java.util.Optional;
 @Singleton
 public class RepositoryColumnConverter {
 
-    public String decomposeSortBy(Optional<SortBy> sortBy) {
-        var sby = sortBy.orElse(SortBy.SCRIPTS_INVOKED);
+    public Optional<String> decomposeSortBy(Optional<SortBy> sortBy) {
+        return sortBy.flatMap(sby -> {
+            if (sby == SortBy.SCRIPTS_INVOKED) {
+                return Optional.of("script_invocations");
+            }
+            if (sby == SortBy.SCRIPTS_LOCKED) {
+                return Optional.of("scripts_locked");
+            }
+            if (sby == SortBy.TRANSACTIONS_COUNT) {
+                return Optional.of("trx_count");
+            }
+            if (sby == SortBy.TOTAL_VALUE_LOCKED) {
+                return Optional.of("total_value_locked");
+            }
+            if (sby == SortBy.FULL_NAME) {
+                return Optional.of("full_name");
+            }
 
-        if (sby == SortBy.SCRIPTS_INVOKED) {
-            return "script_invocations";
-        }
-        if (sby == SortBy.SCRIPTS_LOCKED) {
-            return "scripts_locked";
-        }
-        if (sby == SortBy.TRANSACTIONS_COUNT) {
-            return "trx_count";
-        }
-        if (sby == SortBy.TOTAL_VALUE_LOCKED) {
-            return "total_value_locked";
-        }
-        if (sby == SortBy.FULL_NAME) {
-            return "full_name";
-        }
-
-        return "trx_count";
+            return Optional.empty();
+        });
     }
 
-    public boolean decomposeSortOrder(Optional<SortOrder> sortOrder) {
-        var so = sortOrder.orElse(SortOrder.DESC);
+    public Optional<Boolean> decomposeSortOrder(Optional<SortOrder> sortOrder) {
+        return sortOrder.flatMap(so -> {
+            if (so == SortOrder.ASC) {
+                return Optional.of(true);
+            }
 
-        if (so == SortOrder.ASC) {
-            return true;
-        }
-
-        return false;
+            return Optional.of(false);
+        });
     }
 
 }

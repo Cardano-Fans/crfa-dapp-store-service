@@ -27,14 +27,14 @@ public class DappsResource {
 
     @Get(uri = "/list-releases", produces = "application/json")
     public List<DAppRelease> listDappReleases(@QueryValue Optional<SortBy> sortBy,
-                                              @QueryValue Optional<SortOrder> sortOrder) {
+                                              @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
         return dappReleasesRepository.listDapps(sortBy, sortOrder);
     }
 
     @Get(uri = "/by-release-key/{releaseKey}", produces = "application/json")
     public DappScriptsResponse listScriptsResponse(@PathVariable String releaseKey,
                                                    @QueryValue Optional<SortBy> sortBy,
-                                                   @QueryValue Optional<SortOrder> sortOrder) throws DappReleaseNotFoundException {
+                                                   @QueryValue Optional<SortOrder> sortOrder) throws DappReleaseNotFoundException, InvalidParameterException {
         var maybeDappRelease = dappReleasesRepository.findByReleaseKey(releaseKey);
 
         if (maybeDappRelease.isEmpty()) {
