@@ -15,7 +15,7 @@ public class DappReleaseId {
 
     String dappId;
 
-    int releaseNumber;
+    float releaseNumber;
 
     String hash;
 

@@ -48,7 +48,7 @@ public class DappReleasesRepository {
         createDbsIfNecessary();
     }
 
-    public int getMaxReleaseVersion(String id) {
+    public float getMaxReleaseVersion(String id) {
         QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
 
         try {
@@ -59,7 +59,7 @@ public class DappReleasesRepository {
                     .where().eq("id", id)
                     .queryForFirst())
                     .map(DAppRelease::getReleaseNumber)
-                    .orElse(-1);
+                    .orElse(-1.0f);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);

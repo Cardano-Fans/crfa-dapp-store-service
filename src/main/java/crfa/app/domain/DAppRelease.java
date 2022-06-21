@@ -30,7 +30,7 @@ public class DAppRelease {
     String fullName;
 
     @DatabaseField(canBeNull = false, index = true, columnName = "release_number")
-    int releaseNumber;
+    float releaseNumber;
 
     @DatabaseField(canBeNull = false, index = true, columnName = "release_name")
     String releaseName;

@@ -16,7 +16,7 @@ public class DappReleaseItem {
 
     String releaseName;
 
-    int releaseNumber;
+    float releaseNumber;
 
     List<ScriptItem> scripts;
 

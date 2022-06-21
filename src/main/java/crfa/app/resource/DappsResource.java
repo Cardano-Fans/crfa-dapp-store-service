@@ -32,7 +32,7 @@ public class DappsResource {
     public List<DappReleaseResult> listDappReleases(@QueryValue Optional<SortBy> sortBy,
                                                     @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
 
-        Cache<String, Integer> releaseVersionsCache = CacheBuilder.newBuilder()
+        Cache<String, Float> releaseVersionsCache = CacheBuilder.newBuilder()
                 .build();
 
         return dappReleasesRepository.listDapps(sortBy, sortOrder)
@@ -58,7 +58,7 @@ public class DappsResource {
                             .releaseNumber(dAppRelease.getReleaseNumber())
                             .transactionsCount(dAppRelease.getTransactionsCount())
                             .scriptsLocked(dAppRelease.getScriptsLocked())
-                            .latestVersion(maxReleaseVersion == dAppRelease.getReleaseNumber())
+                            .latestVersion(Float.compare(maxReleaseVersion, dAppRelease.getReleaseNumber()) == 0)
                             .build();
                 }).collect(Collectors.toList());
     }
@@ -83,7 +83,7 @@ public class DappsResource {
                 .build();
     }
 
-    private int retrieveMaxReleaseVersion(Cache<String, Integer> releaseVersionsCache, String dappId) {
+    private float retrieveMaxReleaseVersion(Cache<String, Float> releaseVersionsCache, String dappId) {
         try {
             return releaseVersionsCache.get(dappId, () -> dappReleasesRepository.getMaxReleaseVersion(dappId));
         } catch (ExecutionException e) {

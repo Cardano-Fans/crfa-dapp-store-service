@@ -21,7 +21,7 @@ public class DappReleaseResult {
 
     String fullName;
 
-    int releaseNumber;
+    float releaseNumber;
 
     String releaseName;
 
