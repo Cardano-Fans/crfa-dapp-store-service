@@ -105,7 +105,7 @@ public class DappService {
                 for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
                     var newDappReleaseItem = new DAppReleaseItem();
                     newDappReleaseItem.setName(scriptItem.getName());
-                    newDappReleaseItem.setReleaseKey(String.format("%s.%d", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
+                    newDappReleaseItem.setReleaseKey(String.format("%s.%f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
                     newDappReleaseItem.setVersion(scriptItem.getVersion());
                     newDappReleaseItem.setUpdateTime(new Date());
 
@@ -182,7 +182,7 @@ public class DappService {
             dappRelease.setTwitter(dappSearchItem.getTwitter());
 
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
-                dappRelease.setKey(String.format("%s.%d", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
+                dappRelease.setKey(String.format("%s.%f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
                 dappRelease.setReleaseNumber(dappReleaseItem.getReleaseNumber());
                 dappRelease.setReleaseName(dappReleaseItem.getReleaseName());
                 dappRelease.setFullName(String.format("%s - %s", dappSearchItem.getName(), dappReleaseItem.getReleaseName()));
