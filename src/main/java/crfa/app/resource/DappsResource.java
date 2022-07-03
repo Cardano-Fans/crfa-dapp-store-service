@@ -35,7 +35,7 @@ public class DappsResource {
         Cache<String, Float> releaseVersionsCache = CacheBuilder.newBuilder()
                 .build();
 
-        return dappReleasesRepository.listDapps(sortBy, sortOrder)
+        return dappReleasesRepository.listDappReleases(sortBy, sortOrder)
                 .stream().map(dAppRelease -> {
                     var maxReleaseVersion = retrieveMaxReleaseVersion(releaseVersionsCache, dAppRelease.getId());
 
@@ -58,7 +58,7 @@ public class DappsResource {
                             .releaseNumber(dAppRelease.getReleaseNumber())
                             .transactionsCount(dAppRelease.getTransactionsCount())
                             .scriptsLocked(dAppRelease.getScriptsLocked())
-                            .latestVersion(Float.compare(maxReleaseVersion, dAppRelease.getReleaseNumber()) == 0)
+                            .latestVersion(dAppRelease.isLatestVersion(maxReleaseVersion))
                             .build();
                 }).collect(Collectors.toList());
     }

@@ -17,9 +17,13 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
+import static crfa.app.domain.SortOrder.ASC;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 @Singleton
 @Slf4j
@@ -63,6 +67,18 @@ public class DappReleasesRepository {
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    // TODO this is service method, not really repo method
+    public List<DAppRelease> dappUniqueReleases() {
+        try {
+            return listDappReleases(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC))
+                    .stream()
+                    .collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparingInt(d -> d.getId().hashCode()))),
+                            ArrayList::new));
+        } catch (InvalidParameterException e) {
+            throw new RuntimeException("should never happen", e);
         }
     }
 
@@ -117,7 +133,7 @@ public class DappReleasesRepository {
         }
     }
 
-    public List<DAppRelease> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DAppRelease> listDappReleases(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
         var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
