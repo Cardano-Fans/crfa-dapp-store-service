@@ -4,7 +4,8 @@ import crfa.app.domain.AdaPricePerDay;
 import crfa.app.domain.DAppRelease;
 import crfa.app.domain.Global;
 import crfa.app.repository.AdaPriceRepository;
-import crfa.app.repository.DappReleasesRepository;
+import crfa.app.repository.DappsRepository;
+import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;
@@ -21,7 +22,10 @@ import static java.util.stream.Collectors.groupingBy;
 public class GlobalResource {
 
     @Inject
-    private DappReleasesRepository dappReleasesRepository;
+    private DappService dappService;
+
+    @Inject
+    private DappsRepository dappsRepository;
 
     @Inject
     private AdaPriceRepository adaPriceRepository;
@@ -41,11 +45,11 @@ public class GlobalResource {
                 .map(AdaPricePerDay::getPrice)
                 .map(BigDecimal::valueOf)
                 .orElse(null));
-        builder.totalScriptsLocked(dappReleasesRepository.totalScriptsLocked());
-        builder.totalSmartContractsTransactionCount(dappReleasesRepository.totalContractTransactionsCount());
-        builder.totalScriptInvocationsCount(dappReleasesRepository.totalScriptInvocations());
+        builder.totalScriptsLocked(dappsRepository.totalScriptsLocked());
+        builder.totalSmartContractsTransactionCount(dappsRepository.totalContractTransactionsCount());
+        builder.totalScriptInvocationsCount(dappsRepository.totalScriptInvocations());
 
-        var dappUniqueReleases = dappReleasesRepository.dappUniqueReleases();
+        var dappUniqueReleases = dappService.dappUniqueReleases();
 
         builder.totalDappsCount(dappUniqueReleases.size());
         builder.countDappsByDappType(dappUniqueReleases.stream().collect(groupingBy(DAppRelease::getDAppType, Collectors.counting())));

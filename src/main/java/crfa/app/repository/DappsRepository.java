@@ -5,7 +5,7 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.table.TableUtils;
-import crfa.app.domain.DAppRelease;
+import crfa.app.domain.DApp;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.resource.InvalidParameterException;
@@ -23,55 +23,37 @@ import java.util.Optional;
 
 @Singleton
 @Slf4j
-public class DappReleasesRepository {
+public class DappsRepository {
 
     private JdbcConnectionSource connectionSource;
 
-    @Value("${dbPath-dapps-releases:crfa-cardano-dapp-store-dapps-releases.db}")
+    @Value("${dbPath-dapps:crfa-cardano-dapp-store-dapps.db}")
     private String dbPath;
 
-    private Dao<DAppRelease, String> dAppResultItemDao;
+    private Dao<DApp, String> dAppDao;
 
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
 
     @EventListener
     public void onStartup(ServerStartupEvent event) throws SQLException {
-        log.info("Starting DappResultItemRepository..., dbPath:{}", dbPath);
+        log.info("Starting DappsRepository..., dbPath:{}", dbPath);
 
         String databaseUrl = String.format("jdbc:sqlite:%s", dbPath);
         // create a connection source to our database
         this.connectionSource = new JdbcConnectionSource(databaseUrl);
 
-        this.dAppResultItemDao = DaoManager.createDao(connectionSource, DAppRelease.class);
+        this.dAppDao = DaoManager.createDao(connectionSource, DApp.class);
 
         createDbsIfNecessary();
     }
 
-    public float getMaxReleaseVersion(String id) {
-        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
-
-        try {
-            return Optional.ofNullable(statementBuilder
-                    .selectColumns("release_number")
-                    .orderBy("release_number", false)
-                    .limit(1L)
-                    .where().eq("id", id)
-                    .queryForFirst())
-                    .map(DAppRelease::getReleaseNumber)
-                    .orElse(-1.0f);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
     public Long totalScriptsLocked() {
-        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
+        QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
 
         try {
             return statementBuilder.query()
-                    .stream().map(DAppRelease::getScriptsLocked).reduce(0L, Long::sum);
+                    .stream().map(DApp::getScriptsLocked).reduce(0L, Long::sum);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -79,12 +61,12 @@ public class DappReleasesRepository {
     }
 
     public Long totalContractTransactionsCount() {
-        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
+        QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
 
         try {
             return statementBuilder
                     .query()
-                    .stream().map(DAppRelease::getTransactionsCount).reduce(0L, Long::sum);
+                    .stream().map(DApp::getTransactionsCount).reduce(0L, Long::sum);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -92,32 +74,32 @@ public class DappReleasesRepository {
     }
 
     public Long totalScriptInvocations() {
-        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
+        QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
 
         try {
             return statementBuilder.query()
-                    .stream().map(DAppRelease::getScriptInvocationsCount).reduce(0L, Long::sum);
+                    .stream().map(DApp::getScriptInvocationsCount).reduce(0L, Long::sum);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
     }
 
-    public Optional<DAppRelease> findByReleaseKey(String releaseKey) {
+    public Optional<DApp> findById(String id) {
         try {
-            QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
+            QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
 
             statementBuilder
-                    .where().eq("key", releaseKey);
+                    .where().eq("id", id);
 
-            return dAppResultItemDao.query(statementBuilder.prepare()).stream().findFirst();
+            return dAppDao.query(statementBuilder.prepare()).stream().findFirst();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
     }
 
-    public List<DAppRelease> listDappReleases(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DApp> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
         var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
@@ -129,7 +111,7 @@ public class DappReleasesRepository {
         }
 
         try {
-            QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
+            QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
 
             return statementBuilder
                     .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
@@ -140,9 +122,9 @@ public class DappReleasesRepository {
         }
     }
 
-    public void upsertDAppRelease(DAppRelease dAppRelease) {
+    public void upsertDApp(DApp dapp) {
         try {
-            dAppResultItemDao.createOrUpdate(dAppRelease);
+            dAppDao.createOrUpdate(dapp);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -150,7 +132,7 @@ public class DappReleasesRepository {
     }
 
     public void createDbsIfNecessary() throws SQLException {
-        TableUtils.createTableIfNotExists(this.connectionSource, DAppRelease.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, DApp.class);
     }
 
 }
