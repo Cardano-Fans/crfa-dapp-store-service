@@ -20,6 +20,9 @@ public class DAppReleaseItem {
     @DatabaseField(id = true, canBeNull = false, index = true, columnName = "hash")
     String hash; // either script hash or mintPolicyId
 
+    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_id")
+    String dappId; // dapp id
+
     @DatabaseField(canBeNull = false, index = true, columnName = "release_key")
     String releaseKey; // e.g, CWpU1DBj.V1 // foreign key to dapp_release
 
@@ -33,6 +36,21 @@ public class DAppReleaseItem {
     @DatabaseField(canBeNull = false, columnName = "version")
     int version;
 
+//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_name")
+//    String dappName; // e.g, Meld
+//
+//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_full_name")
+//    String dappFullName;
+//
+//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_release_number")
+//    float dappReleaseNumber;
+//
+//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_release_name")
+//    String dappReleaseName;
+
+//    @DatabaseField(canBeNull = false, columnName = "dapp_type")
+//    DAppType dAppType;
+
     @DatabaseField(columnName = "contract_address")
     @Nullable
     String contractAddress;
@@ -41,15 +59,9 @@ public class DAppReleaseItem {
     @Nullable
     String mintPolicyID;
 
-    // total tvl for this dApp since beginning
-    @DatabaseField(columnName = "total_value_locked", index = true)
-    @Nullable // we don't always have total value locked, for instance for MINT scripts
-    // TODO
-    Long totalValueLocked; // value across all scripts per dApp
-
     @DatabaseField(columnName = "scripts_locked", index = true)
     @Nullable
-    Long scriptsLocked;
+    Long scriptsLocked; // for mint scripts we don't have scripts locked value
 
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "trx_count", index = true)

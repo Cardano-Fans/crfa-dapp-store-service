@@ -19,7 +19,6 @@ public class DbSyncService {
 
     public Map<String, Long> topScripts(int count) {
         return Mono.from(crfaDbSyncApi.topScripts(count)).block();
-        //return Map.of();
     }
 
     public Map<String, Long>  transactionsCount(List<String> addresses) {

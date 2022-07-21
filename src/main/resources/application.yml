@@ -12,4 +12,7 @@ micronaut:
 
 dryRunMode: false
 env: dev
-dbPath: crfa-cardano-dapp-store-dev.db
+dbPath-dapps: crfa-cardano-dapp-store-dapps-dev.db
+dbPath-dapps-releases: crfa-cardano-dapp-store-dapps-releases-dev.db
+dbPath-dapps-release-items: crfa-cardano-dapp-store-dapps-release-items-dev.db
+dbPath-dapps-ada-price: crfa-cardano-dapp-store-ada-price-dev.db

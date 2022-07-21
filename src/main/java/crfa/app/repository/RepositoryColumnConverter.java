@@ -34,6 +34,10 @@ public class RepositoryColumnConverter {
                 return Optional.of("full_name");
             }
 
+            if (sby == SortBy.RELEASE_NUMBER) {
+                return Optional.of("release_number");
+            }
+
             return decomposeSortBy(Optional.of(DEFAULT_SORT_BY));
         });
     }

@@ -21,7 +21,7 @@ public class AdaPriceRepository {
 
     private JdbcConnectionSource connectionSource;
 
-    @Value("${dbPath:crfa-dapp-releases-db-dev.db}")
+    @Value("${dbPath-dapps-ada-price:crfa-cardano-dapp-store-ada-price.db}")
     private String dbPath;
 
     private Dao<AdaPricePerDay, String> adaPricePerDayDao;

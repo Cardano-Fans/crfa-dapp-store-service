@@ -27,7 +27,7 @@ public class DappReleaseItemRepository {
 
     private JdbcConnectionSource connectionSource;
 
-    @Value("${dbPath:crfa-dapp-releases-db-dev.db}")
+    @Value("${dbPath-dapps-release-items:crfa-cardano-dapp-store-dapps-release-items.db}")
     private String dbPath;
 
     private Dao<DAppReleaseItem, String> dappReleaseItemDao;
@@ -65,6 +65,29 @@ public class DappReleaseItemRepository {
             return statementBuilder
                     .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
                     .where().eq("release_key", releaseKey)
+                    .query();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<DAppReleaseItem> listReleaseItems(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+        try {
+            var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
+            var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
+
+            if (decomposedSortBy.isEmpty()) {
+                throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
+            }
+            if (decomposedSortOrder.isEmpty()) {
+                throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
+            }
+
+            QueryBuilder<DAppReleaseItem, String> statementBuilder = dappReleaseItemDao.queryBuilder();
+
+            return statementBuilder
+                    .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);
