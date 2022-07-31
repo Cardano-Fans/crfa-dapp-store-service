@@ -29,14 +29,18 @@ public class ScriptItem {
 
     String mintPolicyID;
 
+    @Deprecated
     boolean hasContract;
 
+    @Deprecated
     boolean hasAudit;
 
     @Nullable
+    @Deprecated
     Audit audit;
 
     @Nullable
+    @Deprecated
     Contract contract;
 
 }

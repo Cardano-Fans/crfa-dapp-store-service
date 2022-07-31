@@ -10,7 +10,6 @@ import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RedissonClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -43,8 +42,8 @@ public class DappIngestionService {
     @Inject
     private DappService dappService;
 
-    @Inject
-    private RedissonClient redissonClient;
+//    @Inject
+//    private RedissonClient redissonClient;
 
     @Value("${dryRunMode:true}")
     private boolean dryRunMode;
@@ -202,19 +201,36 @@ public class DappIngestionService {
                 var totalInvocations = 0L;
                 var totalTransactionsCount = 0L;
 
+                Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
+                    dappRelease.setContractOpenSource(contract.getOpenSource());
+                    dappRelease.setContractLink(contract.getContractLink());
+                });
+
+                Optional.ofNullable(dappReleaseItem.getAudit()).ifPresent(audit -> {
+                    dappRelease.setAuditLink(audit.getAuditLink());
+                    dappRelease.setAuditor(audit.getAuditor());
+                    // todo audit type
+                });
+
                 for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
                     var contractAddress = scriptItem.getContractAddress();
 
-                    Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
-                        dappRelease.setAuditLink(audit.getAuditLink());
-                        dappRelease.setAuditor(audit.getAuditor());
-                        // todo audit type
-                    });
+                    // deprecated to remove - backwards compatibility for now
+                    if (dappReleaseItem.getAudit() == null) {
+                        Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
+                            dappRelease.setAuditLink(audit.getAuditLink());
+                            dappRelease.setAuditor(audit.getAuditor());
+                            // todo audit type
+                        });
+                    }
 
-                    Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
-                        dappRelease.setContractOpenSource(contract.getOpenSource());
-                        dappRelease.setContractLink(contract.getContractLink());
-                    });
+                    // deprecated to remove - backwards compatibility for now
+                    if (dappReleaseItem.getContract() == null) {
+                        Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
+                            dappRelease.setContractOpenSource(contract.getOpenSource());
+                            dappRelease.setContractLink(contract.getContractLink());
+                        });
+                    }
 
                     Long invocationsPerHash = null;
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
@@ -296,17 +312,35 @@ public class DappIngestionService {
                     var maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
                     boolean isLastVersion = Float.compare(dappReleaseItem.getReleaseNumber(), maxVersion) == 0;
 
-                    Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
+                    Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
+                        if (isLastVersion) {
+                            dapp.setLastVersionOpenSourced(contract.getOpenSource());
+                        }
+                    });
+
+                    Optional.ofNullable(dappReleaseItem.getAudit()).ifPresent(audit -> {
                         if (isLastVersion) {
                             dapp.setLastVersionAudited(audit.getAuditLink() != null);
                         }
                     });
 
-                    Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
-                        if (isLastVersion) {
-                            dapp.setLastVersionOpenSourced(contract.getOpenSource());
-                        }
-                    });
+                    // deprecated to remove - backwards compatibility for now
+                    if (dapp.getLastVersionAudited() == null) {
+                        Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
+                            if (isLastVersion) {
+                                dapp.setLastVersionAudited(audit.getAuditLink() != null);
+                            }
+                        });
+                    }
+
+                    // deprecated to remove - backwards compatibility for now
+                    if (dapp.getLastVersionOpenSourced() == null) {
+                        Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
+                            if (isLastVersion) {
+                                dapp.setLastVersionOpenSourced(contract.getOpenSource());
+                            }
+                        });
+                    }
 
                     Long invocationsPerHash = null;
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
