@@ -81,7 +81,7 @@ public class ScrollsService {
                 result = result / 1_000_000;
             }
 
-            log.info("Script locked for addr:{}, lockedAda:{}", addr, result);
+            log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
 
             lockedPerAddress.put(addr, result);
         });
