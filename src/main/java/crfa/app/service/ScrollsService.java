@@ -77,9 +77,11 @@ public class ScrollsService {
             var result= redissonClient.getAtomicLong("c1." + addr).get();
             log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
 
-            if (result != 0) {
+            if (result > 0) {
                 result = result / 1_000_000;
             }
+
+            log.info("Script locked for addr:{}, lockedAda:{}", addr, result);
 
             lockedPerAddress.put(addr, result);
         });
