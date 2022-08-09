@@ -25,6 +25,7 @@ public class ScriptItem {
 
     String contractAddress;
 
+    @Nullable
     String scriptHash;
 
     String mintPolicyID;
