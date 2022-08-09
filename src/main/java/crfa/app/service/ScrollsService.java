@@ -42,11 +42,20 @@ public class ScrollsService {
         scriptHashes.forEach(key -> {
             log.debug("Loading trx count for scriptHash:{}", key);
 
-            var c = redissonClient.getAtomicLong("c3.71" + key).get();
+            var c1 = redissonClient.getAtomicLong("c3.71" + key).get();
 
-            log.debug("Trx count for addr:{}, scriptHash:{}", key, c);
+            m.put(key, 0L);
 
-            m.put(key, c);
+            if (c1 > 0) {
+                log.debug("Trx(c1) count for addr:{}, scriptHash:{}", key, c1);
+                m.put(key, c1);
+            } else {
+                var c2 = redissonClient.getAtomicLong("c3.11" + key).get();
+
+                log.debug("Trx(c2) count for addr:{}, scriptHash:{}", key, c2);
+
+                m.put(key, c2);
+            }
         });
 
         return m;
