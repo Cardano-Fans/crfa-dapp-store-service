@@ -11,6 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @JsonIgnoreProperties
 @NoArgsConstructor
+@EqualsAndHashCode
 public class AddressPointers {
 
     @Nullable

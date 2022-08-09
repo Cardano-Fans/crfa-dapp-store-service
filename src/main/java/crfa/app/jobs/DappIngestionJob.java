@@ -13,7 +13,7 @@ public class DappIngestionJob {
     @Inject
     private DappIngestionService dappIngestionService;
 
-    @Scheduled(fixedDelay = "6h", initialDelay = "1m")
+    @Scheduled(fixedDelay = "5m", initialDelay = "5s")
     public void onScheduled() {
         log.info("Dapps update scheduled.");
 

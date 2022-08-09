@@ -10,14 +10,10 @@ import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Optional;
-
-import static java.lang.Integer.MAX_VALUE;
+import java.util.*;
 
 @Singleton
 @Slf4j
@@ -37,13 +33,13 @@ public class DappIngestionService {
     private CRFAMetaDataServiceClient crfaMetaDataServiceClient;
 
     @Inject
-    private DbSyncService dbSyncService;
+    private ScrollsService chainReaderService;
 
     @Inject
     private DappService dappService;
 
-//    @Inject
-//    private RedissonClient redissonClient;
+    @Inject
+    private RedissonClient redissonClient;
 
     @Value("${dryRunMode:true}")
     private boolean dryRunMode;
@@ -51,7 +47,8 @@ public class DappIngestionService {
     public DappFeed gatherDappDataFeed() {
         var dappSearchResult = Mono.from(crfaMetaDataServiceClient.fetchAllDapps()).block();
 
-        var dappReleaseIdAddressPointersMap = new HashMap<DappReleaseId, AddressPointers>();
+        var addressPointersList = new HashSet<AddressPointers>();
+        var mintPolicyIds = new ArrayList<String>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
@@ -63,6 +60,7 @@ public class DappIngestionService {
                 dappReleaseItem.getScripts().forEach(scriptItem -> {
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         dappReleaseId.setHash(scriptItem.getMintPolicyID());
+                        mintPolicyIds.add(scriptItem.getMintPolicyID());
                     } else if (scriptItem.getPurpose() == Purpose.SPEND) {
                         dappReleaseId.setHash(scriptItem.getScriptHash());
                     }
@@ -74,26 +72,36 @@ public class DappIngestionService {
                         addressPointer.setContractAddress(scriptItem.getContractAddress());
                     }
 
-                    dappReleaseIdAddressPointersMap.put(dappReleaseId, addressPointer);
+                    addressPointersList.add(addressPointer);
                 });
             });
 
         });
 
-        var invocationsCountPerScriptHash = dbSyncService.topScripts(MAX_VALUE);
-
-        var contractAddresses = dappReleaseIdAddressPointersMap.values().stream()
+        var contractAddresses = addressPointersList.stream()
                 .filter(addressPointers -> addressPointers.getContractAddress() != null)
                 .map(AddressPointers::getContractAddress)
                 .toList();
 
-        log.info("Loading locked per contract address....");
-        var scriptLockedPerContract = dbSyncService.scriptLocked(contractAddresses);
-        log.info("Loaded locked per contract addresses.");
+        var scriptHashes = addressPointersList.stream()
+                .filter(addressPointers -> addressPointers.getScriptHash() != null)
+                .map(AddressPointers::getScriptHash)
+                .toList();
 
-        log.info("Loading transaction counts....");
-        var trxCounts = dbSyncService.transactionsCount(contractAddresses);
-        log.info("Loaded trx counts.");
+        var mintPolicyCounts = chainReaderService.mintScriptsCount(mintPolicyIds);
+        var scriptHashesCount = chainReaderService.scriptHashesCount(scriptHashes);
+
+        var invocationsCountPerScriptHash = new HashMap<String, Long>();
+        invocationsCountPerScriptHash.putAll(mintPolicyCounts);
+        invocationsCountPerScriptHash.putAll(scriptHashesCount);
+
+        log.debug("Loading locked per contract address....");
+        var scriptLockedPerContract = chainReaderService.scriptLocked(contractAddresses);
+        log.debug("Loaded locked per contract addresses.");
+
+        log.debug("Loading transaction counts....");
+        var trxCounts = chainReaderService.transactionsCount(contractAddresses);
+        log.debug("Loaded trx counts.");
 
         return DappFeed.builder()
                 .dappSearchResult(dappSearchResult)
@@ -168,7 +176,7 @@ public class DappIngestionService {
 
                 if (!dryRunMode) {
                     items.forEach(dAppReleaseItem -> {
-                        log.info("Upserting, dapp item:{} - {}", dAppReleaseItem.getName(), dappReleaseItem.getReleaseName());
+                        log.debug("Upserting, dapp item:{} - {}", dAppReleaseItem.getName(), dappReleaseItem.getReleaseName());
                         dappReleaseItemRepository.updatedAppReleaseItem(dAppReleaseItem);
                     });
                 }
@@ -261,7 +269,6 @@ public class DappIngestionService {
                             log.warn("Unable to find scriptsLocked for contractAddress:{}", contractAddress);
                         }
 
-//                        var transactionsCount = redissonClient.getAtomicLong(String.format("transactions_by_contract_address.%s", contractAddress));
                         var trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
                         if (trxCount != null) {
                             totalTransactionsCount += trxCount;
@@ -276,7 +283,7 @@ public class DappIngestionService {
                 dappRelease.setTransactionsCount(totalTransactionsCount);
 
                 if (!dryRunMode) {
-                    log.info("Upserting, dappname:{} - {}", dappRelease.getName(), dappReleaseItem.getReleaseName());
+                    log.debug("Upserting, dappname:{} - {}", dappRelease.getName(), dappReleaseItem.getReleaseName());
 
                     dappReleasesRepository.upsertDAppRelease(dappRelease);
                 }
@@ -386,7 +393,7 @@ public class DappIngestionService {
                 dapp.setTransactionsCount(totalTransactionsCount);
 
                 if (!dryRunMode) {
-                    log.info("Upserting dapp, dappname:{}", dapp.getName());
+                    log.debug("Upserting dapp, dappname:{}", dapp.getName());
 
                     dappsRepository.upsertDApp(dapp);
                 }
