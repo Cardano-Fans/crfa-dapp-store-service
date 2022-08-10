@@ -33,7 +33,10 @@ public class DappIngestionService {
     private CRFAMetaDataServiceClient crfaMetaDataServiceClient;
 
     @Inject
-    private ScrollsService chainReaderService;
+    private ScrollsService scrollsService;
+
+    @Inject
+    private DbSyncService dbSyncService;
 
     @Inject
     private DappService dappService;
@@ -88,19 +91,19 @@ public class DappIngestionService {
                 .map(AddressPointers::getScriptHash)
                 .toList();
 
-        var mintPolicyCounts = chainReaderService.mintScriptsCount(mintPolicyIds);
-        var scriptHashesCount = chainReaderService.scriptHashesCount(scriptHashes);
+        var mintPolicyCounts = scrollsService.mintScriptsCount(mintPolicyIds);
+        var scriptHashesCount = scrollsService.scriptHashesCount(scriptHashes);
 
         var invocationsCountPerScriptHash = new HashMap<String, Long>();
         invocationsCountPerScriptHash.putAll(mintPolicyCounts);
         invocationsCountPerScriptHash.putAll(scriptHashesCount);
 
         log.debug("Loading locked per contract address....");
-        var scriptLockedPerContract = chainReaderService.scriptLocked(contractAddresses);
+        var scriptLockedPerContract = dbSyncService.scriptLocked(contractAddresses);
         log.debug("Loaded locked per contract addresses.");
 
         log.debug("Loading transaction counts....");
-        var trxCounts = chainReaderService.transactionsCount(contractAddresses);
+        var trxCounts = scrollsService.transactionsCount(contractAddresses);
         log.debug("Loaded trx counts.");
 
         return DappFeed.builder()
