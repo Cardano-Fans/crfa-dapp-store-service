@@ -5,6 +5,8 @@ import crfa.app.domain.Purpose;
 import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
+import java.util.List;
+
 @Builder
 @Getter
 @ToString
@@ -43,5 +45,8 @@ public class ScriptItem {
     @Nullable
     @Deprecated
     Contract contract;
+
+    @Nullable
+    List<String> tokenHolders;
 
 }
