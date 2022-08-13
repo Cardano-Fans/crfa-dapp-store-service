@@ -19,4 +19,8 @@ public class DappFeed {
     Map<String, Long> scriptLockedPerContractAddress;
     Map<String, Long> transactionCountsPerContractAddress;
 
+    // for WingRinders we need a special case that a mintPolicyId is in fact a link to token holders addresses
+    // here a key represents MintPolicyId and value as Long represents sum of ADA balance for all of token holders
+    Map<String, Long> tokenHoldersBalance;
+
 }

@@ -14,6 +14,7 @@ import org.redisson.api.RedissonClient;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Singleton
 @Slf4j
@@ -52,6 +53,7 @@ public class DappIngestionService {
 
         var addressPointersList = new HashSet<AddressPointers>();
         var mintPolicyIds = new ArrayList<String>();
+        var mintPolicyIdsToTokenHolders = new HashMap<String, List<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
@@ -64,6 +66,9 @@ public class DappIngestionService {
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         dappReleaseId.setHash(scriptItem.getMintPolicyID());
                         mintPolicyIds.add(scriptItem.getMintPolicyID());
+                        if (scriptItem.getTokenHolders() != null) {
+                            mintPolicyIdsToTokenHolders.put(scriptItem.getMintPolicyID(), scriptItem.getTokenHolders());
+                        }
                     } else if (scriptItem.getPurpose() == Purpose.SPEND) {
                         dappReleaseId.setHash(scriptItem.getScriptHash());
                     }
@@ -106,11 +111,27 @@ public class DappIngestionService {
         var trxCounts = scrollsService.transactionsCount(contractAddresses);
         log.debug("Loaded trx counts.");
 
+        // handling special case for WingRiders and when mintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
+        var tokenHoldersMintPolicyIdToAdaBalance = mintPolicyIdsToTokenHolders.entrySet().stream()
+                .map(e -> {
+                    var mintPolicyId = e.getKey();
+                    var addresses = e.getValue();
+                    var balanceMap = dbSyncService.scriptLocked(addresses);
+                    var adaBalance = balanceMap.values().stream().reduce(0L, Long::sum);
+
+                    return new AbstractMap.SimpleEntry<>(mintPolicyId, adaBalance);
+                })
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ));
+
         return DappFeed.builder()
                 .dappSearchResult(dappSearchResult)
                 .scriptLockedPerContractAddress(scriptLockedPerContract)
                 .invocationsCountPerHash(invocationsCountPerScriptHash)
                 .transactionCountsPerContractAddress(trxCounts)
+                .tokenHoldersBalance(tokenHoldersMintPolicyIdToAdaBalance)
                 .build();
     }
 
@@ -152,6 +173,11 @@ public class DappIngestionService {
                         newDappReleaseItem.setScriptType(ScriptType.MINT);
                         newDappReleaseItem.setHash(scriptItem.getMintPolicyID());
                         newDappReleaseItem.setMintPolicyID(scriptItem.getMintPolicyID());
+                        if (dappFeed.getTokenHoldersBalance() != null && dappFeed.getTokenHoldersBalance().get(mintPolicyID) != null) {
+                            var adaBalance = dappFeed.getTokenHoldersBalance().get(mintPolicyID);
+                            log.info("setting script balance for mintPolicyId:{}, ada balance:{}", mintPolicyID, adaBalance);
+                            newDappReleaseItem.setScriptsLocked(adaBalance);
+                        }
                     }
 
                     if (invocationsPerHash != null) {
@@ -277,10 +303,17 @@ public class DappIngestionService {
                             totalTransactionsCount += trxCount;
                         }
                     }
+                    if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT) {
+                        var adaBalance = dappFeed.getTokenHoldersBalance().get(scriptItem.getMintPolicyID());
+                        if (adaBalance != null) {
+                            log.info("Setting ada balance:{}, for mintPolicyId:{}", adaBalance, scriptItem.getMintPolicyID());
+                            totalScriptsLocked += adaBalance;
+                        }
+                    }
                 }
 
                 dappRelease.setScriptInvocationsCount(totalInvocations);
-                // TODO
+                // TODO - TVL
                 dappRelease.setTotalValueLocked(0L);
                 dappRelease.setScriptsLocked(totalScriptsLocked);
                 dappRelease.setTransactionsCount(totalTransactionsCount);
@@ -385,6 +418,14 @@ public class DappIngestionService {
                         var trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
                         if (trxCount != null) {
                             totalTransactionsCount += trxCount;
+                        }
+                    }
+
+                    if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT) {
+                        var adaBalance = dappFeed.getTokenHoldersBalance().get(scriptItem.getMintPolicyID());
+                        if (adaBalance != null) {
+                            log.info("Setting ada balance:{}, for mintPolicyId:{}", adaBalance, scriptItem.getMintPolicyID());
+                            totalScriptsLocked += adaBalance;
                         }
                     }
                 }

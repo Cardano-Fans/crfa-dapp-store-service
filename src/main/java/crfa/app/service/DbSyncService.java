@@ -17,28 +17,9 @@ public class DbSyncService {
     @Inject
     private CRFADbSyncApi crfaDbSyncApi;
 
-    public Map<String, Long> topScripts(int count) {
-        return Mono.from(crfaDbSyncApi.topScripts(count)).block();
-    }
-
-    public Map<String, Long>  transactionsCount(List<String> addresses) {
-        var transactionCountPerAddr = new HashMap<String, Long>();
-
-        addresses.forEach(addr -> {
-            log.info("Loading trx count for addr:{}", addr);
-
-            var result= Mono.from(crfaDbSyncApi.transactionsCount(addr)).block();
-            var trxCount = result.getOrDefault("transactionsCount", 0L);
-            log.info("Trx count for addr:{}, trxCount:{}", addr, trxCount);
-
-            transactionCountPerAddr.put(addr, trxCount);
-        });
-
-        return transactionCountPerAddr;
-    }
-
+    @Deprecated
     public Map<String, Long> scriptLocked(List<String> addresses) {
-        log.info("Loading script locked values for addresses count:" + addresses.size());
+        log.info("Loading script locked values for addresses count:{}", addresses.size());
 
         var lockedPerAddress = new HashMap<String, Long>();
 
@@ -51,6 +32,8 @@ public class DbSyncService {
 
             lockedPerAddress.put(addr, lockedAda);
         });
+
+        log.info("loaded script locked values for address count:{}", addresses.size());
 
         return lockedPerAddress;
     }
