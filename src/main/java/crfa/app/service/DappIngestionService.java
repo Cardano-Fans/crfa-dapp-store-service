@@ -10,7 +10,6 @@ import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RedissonClient;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
@@ -41,9 +40,6 @@ public class DappIngestionService {
 
     @Inject
     private DappService dappService;
-
-    @Inject
-    private RedissonClient redissonClient;
 
     @Value("${dryRunMode:true}")
     private boolean dryRunMode;
@@ -104,7 +100,7 @@ public class DappIngestionService {
         invocationsCountPerScriptHash.putAll(scriptHashesCount);
 
         log.debug("Loading locked per contract address....");
-        var scriptLockedPerContract = dbSyncService.scriptLocked(contractAddresses);
+        var scriptLockedPerContract = scrollsService.scriptLocked(contractAddresses);
         log.debug("Loaded locked per contract addresses.");
 
         log.debug("Loading transaction counts....");
@@ -116,7 +112,7 @@ public class DappIngestionService {
                 .map(e -> {
                     var mintPolicyId = e.getKey();
                     var addresses = e.getValue();
-                    var balanceMap = dbSyncService.scriptLocked(addresses);
+                    var balanceMap = scrollsService.scriptLocked(addresses);
                     var adaBalance = balanceMap.values().stream().reduce(0L, Long::sum);
 
                     return new AbstractMap.SimpleEntry<>(mintPolicyId, adaBalance);
@@ -414,7 +410,6 @@ public class DappIngestionService {
                             log.warn("Unable to find scriptsLocked for contractAddress:{}", contractAddress);
                         }
 
-//                        var transactionsCount = redissonClient.getAtomicLong(String.format("transactions_by_contract_address.%s", contractAddress));
                         var trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
                         if (trxCount != null) {
                             totalTransactionsCount += trxCount;
