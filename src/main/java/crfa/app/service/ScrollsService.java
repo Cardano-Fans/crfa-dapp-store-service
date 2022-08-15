@@ -83,16 +83,20 @@ public class ScrollsService {
         addresses.forEach(addr -> {
             log.debug("Loading script locked addr:{}", addr);
 
-            var result= redissonClient.getAtomicLong("c1." + addr).get();
-            log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
+            var r = redissonClient.getAtomicLong("c1." + addr);
 
-            if (result > 0) {
-                result = result / 1_000_000;
+            if (r.isExists()) {
+                var result= redissonClient.getAtomicLong("c1." + addr).get();
+                log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
+
+                if (result > 0) {
+                    result = result / 1_000_000;
+                }
+
+                log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
+
+                lockedPerAddress.put(addr, result);
             }
-
-            log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
-
-            lockedPerAddress.put(addr, result);
         });
 
         return lockedPerAddress;

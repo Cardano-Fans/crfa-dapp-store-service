@@ -1,11 +1,13 @@
 package crfa.app.service;
 
+import crfa.app.client.blockfrost.BlockfrostAPI;
 import crfa.app.client.metadata.CRFAMetaDataServiceClient;
 import crfa.app.client.metadata.ScriptItem;
 import crfa.app.domain.*;
 import crfa.app.repository.DappReleaseItemRepository;
 import crfa.app.repository.DappReleasesRepository;
 import crfa.app.repository.DappsRepository;
+import io.blockfrost.sdk.api.exception.APIException;
 import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -33,6 +35,9 @@ public class DappIngestionService {
     private CRFAMetaDataServiceClient crfaMetaDataServiceClient;
 
     @Inject
+    private BlockfrostAPI blockfrostAPI;
+
+    @Inject
     private ScrollsService scrollsService;
 
     @Inject
@@ -45,11 +50,13 @@ public class DappIngestionService {
     private boolean dryRunMode;
 
     public DappFeed gatherDappDataFeed() {
+        log.info("metadata service - fetching all dapps...");
         var dappSearchResult = Mono.from(crfaMetaDataServiceClient.fetchAllDapps()).block();
+        log.info("metadata service - fetched all dapps.");
 
         var addressPointersList = new HashSet<AddressPointers>();
         var mintPolicyIds = new ArrayList<String>();
-        var mintPolicyIdsToTokenHolders = new HashMap<String, List<String>>();
+        var mintPolicyIdsToTokenHolders = new HashMap<String, Set<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
@@ -62,8 +69,15 @@ public class DappIngestionService {
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         dappReleaseId.setHash(scriptItem.getMintPolicyID());
                         mintPolicyIds.add(scriptItem.getMintPolicyID());
-                        if (scriptItem.getTokenHolders() != null) {
-                            mintPolicyIdsToTokenHolders.put(scriptItem.getMintPolicyID(), scriptItem.getTokenHolders());
+                        if (scriptItem.getTokenHolders() != null) { // TODO for the moment we are not using token holders from metadata service
+                            try {
+                                log.info("Fetching holders for mintPolicyId:" + scriptItem.getMintPolicyID());
+                                var tokenHolders = blockfrostAPI.tokenHolders(scriptItem.getMintPolicyID());
+                                log.info("got holders count:{}", tokenHolders.size());
+                                mintPolicyIdsToTokenHolders.put(scriptItem.getMintPolicyID(), tokenHolders);
+                            } catch (APIException e) {
+                                throw new RuntimeException("blockfrost exception, unable to fetch token holders", e);
+                            }
                         }
                     } else if (scriptItem.getPurpose() == Purpose.SPEND) {
                         dappReleaseId.setHash(scriptItem.getScriptHash());
@@ -106,6 +120,7 @@ public class DappIngestionService {
         log.debug("Loading transaction counts....");
         var trxCounts = scrollsService.transactionsCount(contractAddresses);
         log.debug("Loaded trx counts.");
+
 
         // handling special case for WingRiders and when mintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
         var tokenHoldersMintPolicyIdToAdaBalance = mintPolicyIdsToTokenHolders.entrySet().stream()
