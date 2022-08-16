@@ -24,14 +24,11 @@ public class BlockfrostAPI {
     @Value("${blockfrost-projectId:}")
     private String blockfrostProjectId;
 
-    public Set<String> tokenHolders(String policyId) throws APIException {
-        if (policyId.equalsIgnoreCase("026a18d04a0c642759bb3d83b12e3344894e5c1c7b2aeb1a2113a570")) {
-            return assetService.getAllAssetAddresses("026a18d04a0c642759bb3d83b12e3344894e5c1c7b2aeb1a2113a5704c")
-                    .stream().map(AssetAddress::getAddress)
-                    .collect(Collectors.toSet());
-        }
+    public Set<String> tokenHolders(String assetHex) throws APIException {
 
-        return Set.of();
+        return assetService.getAllAssetAddresses(assetHex)
+                .stream().map(AssetAddress::getAddress)
+                .collect(Collectors.toSet());
     }
 
     @EventListener

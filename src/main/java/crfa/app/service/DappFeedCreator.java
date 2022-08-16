@@ -9,6 +9,7 @@ import crfa.app.domain.Purpose;
 import crfa.app.repository.DappReleaseItemRepository;
 import crfa.app.repository.DappReleasesRepository;
 import crfa.app.repository.DappsRepository;
+import crfa.app.utils.MoreHex;
 import io.blockfrost.sdk.api.exception.APIException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -50,7 +51,7 @@ public class DappFeedCreator {
 
         var addressPointersList = new HashSet<AddressPointers>();
         var mintPolicyIds = new ArrayList<String>();
-        var mintPolicyIdsToTokenHolders = new HashMap<String, Set<String>>();
+        var assetNameHexesToTokenHolders = new HashMap<String, Set<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
@@ -63,12 +64,15 @@ public class DappFeedCreator {
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         dappReleaseId.setHash(scriptItem.getMintPolicyID());
                         mintPolicyIds.add(scriptItem.getMintPolicyID());
-                        if (scriptItem.getTokenHolders() != null) { // TODO for the moment we are not using token holders from metadata service
+                        if (scriptItem.getIncludeScriptBalanceFromAsset() != null) {
                             try {
-                                log.info("Fetching holders for mintPolicyId:" + scriptItem.getMintPolicyID());
-                                var tokenHolders = blockfrostAPI.tokenHolders(scriptItem.getMintPolicyID());
+                                var assetNameHex = scriptItem.getAssetNameAsHex().get();
+                                log.info("Fetching holders for assetNameHex:" + assetNameHex);
+
+                                var tokenHolders = blockfrostAPI.tokenHolders(assetNameHex);
+
                                 log.info("got holders count:{}", tokenHolders.size());
-                                mintPolicyIdsToTokenHolders.put(scriptItem.getMintPolicyID(), tokenHolders);
+                                assetNameHexesToTokenHolders.put(assetNameHex, tokenHolders);
                             } catch (APIException e) {
                                 throw new RuntimeException("blockfrost exception, unable to fetch token holders", e);
                             }
@@ -116,15 +120,15 @@ public class DappFeedCreator {
         log.debug("Loaded trx counts.");
 
 
-        // handling special case for WingRiders and when mintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
-        var tokenHoldersMintPolicyIdToAdaBalance = mintPolicyIdsToTokenHolders.entrySet().stream()
+        // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
+        var tokenHoldersAssetNamesHexToAdaBalance = assetNameHexesToTokenHolders.entrySet().stream()
                 .map(e -> {
-                    var mintPolicyId = e.getKey();
+                    var assetNameHex = e.getKey();
                     var addresses = e.getValue();
                     var balanceMap = scrollsService.scriptLocked(addresses);
                     var adaBalance = balanceMap.values().stream().reduce(0L, Long::sum);
 
-                    return new AbstractMap.SimpleEntry<>(mintPolicyId, adaBalance);
+                    return new AbstractMap.SimpleEntry<>(assetNameHex, adaBalance);
                 })
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -136,7 +140,7 @@ public class DappFeedCreator {
                 .scriptLockedPerContractAddress(scriptLockedPerContract)
                 .invocationsCountPerHash(invocationsCountPerScriptHash)
                 .transactionCountsPerContractAddress(trxCounts)
-                .tokenHoldersBalance(tokenHoldersMintPolicyIdToAdaBalance)
+                .tokenHoldersBalance(tokenHoldersAssetNamesHexToAdaBalance)
                 .build();
     }
 

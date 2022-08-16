@@ -62,10 +62,13 @@ public class ReleaseItemsFeedProcessor implements FeedProcessor {
                         newDappReleaseItem.setScriptType(ScriptType.MINT);
                         newDappReleaseItem.setHash(scriptItem.getMintPolicyID());
                         newDappReleaseItem.setMintPolicyID(scriptItem.getMintPolicyID());
-                        if (dappFeed.getTokenHoldersBalance() != null && dappFeed.getTokenHoldersBalance().get(mintPolicyID) != null) {
-                            var adaBalance = dappFeed.getTokenHoldersBalance().get(mintPolicyID);
-                            log.info("setting script balance for mintPolicyId:{}, ada balance:{}", mintPolicyID, adaBalance);
-                            newDappReleaseItem.setScriptsLocked(adaBalance);
+                        if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getAssetNameAsHex().isPresent()) {
+                            var assetMameHex =  scriptItem.getAssetNameAsHex().get();
+                            var adaBalance = dappFeed.getTokenHoldersBalance().get(assetMameHex);
+                            if (adaBalance != null) {
+                                log.info("setting script balance for assetMameHex:{}, ada balance:{}", assetMameHex, adaBalance);
+                                newDappReleaseItem.setScriptsLocked(adaBalance);
+                            }
                         }
                     }
 

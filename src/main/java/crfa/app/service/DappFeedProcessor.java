@@ -120,10 +120,11 @@ public class DappFeedProcessor implements FeedProcessor {
                         }
                     }
 
-                    if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT) {
-                        var adaBalance = dappFeed.getTokenHoldersBalance().get(scriptItem.getMintPolicyID());
+                    if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetNameAsHex().isPresent()) {
+                        final var assetNameHex = scriptItem.getAssetNameAsHex().get();
+                        var adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
                         if (adaBalance != null) {
-                            log.info("Setting ada balance:{}, for mintPolicyId:{}", adaBalance, scriptItem.getMintPolicyID());
+                            log.info("Setting ada balance:{}, for assetNameHex:{}", adaBalance, assetNameHex);
                             totalScriptsLocked += adaBalance;
                         }
                     }

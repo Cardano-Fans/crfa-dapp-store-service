@@ -2,10 +2,11 @@ package crfa.app.client.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import crfa.app.domain.Purpose;
+import crfa.app.utils.MoreHex;
 import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
-import java.util.List;
+import java.util.Optional;
 
 @Builder
 @Getter
@@ -47,6 +48,11 @@ public class ScriptItem {
     Contract contract;
 
     @Nullable
-    List<String> tokenHolders;
+    String includeScriptBalanceFromAsset;
+
+    public Optional<String> getAssetNameAsHex() {
+        return Optional.ofNullable(includeScriptBalanceFromAsset)
+                .map(asset -> String.format("%s%s", mintPolicyID, MoreHex.toHex(asset)));
+    }
 
 }
