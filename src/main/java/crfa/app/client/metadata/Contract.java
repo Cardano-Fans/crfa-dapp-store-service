@@ -8,7 +8,7 @@ import lombok.*;
 @ToString
 @Setter
 @AllArgsConstructor
-@JsonIgnoreProperties
+@JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
 public class Contract {
 

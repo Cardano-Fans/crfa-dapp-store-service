@@ -1,5 +1,6 @@
 package crfa.app.jobs;
 
+import crfa.app.service.DappFeedCreator;
 import crfa.app.service.DappIngestionService;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
@@ -13,25 +14,18 @@ public class DappIngestionJob {
     @Inject
     private DappIngestionService dappIngestionService;
 
+    @Inject
+    private DappFeedCreator dappFeedCreator;
+
     @Scheduled(fixedDelay = "15m", initialDelay = "5s")
     public void onScheduled() {
         log.info("Dapps update scheduled.");
 
         log.info("Gathering data feed...");
-        var dataFeed = dappIngestionService.gatherDappDataFeed();
+        var dataFeed = dappFeedCreator.createFeed();
         log.info("Got data feed.");
 
-        log.info("Upserting dapp releases...");
-        dappIngestionService.upsertDappReleases(dataFeed);
-        log.info("Upserted dapp releases.");
-
-        log.info("Upserting dapp release items...");
-        dappIngestionService.upsertDappReleaseItems(dataFeed);
-        log.info("Upserted dapp release items.");
-
-        log.info("Upserting dapps...");
-        dappIngestionService.upsertDapps(dataFeed);
-        log.info("Upserted dapps.");
+        dappIngestionService.process(dataFeed);
 
         log.info("Dapps update completed.");
     }

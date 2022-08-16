@@ -11,7 +11,7 @@ import java.util.List;
 @ToString
 @Setter
 @AllArgsConstructor
-@JsonIgnoreProperties
+@JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
 public class DappReleaseItem {
 

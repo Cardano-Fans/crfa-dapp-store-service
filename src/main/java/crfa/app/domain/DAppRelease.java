@@ -53,12 +53,6 @@ public class DAppRelease {
     @DatabaseField(columnName = "sub_category")
     String subCategory; // e.g. LENDING_DAPP
 
-    // total tvl for this dApp since beginning
-    @DatabaseField(columnName = "total_value_locked", index = true)
-    @Nullable // we don't always have total value locked, for instance for MINT scripts
-    // TODO
-    Long totalValueLocked; // value across all scripts per dApp
-
     @DatabaseField(columnName = "scripts_locked", index = true)
     @Nullable
     Long scriptsLocked;

@@ -27,9 +27,6 @@ public class RepositoryColumnConverter {
             if (sby == SortBy.TRANSACTIONS_COUNT) {
                 return Optional.of("trx_count");
             }
-            if (sby == SortBy.TOTAL_VALUE_LOCKED) {
-                return Optional.of("total_value_locked");
-            }
             if (sby == SortBy.FULL_NAME) {
                 return Optional.of("full_name");
             }
