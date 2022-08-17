@@ -3,7 +3,7 @@ plugins {
     id("io.micronaut.application") version "3.5.0"
 }
 
-version = "0.5.1"
+version = "0.5.3"
 
 group = "crfa.app"
 
@@ -13,7 +13,7 @@ repositories {
 }
 
 micronaut {
-    runtime("jetty")
+    runtime("netty")
     testRuntime("junit5")
     processing {
         incremental(true)

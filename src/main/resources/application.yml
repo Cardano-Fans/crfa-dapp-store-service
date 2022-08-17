@@ -1,4 +1,8 @@
 micronaut:
+  executors:
+    io:
+      type: cached
+      nThreads: 75
   http:
     client:
       read-timeout: 25m
@@ -7,8 +11,12 @@ micronaut:
 
   application:
     name: crfa-dapp-store-service
+
   server:
     port: 8080
+    netty:
+      access-logger:
+        enabled: true
 
 dryRunMode: false
 env: dev
