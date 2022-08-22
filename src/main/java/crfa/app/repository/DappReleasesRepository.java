@@ -66,43 +66,6 @@ public class DappReleasesRepository {
         }
     }
 
-    public Long totalScriptsLocked() {
-        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
-
-        try {
-            return statementBuilder.query()
-                    .stream().map(DAppRelease::getScriptsLocked).reduce(0L, Long::sum);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Long totalContractTransactionsCount() {
-        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
-
-        try {
-            return statementBuilder
-                    .query()
-                    .stream().map(DAppRelease::getTransactionsCount).reduce(0L, Long::sum);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Long totalScriptInvocations() {
-        QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();
-
-        try {
-            return statementBuilder.query()
-                    .stream().map(DAppRelease::getScriptInvocationsCount).reduce(0L, Long::sum);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
     public Optional<DAppRelease> findByReleaseKey(String releaseKey) {
         try {
             QueryBuilder<DAppRelease, String> statementBuilder = dAppResultItemDao.queryBuilder();

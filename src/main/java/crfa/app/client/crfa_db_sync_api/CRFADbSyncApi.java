@@ -18,10 +18,4 @@
 //    @Get("/top_scripts/{count}")
 //    Publisher<Map<String, Long>> topScripts(int count);
 //
-//    @Get("/script_locked/{addr}")
-//    Publisher<Map<String, Long>> scriptLocked(String addr);
-//
-//    @Get("/transactions_count/{addr}")
-//    Publisher<Map<String, Long>> transactionsCount(String addr);
-//
 //}

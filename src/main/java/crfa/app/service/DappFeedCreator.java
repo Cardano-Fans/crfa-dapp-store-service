@@ -9,7 +9,6 @@ import crfa.app.domain.Purpose;
 import crfa.app.repository.DappReleaseItemRepository;
 import crfa.app.repository.DappReleasesRepository;
 import crfa.app.repository.DappsRepository;
-import crfa.app.utils.MoreHex;
 import io.blockfrost.sdk.api.exception.APIException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -39,7 +38,7 @@ public class DappFeedCreator {
     private BlockfrostAPI blockfrostAPI;
 
     @Inject
-    private ScrollsService scrollsService;
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     @Inject
     private DappService dappService;
@@ -104,19 +103,19 @@ public class DappFeedCreator {
                 .map(AddressPointers::getScriptHash)
                 .toList();
 
-        var mintPolicyCounts = scrollsService.mintScriptsCount(mintPolicyIds);
-        var scriptHashesCount = scrollsService.scriptHashesCount(scriptHashes);
+        var mintPolicyCounts = scrollsOnChainDataService.mintScriptsCount(mintPolicyIds);
+        var scriptHashesCount = scrollsOnChainDataService.scriptHashesCount(scriptHashes, true);
 
         var invocationsCountPerScriptHash = new HashMap<String, Long>();
         invocationsCountPerScriptHash.putAll(mintPolicyCounts);
         invocationsCountPerScriptHash.putAll(scriptHashesCount);
 
         log.debug("Loading locked per contract address....");
-        var scriptLockedPerContract = scrollsService.scriptLocked(contractAddresses);
+        var scriptLockedPerContract = scrollsOnChainDataService.scriptLocked(contractAddresses);
         log.debug("Loaded locked per contract addresses.");
 
         log.debug("Loading transaction counts....");
-        var trxCounts = scrollsService.transactionsCount(contractAddresses);
+        var trxCounts = scrollsOnChainDataService.transactionsCount(contractAddresses);
         log.debug("Loaded trx counts.");
 
 
@@ -125,7 +124,7 @@ public class DappFeedCreator {
                 .map(e -> {
                     var assetNameHex = e.getKey();
                     var addresses = e.getValue();
-                    var balanceMap = scrollsService.scriptLocked(addresses);
+                    var balanceMap = scrollsOnChainDataService.scriptLocked(addresses);
                     var adaBalance = balanceMap.values().stream().reduce(0L, Long::sum);
 
                     return new AbstractMap.SimpleEntry<>(assetNameHex, adaBalance);

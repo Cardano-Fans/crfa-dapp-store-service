@@ -117,7 +117,7 @@ public class DappsResource {
 
         var dappRelease = maybeDappRelease.get();
 
-        var releaseItems = dappReleaseItemRepository.listReleaseItems(releaseKey, sortBy, sortOrder);
+        var releaseItems = dappReleaseItemRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder);
 
         return DappScriptsResponse.builder()
                 .release(dappRelease)

@@ -36,21 +36,6 @@ public class DAppReleaseItem {
     @DatabaseField(canBeNull = false, columnName = "version")
     int version;
 
-//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_name")
-//    String dappName; // e.g, Meld
-//
-//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_full_name")
-//    String dappFullName;
-//
-//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_release_number")
-//    float dappReleaseNumber;
-//
-//    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_release_name")
-//    String dappReleaseName;
-
-//    @DatabaseField(canBeNull = false, columnName = "dapp_type")
-//    DAppType dAppType;
-
     @DatabaseField(columnName = "contract_address")
     @Nullable
     String contractAddress;

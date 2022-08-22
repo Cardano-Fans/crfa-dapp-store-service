@@ -48,7 +48,7 @@ public class DappReleaseItemRepository {
         createDbsIfNecessary();
     }
 
-    public List<DAppReleaseItem> listReleaseItems(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DAppReleaseItem> listReleaseItemsByReleaseKey(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         try {
             var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
             var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
@@ -91,6 +91,14 @@ public class DappReleaseItemRepository {
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<DAppReleaseItem> listReleaseItems() {
+        try {
+            return listReleaseItems(Optional.empty(), Optional.empty());
+        } catch (InvalidParameterException e) {
             throw new RuntimeException(e);
         }
     }

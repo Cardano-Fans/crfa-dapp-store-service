@@ -5,13 +5,11 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Singleton
 @Slf4j
-public class ScrollsService {
+public class ScrollsOnChainDataService {
 
     @Inject
     private RedissonClient redissonClient;
@@ -34,7 +32,7 @@ public class ScrollsService {
         return m;
     }
 
-    public Map<String, Long> scriptHashesCount(Collection<String> scriptHashes) {
+    public Map<String, Long> scriptHashesCount(Collection<String> scriptHashes, boolean appendPrefix) {
         log.info("loading scriptHashes counts...");
 
         var m = new HashMap<String, Long>();
@@ -42,7 +40,9 @@ public class ScrollsService {
         scriptHashes.forEach(key -> {
             log.debug("Loading trx count for scriptHash:{}", key);
 
-            var c1 = redissonClient.getAtomicLong("c3.71" + key).get();
+            var firstPrefix = appendPrefix ? ".71" : "";
+
+            var c1 = redissonClient.getAtomicLong("c3" + firstPrefix + key).get();
 
             m.put(key, 0L);
 
@@ -50,11 +50,22 @@ public class ScrollsService {
                 log.debug("Trx(c1) count for addr:{}, scriptHash:{}", key, c1);
                 m.put(key, c1);
             } else {
-                var c2 = redissonClient.getAtomicLong("c3.11" + key).get();
+                var secondPrefix = appendPrefix ? ".11" : "";
+                var c2 = redissonClient.getAtomicLong("c3" + secondPrefix + key).get();
 
                 log.debug("Trx(c2) count for addr:{}, scriptHash:{}", key, c2);
+                if (c2 > 0) {
+                    m.put(key, c2);
+                } else {
+                    var thirdPrefix = appendPrefix ? ".31" : "";
+                    var c3 = redissonClient.getAtomicLong("c3" + thirdPrefix + key).get();
 
-                m.put(key, c2);
+                    if (c3 > 0) {
+                        log.debug("c3-31 hash:{} count:{}", key, c3);
+                    }
+
+                    m.put(key, c3);
+                }
             }
         });
 
@@ -100,6 +111,32 @@ public class ScrollsService {
         });
 
         return lockedPerAddress;
+    }
+
+    public Set<String> listScriptHashes() {
+        final var scriptHashesIterable = redissonClient.getKeys().getKeysByPattern("c3.*");
+
+        var result = new HashSet<String>();
+        for (var hash : scriptHashesIterable) {
+            final var curratedHash = hash.replaceAll("c3.71", "").
+                    replaceAll("c3.11", "")
+                    .replaceAll("c3.31", "");
+
+            result.add(curratedHash);
+        }
+
+        return result;
+    }
+
+    public Set<String> listMintHashes() {
+        final var mintPolicyIdsIteable = redissonClient.getKeys().getKeysByPattern("c4.*");
+
+        var result = new HashSet<String>();
+        for (var hash : mintPolicyIdsIteable) {
+            result.add(hash.replace("c4.", ""));
+        }
+
+        return result;
     }
 
 }
