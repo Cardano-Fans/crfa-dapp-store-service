@@ -6,6 +6,7 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.table.TableUtils;
 import crfa.app.domain.ScriptStats;
+import crfa.app.domain.ScriptStatsType;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
@@ -52,12 +53,13 @@ public class ScriptHashesStatsRepository {
         }
     }
 
-    public List<ScriptStats> listScriptStatsOrderedByTransactionCount() {
+    public List<ScriptStats> listScriptStatsOrderedByTransactionCount(ScriptStatsType type) {
         try {
             QueryBuilder<ScriptStats, String> statementBuilder = dao.queryBuilder();
 
             return statementBuilder
-                    .orderBy("transaction_count", false)
+                    .orderBy("count", false)
+                    .where().eq("type", type)
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);

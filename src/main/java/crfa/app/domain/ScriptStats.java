@@ -15,10 +15,13 @@ public class ScriptStats {
     @DatabaseField(id = true, columnName = "script_hash")
     private String scriptHash;
 
-    @DatabaseField(canBeNull = false, columnName = "transaction_count")
-    private Long transactionCount;
+    @DatabaseField(canBeNull = false, columnName = "count")
+    private Long count;
 
     @DatabaseField(canBeNull = false, columnName = "script_type")
     private ScriptType scriptType;
+
+    @DatabaseField(canBeNull = false, columnName = "type", index = true)
+    private ScriptStatsType type;
 
 }

@@ -1,6 +1,8 @@
 package crfa.app.jobs;
 
+import crfa.app.client.crfa_db_sync_api.CRFADbSyncApi;
 import crfa.app.domain.ScriptStats;
+import crfa.app.domain.ScriptStatsType;
 import crfa.app.repository.DappReleaseItemRepository;
 import crfa.app.repository.ScriptHashesStatsRepository;
 import crfa.app.service.ScrollsOnChainDataService;
@@ -8,6 +10,7 @@ import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 import static crfa.app.domain.ScriptType.SPEND;
 
@@ -24,8 +27,16 @@ public class ScriptHashesJob {
     @Inject
     private DappReleaseItemRepository releaseItemsRepository;
 
+    @Inject
+    private CRFADbSyncApi crfaDbSyncApi;
+
     @Scheduled(fixedDelay = "1h", initialDelay = "5m")
     public void scriptStatsJob() {
+        //processScrolls();
+        processDbSync();
+    }
+
+    private void processScrolls() {
         log.info("loading scriptStats...");
 
         log.info("loading scriptHashes...");
@@ -57,7 +68,8 @@ public class ScriptHashesJob {
                 var scriptStats = ScriptStats.builder()
                         .scriptHash(key)
                         .scriptType(SPEND)
-                        .transactionCount(value)
+                        .count(value)
+                        .type(ScriptStatsType.SCROLLS)
                         .build();
 
                 //log.info("script hash:{} missing, inserting:{}", key, scriptStats);
@@ -95,6 +107,33 @@ public class ScriptHashesJob {
 //        });
 
         log.info("script hashes stats job completed.");
+    }
+
+    private void processDbSync() {
+        var listReleaseItems = releaseItemsRepository.listReleaseItems();
+        final var count = (long) listReleaseItems.size();
+
+        if (count == 0) {
+            log.warn("Job finished, empty script release items db!");
+            return;
+        }
+
+        var map = Mono.from(crfaDbSyncApi.topScripts(5000)).block();
+
+        map.forEach((key, scriptInvocations) -> {
+            var foundIt = listReleaseItems.stream().filter(dAppReleaseItem -> dAppReleaseItem.getHash().contains(key)).findAny();
+
+            if (foundIt.isEmpty()) {
+                var scriptStats = ScriptStats.builder()
+                        .scriptHash(key)
+                        .scriptType(SPEND)
+                        .count(scriptInvocations)
+                        .type(ScriptStatsType.DB_SYNC)
+                        .build();
+
+                scriptHashesStatsRepository.upsert(scriptStats);
+            }
+        });
     }
 
 }
