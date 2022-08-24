@@ -56,34 +56,34 @@ public class DappFeedProcessor implements FeedProcessor {
                     boolean isLastVersion = Float.compare(dappReleaseItem.getReleaseNumber(), maxVersion) == 0;
 
                     Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
-                        if (isLastVersion) {
-                            dapp.setLastVersionOpenSourced(contract.getOpenSource());
+                        if (isLastVersion && contract.getOpenSource() != null && contract.getOpenSource()) {
+                            dapp.setLastVersionOpenSourceLink(contract.getContractLink());
                         }
                     });
 
                     Optional.ofNullable(dappReleaseItem.getAudit()).ifPresent(audit -> {
                         if (isLastVersion) {
-                            dapp.setLastVersionAudited(audit.getAuditLink() != null);
+                            dapp.setLastVersionAuditLink(audit.getAuditLink());
                         }
                     });
 
                     // deprecated to remove - backwards compatibility for now
-                    if (dapp.getLastVersionAudited() == null) {
-                        Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
-                            if (isLastVersion) {
-                                dapp.setLastVersionAudited(audit.getAuditLink() != null);
-                            }
-                        });
-                    }
+//                    if (dapp.getLastVersionAudited() == null) {
+//                        Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
+//                            if (isLastVersion) {
+//                                dapp.setLastVersionAudited(audit.getAuditLink() != null);
+//                            }
+//                        });
+//                    }
 
                     // deprecated to remove - backwards compatibility for now
-                    if (dapp.getLastVersionOpenSourced() == null) {
-                        Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
-                            if (isLastVersion) {
-                                dapp.setLastVersionOpenSourced(contract.getOpenSource());
-                            }
-                        });
-                    }
+//                    if (dapp.getLastVersionOpenSourced() == null) {
+//                        Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
+//                            if (isLastVersion) {
+//                                dapp.setLastVersionOpenSourced(contract.getOpenSource());
+//                            }
+//                        });
+//                    }
 
                     Long invocationsPerHash = null;
                     if (scriptItem.getPurpose() == Purpose.SPEND) {

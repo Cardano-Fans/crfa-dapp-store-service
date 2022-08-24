@@ -54,11 +54,19 @@ public class DApp {
     @DatabaseField(canBeNull = false, columnName = "script_invocations")
     Long scriptInvocationsCount;
 
-    @DatabaseField(columnName = "last_version_audited")
-    Boolean lastVersionAudited;
+//    @DatabaseField(columnName = "last_version_audited")
+//    Boolean lastVersionAudited;
+//
+//    @DatabaseField(columnName = "last_version_open_source")
+//    Boolean lastVersionOpenSourced;
 
-    @DatabaseField(columnName = "last_version_open_source")
-    Boolean lastVersionOpenSourced;
+    @Nullable
+    @DatabaseField(columnName = "last_version_audit_link")
+    String lastVersionAuditLink;
+
+    @Nullable
+    @DatabaseField(columnName = "last_version_open_source_link")
+    String lastVersionOpenSourceLink;
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;

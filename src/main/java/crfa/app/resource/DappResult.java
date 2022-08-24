@@ -42,9 +42,17 @@ public class DappResult {
     Date updateTime;
 
     @Nullable
+    @Deprecated
     Boolean lastVersionContractsOpenSourced;
 
     @Nullable
+    @Deprecated
     Boolean lastVersionContractsAudited;
+
+    @Nullable
+    String lastVersionContractsOpenSourcedLink;
+
+    @Nullable
+    String lastVersionContractsAuditedLink;
 
 }
