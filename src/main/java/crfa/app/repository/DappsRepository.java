@@ -6,6 +6,7 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.table.TableUtils;
 import crfa.app.domain.DApp;
+import crfa.app.domain.DappAggrType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.resource.InvalidParameterException;
@@ -99,8 +100,8 @@ public class DappsRepository {
         }
     }
 
-    public List<DApp> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
-        var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
+    public List<DApp> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder, DappAggrType dappAggrType) throws InvalidParameterException {
+        var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy, dappAggrType);
         var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
         if (decomposedSortBy.isEmpty()) {
@@ -111,10 +112,13 @@ public class DappsRepository {
         }
 
         try {
-            QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
+            var statementBuilder = dAppDao.queryBuilder();
+
+            final var columnName = decomposedSortBy.get();
+            final var ascending = decomposedSortOrder.get();
 
             return statementBuilder
-                    .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
+                    .orderBy(columnName, ascending)
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);

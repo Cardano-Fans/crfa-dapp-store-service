@@ -1,6 +1,6 @@
 package crfa.app.resource;
 
-import com.google.common.cache.Cache;
+import crfa.app.domain.DappAggrType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DappReleaseItemRepository;
@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static crfa.app.domain.DappAggrType.ALL;
+import static crfa.app.domain.DappAggrType.LAST;
 import static crfa.app.domain.SortBy.RELEASE_NUMBER;
 import static crfa.app.domain.SortOrder.ASC;
 
@@ -100,12 +102,14 @@ public class DappsResource {
 
     @Get(uri = "/list-dapps", produces = "application/json")
     public List<DappResult> listDapps(@QueryValue Optional<SortBy> sortBy,
-                                      @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
+                                      @QueryValue Optional<SortOrder> sortOrder,
+                                      @QueryValue Optional<DappAggrType> dappAggrType) throws InvalidParameterException {
 
-        return dappsRepository.listDapps(sortBy, sortOrder)
+        var dappAggrTypeWithFallback = dappAggrType.orElse(DappAggrType.def());
+
+        return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
                 .stream().map(dapp -> {
                     return DappResult.builder()
-                            .scriptInvocationsCount(dapp.getScriptInvocationsCount())
                             .category(dapp.getCategory())
                             .subCategory(dapp.getSubCategory())
                             .dAppType(dapp.getDAppType())
@@ -114,8 +118,9 @@ public class DappsResource {
                             .link(dapp.getLink())
                             .name(dapp.getName())
                             .twitter(dapp.getTwitter())
-                            .transactionsCount(dapp.getTransactionsCount())
-                            .scriptsLocked(dapp.getScriptsLocked())
+                            .transactionsCount(dappAggrTypeWithFallback == LAST ? dapp.getLastVersionTransactionsCount() : dapp.getTransactionsCount())
+                            .scriptsLocked(dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked())
+                            .scriptInvocationsCount(dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount())
                             .lastVersionContractsOpenSourced(dapp.getLastVersionOpenSourceLink() != null)
                             .lastVersionContractsAudited(dapp.getLastVersionAuditLink() != null)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())

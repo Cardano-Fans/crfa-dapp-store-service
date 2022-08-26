@@ -63,23 +63,6 @@ public class ReleasesFeedProcessor implements FeedProcessor {
                 for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
                     var contractAddress = scriptItem.getContractAddress();
 
-                    // deprecated to remove - backwards compatibility for now
-//                    if (dappReleaseItem.getAudit() == null) {
-//                        Optional.ofNullable(scriptItem.getAudit()).ifPresent(audit -> {
-//                            dappRelease.setAuditLink(audit.getAuditLink());
-//                            dappRelease.setAuditor(audit.getAuditor());
-//                            // todo audit type
-//                        });
-//                    }
-
-                    // deprecated to remove - backwards compatibility for now
-//                    if (dappReleaseItem.getContract() == null) {
-//                        Optional.ofNullable(scriptItem.getContract()).ifPresent(contract -> {
-//                            dappRelease.setContractOpenSource(contract.getOpenSource());
-//                            dappRelease.setContractLink(contract.getContractLink());
-//                        });
-//                    }
-
                     Long invocationsPerHash = null;
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
                         var scriptHash = scriptItem.getScriptHash();

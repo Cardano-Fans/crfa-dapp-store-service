@@ -41,24 +41,18 @@ public class DApp {
     @DatabaseField(columnName = "sub_category")
     String subCategory; // e.g. LENDING_DAPP
 
-    @DatabaseField(columnName = "scripts_locked")
+    @DatabaseField(columnName = "scripts_locked", index = true)
     @Nullable
     Long scriptsLocked;
 
     // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "trx_count")
+    @DatabaseField(columnName = "trx_count", index = true)
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long transactionsCount; // value across all scripts per dApp
 
     // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "script_invocations")
+    @DatabaseField(canBeNull = false, columnName = "script_invocations", index = true)
     Long scriptInvocationsCount;
-
-//    @DatabaseField(columnName = "last_version_audited")
-//    Boolean lastVersionAudited;
-//
-//    @DatabaseField(columnName = "last_version_open_source")
-//    Boolean lastVersionOpenSourced;
 
     @Nullable
     @DatabaseField(columnName = "last_version_audit_link")
@@ -67,6 +61,20 @@ public class DApp {
     @Nullable
     @DatabaseField(columnName = "last_version_open_source_link")
     String lastVersionOpenSourceLink;
+
+
+    @DatabaseField(columnName = "last_version_scripts_locked", index = true)
+    @Nullable
+    Long lastVersionScriptsLocked;
+
+    // total number of transactions for dApp since beginning
+    @DatabaseField(columnName = "last_version_trx_count", index = true)
+    @Nullable // we don't always have contract calls, for instance for MINT scripts
+    Long lastVersionTransactionsCount;
+
+    // total number of all script innovations belonging to this dApp
+    @DatabaseField(canBeNull = false, columnName = "last_version_script_invocations", index = true)
+    Long lastVersionScriptInvocationsCount;
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
