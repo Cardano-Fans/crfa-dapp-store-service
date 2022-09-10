@@ -1,6 +1,7 @@
 package crfa.app.resource;
 
 import crfa.app.domain.DappAggrType;
+import crfa.app.domain.ScriptType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DappReleaseItemRepository;
@@ -13,6 +14,7 @@ import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.QueryValue;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +69,7 @@ public class DappsResource {
                             .releaseNumber(dAppRelease.getReleaseNumber())
                             .transactionsCount(dAppRelease.getTransactionsCount())
                             .scriptsLocked(dAppRelease.getScriptsLocked())
+                            .trxCount(dAppRelease.getScriptInvocationsCount())
                             .latestVersion(isLastVersion);
 
                     b.contractOpenSourcedLink(dAppRelease.getContractLink());
@@ -97,6 +100,10 @@ public class DappsResource {
 
         return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
                 .stream().map(dapp -> {
+                    val transactionsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionTransactionsCount() : dapp.getTransactionsCount();
+                    val scriptInvocationsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount();
+                    val scriptsLocked = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked();
+
                     return DappResult.builder()
                             .category(dapp.getCategory())
                             .subCategory(dapp.getSubCategory())
@@ -106,13 +113,14 @@ public class DappsResource {
                             .link(dapp.getLink())
                             .name(dapp.getName())
                             .twitter(dapp.getTwitter())
-                            .transactionsCount(dappAggrTypeWithFallback == LAST ? dapp.getLastVersionTransactionsCount() : dapp.getTransactionsCount())
-                            .scriptsLocked(dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked())
-                            .scriptInvocationsCount(dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount())
+                            .transactionsCount(transactionsCount)
+                            .scriptsLocked(scriptsLocked)
+                            .scriptInvocationsCount(scriptInvocationsCount)
                             .lastVersionContractsOpenSourced(dapp.getLastVersionOpenSourceLink() != null)
                             .lastVersionContractsAudited(dapp.getLastVersionAuditLink() != null)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
+                            .trxCount(scriptInvocationsCount)
                             .updateTime(dapp.getUpdateTime())
                             .build();
                 }).toList();
@@ -128,12 +136,65 @@ public class DappsResource {
             throw new DappReleaseNotFoundException("Dapp release key not found: " + releaseKey);
         }
 
-        var dappRelease = maybeDappRelease.get();
+        var releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
 
-        var releaseItems = dappReleaseItemRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder);
+        var dAppRelease = maybeDappRelease.get();
+
+        val scriptInvocationsCount = dAppRelease.getScriptInvocationsCount();
+        val transactionsCount = dAppRelease.getTransactionsCount();
+
+        val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getId());
+
+        val isLastVersion = dAppRelease.isLatestVersion(maxReleaseVersion);
+
+        var b = DappReleaseResult.builder()
+                .scriptInvocationsCount(scriptInvocationsCount)
+                .category(dAppRelease.getCategory())
+                .subCategory(dAppRelease.getSubCategory())
+                .dAppType(dAppRelease.getDAppType())
+                .fullName(dAppRelease.getFullName())
+                .id(dAppRelease.getId())
+                .icon(dAppRelease.getIcon())
+                .key(dAppRelease.getKey())
+                .link(dAppRelease.getLink())
+                .releaseName(dAppRelease.getReleaseName())
+                .name(dAppRelease.getName())
+                .twitter(dAppRelease.getTwitter())
+                .updateTime(dAppRelease.getUpdateTime())
+                .releaseNumber(dAppRelease.getReleaseNumber())
+                .transactionsCount(transactionsCount)
+                .scriptsLocked(dAppRelease.getScriptsLocked())
+                .trxCount(scriptInvocationsCount)
+                .latestVersion(isLastVersion);
+
+        b.contractOpenSourcedLink(dAppRelease.getContractLink());
+        b.contractsAuditedLink(dAppRelease.getAuditLink());
+
+        var releaseItems = dappReleaseItemRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder)
+                .stream()
+                .map(d -> {
+                    return DAppReleaseItemResult.builder()
+                    .dappId(d.getDappId())
+                    .hash(d.getHash())
+                    .scriptsLocked(d.getScriptsLocked())
+                    .scriptType(d.getScriptType())
+                    .mintPolicyID(d.getMintPolicyID())
+                    .contractAddress(d.getContractAddress())
+                    .transactionsCount(d.getTransactionsCount())
+                    .version(d.getVersion())
+                    .updateTime(d.getUpdateTime())
+                    .releaseKey(d.getReleaseKey())
+                    .name(d.getName())
+                    .scriptInvocationsCount(d.getScriptInvocationsCount())
+                    .hash(d.getHash())
+                    .dappId(d.getDappId())
+                    .trxCount(d.getScriptInvocationsCount())
+                    .build();
+                })
+                .toList();
 
         return DappScriptsResponse.builder()
-                .release(dappRelease)
+                .release(b.build())
                 .scripts(releaseItems)
                 .build();
     }

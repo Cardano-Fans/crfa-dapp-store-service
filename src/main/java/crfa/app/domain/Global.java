@@ -12,11 +12,16 @@ import java.util.Map;
 @ToString
 public class Global {
 
-    long totalSmartContractsTransactionCount;
-
     long totalScriptsLocked;
 
+    @Deprecated
     long totalScriptInvocationsCount;
+
+    @Deprecated
+    long totalSmartContractsTransactionCount;
+
+    // unified for transactionsCount and scriptInvocationsCount
+    Long trxCount;
 
     long totalDappsCount; // regardless if this is mint or spend; all dapp types
 

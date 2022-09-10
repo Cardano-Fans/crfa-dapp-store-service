@@ -4,7 +4,6 @@ import crfa.app.domain.AdaPricePerDay;
 import crfa.app.domain.Global;
 import crfa.app.repository.AdaPriceRepository;
 import crfa.app.repository.DappsRepository;
-import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;
@@ -35,6 +34,7 @@ public class GlobalResource {
                 .map(AdaPricePerDay::getPrice)
                 .map(BigDecimal::valueOf)
                 .orElse(null));
+
         builder.adaPriceUSD(adaPriceRepository.getLatestPrice("USD")
                 .map(AdaPricePerDay::getPrice)
                 .map(BigDecimal::valueOf)
@@ -43,6 +43,7 @@ public class GlobalResource {
         builder.totalScriptsLocked(dappsRepository.totalScriptsLocked());
         builder.totalSmartContractsTransactionCount(dappsRepository.totalContractTransactionsCount());
         builder.totalScriptInvocationsCount(dappsRepository.totalScriptInvocations());
+        builder.trxCount(dappsRepository.totalScriptInvocations());
 
         try {
             var dappUniqueReleases = dappsRepository.listDapps(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC), ALL).stream().count();

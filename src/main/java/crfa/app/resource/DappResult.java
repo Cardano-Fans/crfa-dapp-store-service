@@ -35,9 +35,14 @@ public class DappResult {
     Long scriptsLocked;
 
     @Nullable // we don't always have contract calls, for instance for MINT scripts
+    @Deprecated
     Long transactionsCount; // value across all scripts per dApp
 
+    @Deprecated
     Long scriptInvocationsCount;
+
+    // unified for transactionsCount and scriptInvocationsCount
+    Long trxCount;
 
     Date updateTime;
 

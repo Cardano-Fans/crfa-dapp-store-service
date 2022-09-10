@@ -1,7 +1,6 @@
 package crfa.app.resource;
 
 
-import crfa.app.domain.DAppRelease;
 import crfa.app.domain.DAppReleaseItem;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,8 +15,8 @@ import java.util.List;
 @NoArgsConstructor
 public class DappScriptsResponse {
 
-    DAppRelease release;
+    DappReleaseResult release;
 
-    List<DAppReleaseItem> scripts;
+    List<DAppReleaseItemResult> scripts;
 
 }
