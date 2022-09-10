@@ -32,51 +32,51 @@ public class ScriptHashesJob {
 
     @Scheduled(fixedDelay = "1h", initialDelay = "5m")
     public void scriptStatsJob() {
-        //processScrolls();
-        processDbSync();
-    }
-
-    private void processScrolls() {
-        log.info("loading scriptStats...");
-
-        log.info("loading scriptHashes...");
-        var scriptHashes = scrollsOnChainDataService.listScriptHashes();
-        log.info("script hashes count:{}", scriptHashes.size());
-
-        log.info("loading scriptHashes counts...");
-        var scriptHashesCount = scrollsOnChainDataService.scriptHashesCount(scriptHashes, true);
-
         log.info("Clearing db...");
         scriptHashesStatsRepository.clearDB();
         log.info("Cleared db.");
 
-        var listReleaseItems = releaseItemsRepository.listReleaseItems();
-        final var count = (long) listReleaseItems.size();
+        //processScrolls();
+        processDbSync();
+    }
 
-        if (count == 0) {
-            log.warn("Job finished, empty script release items db!");
-            return;
-        }
-
-        log.info("list release items count:{}", count);
-
-        scriptHashesCount.forEach((key, value) -> {
-            if (listReleaseItems.stream()
-                    .filter(item -> item.getScriptType() == SPEND)
-                    .filter(item -> item.getHash().equalsIgnoreCase(key)).findAny().isEmpty()) {
-
-                var scriptStats = ScriptStats.builder()
-                        .scriptHash(key)
-                        .scriptType(SPEND)
-                        .count(value)
-                        .type(ScriptStatsType.SCROLLS)
-                        .build();
-
-                //log.info("script hash:{} missing, inserting:{}", key, scriptStats);
-
-                scriptHashesStatsRepository.upsert(scriptStats);
-            }
-        });
+//    private void processScrolls() {
+//        log.info("loading scriptStats...");
+//
+//        log.info("loading scriptHashes...");
+//        var scriptHashes = scrollsOnChainDataService.listScriptHashes();
+//        log.info("script hashes count:{}", scriptHashes.size());
+//
+//        log.info("loading scriptHashes counts...");
+//        var scriptHashesCount = scrollsOnChainDataService.scriptHashesCount(scriptHashes, true);
+//
+//        var listReleaseItems = releaseItemsRepository.listReleaseItems();
+//        final var count = (long) listReleaseItems.size();
+//
+//        if (count == 0) {
+//            log.warn("Job finished, empty script release items db!");
+//            return;
+//        }
+//
+//        log.info("list release items count:{}", count);
+//
+//        scriptHashesCount.forEach((key, value) -> {
+//            if (listReleaseItems.stream()
+//                    .filter(item -> item.getScriptType() == SPEND)
+//                    .filter(item -> item.getHash().equalsIgnoreCase(key)).findAny().isEmpty()) {
+//
+//                var scriptStats = ScriptStats.builder()
+//                        .scriptHash(key)
+//                        .scriptType(SPEND)
+//                        .count(value)
+//                        .type(ScriptStatsType.SCROLLS)
+//                        .build();
+//
+//                //log.info("script hash:{} missing, inserting:{}", key, scriptStats);
+//
+//                scriptHashesStatsRepository.upsert(scriptStats);
+//            }
+//        });
 
 //        log.info("loading mintPolicyIdHashes...");
 //        var mintPolicyIdHashes = scrollsOnChainDataService.listMintHashes();
@@ -105,9 +105,9 @@ public class ScriptHashesJob {
 //                scriptHashesStatsRepository.upsert(scriptStats);
 //            }
 //        });
-
-        log.info("script hashes stats job completed.");
-    }
+//
+//        log.info("script hashes stats job completed.");
+//    }
 
     private void processDbSync() {
         var listReleaseItems = releaseItemsRepository.listReleaseItems();
