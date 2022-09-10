@@ -48,16 +48,10 @@ public class DappReleaseResult {
     Date updateTime;
 
     @Nullable
-    String lastVersionContractsOpenSourcedLink;
+    String contractOpenSourcedLink;
 
     @Nullable
-    String lastVersionContractsAuditedLink;
-
-//    @Nullable
-//    Boolean contractOpenSource;
-
-//    @Nullable
-//    Boolean contractAudited;
+    String contractsAuditedLink;
 
     boolean latestVersion;
 

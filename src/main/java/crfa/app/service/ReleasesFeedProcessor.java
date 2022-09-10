@@ -16,6 +16,7 @@ import java.util.Optional;
 
 @Slf4j
 @Singleton
+// releases feed processor handles top level list-releases
 public class ReleasesFeedProcessor implements FeedProcessor {
 
     @Value("${dryRunMode:true}")
@@ -27,19 +28,20 @@ public class ReleasesFeedProcessor implements FeedProcessor {
     @Override
     public void process(DappFeed dappFeed) {
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
-            var dappRelease = new DAppRelease();
-
-            dappRelease.setId(dappSearchItem.getId());
-            dappRelease.setName(dappSearchItem.getName());
-            dappRelease.setLink(dappSearchItem.getUrl());
-            dappRelease.setIcon(dappSearchItem.getIcon());
-            dappRelease.setCategory(dappSearchItem.getCategory());
-            dappRelease.setSubCategory(dappSearchItem.getSubCategory());
-            dappRelease.setUpdateTime(new Date());
-            dappRelease.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
-            dappRelease.setTwitter(dappSearchItem.getTwitter());
 
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
+                var dappRelease = new DAppRelease();
+
+                dappRelease.setId(dappSearchItem.getId());
+                dappRelease.setName(dappSearchItem.getName());
+                dappRelease.setLink(dappSearchItem.getUrl());
+                dappRelease.setIcon(dappSearchItem.getIcon());
+                dappRelease.setCategory(dappSearchItem.getCategory());
+                dappRelease.setSubCategory(dappSearchItem.getSubCategory());
+                dappRelease.setUpdateTime(new Date());
+                dappRelease.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
+                dappRelease.setTwitter(dappSearchItem.getTwitter());
+
                 dappRelease.setKey(String.format("%s.%f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
                 dappRelease.setReleaseNumber(dappReleaseItem.getReleaseNumber());
                 dappRelease.setReleaseName(dappReleaseItem.getReleaseName());

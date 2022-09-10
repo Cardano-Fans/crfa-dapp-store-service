@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static crfa.app.domain.DappAggrType.ALL;
 import static crfa.app.domain.DappAggrType.LAST;
 import static crfa.app.domain.SortBy.RELEASE_NUMBER;
 import static crfa.app.domain.SortOrder.ASC;
@@ -53,8 +52,6 @@ public class DappsResource {
 
                     var b = DappReleaseResult.builder()
                             .scriptInvocationsCount(dAppRelease.getScriptInvocationsCount())
-//                            .contractOpenSource(dAppRelease.getContractOpenSource())
-//                            .contractAudited(dAppRelease.getAuditLink() != null)
                             .category(dAppRelease.getCategory())
                             .subCategory(dAppRelease.getSubCategory())
                             .dAppType(dAppRelease.getDAppType())
@@ -72,17 +69,8 @@ public class DappsResource {
                             .scriptsLocked(dAppRelease.getScriptsLocked())
                             .latestVersion(isLastVersion);
 
-                    if (isLastVersion
-                            && dAppRelease.getContractOpenSource() != null
-                            && dAppRelease.getContractOpenSource()
-                            && dAppRelease.getContractLink() != null) {
-
-                        b.lastVersionContractsOpenSourcedLink(dAppRelease.getContractLink());
-                    }
-
-                    if (isLastVersion) {
-                        b.lastVersionContractsAuditedLink(dAppRelease.getAuditLink());
-                    }
+                    b.contractOpenSourcedLink(dAppRelease.getContractLink());
+                    b.contractsAuditedLink(dAppRelease.getAuditLink());
 
                     return b.build();
                 }).toList();
@@ -149,7 +137,5 @@ public class DappsResource {
                 .scripts(releaseItems)
                 .build();
     }
-
-
 
 }

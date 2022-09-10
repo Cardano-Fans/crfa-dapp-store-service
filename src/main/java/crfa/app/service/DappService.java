@@ -11,6 +11,9 @@ import jakarta.inject.Singleton;
 
 import java.util.Optional;
 
+import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
+import static crfa.app.domain.SortOrder.ASC;
+
 @Singleton
 public class DappService {
 
@@ -22,10 +25,10 @@ public class DappService {
                 .build();
 
         try {
-            dappReleasesRepository.listDappReleases(Optional.of(SortBy.SCRIPTS_INVOKED), Optional.of(SortOrder.ASC)).forEach(dAppRelease -> {
-                        var dappId = dAppRelease.getId();
-                        releaseVersionsCache.put(dappId, dappReleasesRepository.getMaxReleaseVersion(dappId));
-                    });
+            dappReleasesRepository.listDappReleases(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC)).forEach(dAppRelease -> {
+                var dappId = dAppRelease.getId();
+                releaseVersionsCache.put(dappId, dappReleasesRepository.getMaxReleaseVersion(dappId));
+            });
         } catch (InvalidParameterException e) {
             throw new RuntimeException(e);
         }

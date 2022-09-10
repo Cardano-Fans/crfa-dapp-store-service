@@ -1,5 +1,6 @@
 package crfa.app.service;
 
+import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.client.metadata.ScriptItem;
 import crfa.app.domain.DApp;
 import crfa.app.domain.DAppType;
@@ -16,6 +17,8 @@ import java.util.Optional;
 
 @Singleton
 @Slf4j
+
+// DappsFeedProcessor handles top level list-dapps case
 public class DappFeedProcessor implements FeedProcessor {
 
     @Value("${dryRunMode:true}")
@@ -53,11 +56,12 @@ public class DappFeedProcessor implements FeedProcessor {
             var maxReleaseCache = dappService.buildMaxReleaseVersionCache();
 
             for (var dappReleaseItem : dappSearchItem.getReleases()) {
+                var maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
+
+                boolean isLastVersion = isLastVersion(dappReleaseItem, maxVersion);
+
                 for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
                     var contractAddress = scriptItem.getContractAddress();
-
-                    var maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
-                    boolean isLastVersion = Float.compare(dappReleaseItem.getReleaseNumber(), maxVersion) == 0;
 
                     Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
                         if (isLastVersion && contract.getOpenSource() != null && contract.getOpenSource()) {
@@ -142,6 +146,12 @@ public class DappFeedProcessor implements FeedProcessor {
                 }
             }
         });
+    }
+
+    private static boolean isLastVersion(DappReleaseItem dappReleaseItem, Float maxVersion) {
+        return Optional.ofNullable(maxVersion)
+                .map(v -> Float.compare(dappReleaseItem.getReleaseNumber(), v) == 0)
+                .orElse(true);
     }
 
 }
