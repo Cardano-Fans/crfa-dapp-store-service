@@ -8,6 +8,7 @@ import crfa.app.repository.DappReleasesRepository;
 import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import lombok.val;
 
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ public class DappService {
 
         try {
             dappReleasesRepository.listDappReleases(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC)).forEach(dAppRelease -> {
-                var dappId = dAppRelease.getId();
+                val dappId = dAppRelease.getId();
                 releaseVersionsCache.put(dappId, dappReleasesRepository.getMaxReleaseVersion(dappId));
             });
         } catch (InvalidParameterException e) {

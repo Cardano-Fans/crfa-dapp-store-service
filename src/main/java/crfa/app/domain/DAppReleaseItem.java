@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.util.Date;
 
+// table to represent dapp release item, which is in fact on script level
+
 @Builder
 @DatabaseTable(tableName = "dapp_release_item")
 @Getter
@@ -51,7 +53,7 @@ public class DAppReleaseItem {
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "trx_count", index = true)
     @Nullable // we don't always have contract calls, for instance for MINT scripts
-    Long transactionsCount; // value across all scripts per dApp
+    Long transactionsCount;
 
     // total number of all script innovations belonging to this dApp
     @DatabaseField(canBeNull = false, columnName = "script_invocations", index = true)

@@ -6,6 +6,7 @@ import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 @Singleton
 @Slf4j
@@ -22,7 +23,7 @@ public class DappIngestionJob {
         log.info("Dapps update scheduled.");
 
         log.info("Gathering data feed...");
-        var dataFeed = dappFeedCreator.createFeed();
+        val dataFeed = dappFeedCreator.createFeed();
         log.info("Got data feed.");
 
         dappIngestionService.process(dataFeed);

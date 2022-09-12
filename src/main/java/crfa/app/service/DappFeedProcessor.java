@@ -11,6 +11,7 @@ import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import java.util.Date;
 import java.util.Optional;
@@ -33,7 +34,7 @@ public class DappFeedProcessor implements FeedProcessor {
     @Override
     public void process(DappFeed dappFeed) {
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
-            var dapp = new DApp();
+            val dapp = new DApp();
 
             dapp.setId(dappSearchItem.getId());
             dapp.setName(dappSearchItem.getName());
@@ -53,15 +54,15 @@ public class DappFeedProcessor implements FeedProcessor {
             var lastVersionTotalScriptInvocations = 0L;
             var lastVersionTotalTransactionsCount = 0L;
 
-            var maxReleaseCache = dappService.buildMaxReleaseVersionCache();
+            val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
 
             for (var dappReleaseItem : dappSearchItem.getReleases()) {
-                var maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
+                val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
 
                 boolean isLastVersion = isLastVersion(dappReleaseItem, maxVersion);
 
                 for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
-                    var contractAddress = scriptItem.getContractAddress();
+                    val contractAddress = scriptItem.getContractAddress();
 
                     Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
                         if (isLastVersion && contract.getOpenSource() != null && contract.getOpenSource()) {
@@ -77,7 +78,7 @@ public class DappFeedProcessor implements FeedProcessor {
 
                     Long invocationsPerHash = null;
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        var scriptHash = scriptItem.getScriptHash();
+                        val scriptHash = scriptItem.getScriptHash();
 
                         invocationsPerHash = dappFeed.getInvocationsCountPerHash().get(scriptHash);
                         if (invocationsPerHash == null) {
@@ -85,7 +86,7 @@ public class DappFeedProcessor implements FeedProcessor {
                         }
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
-                        var mintPolicyID = scriptItem.getMintPolicyID();
+                        val mintPolicyID = scriptItem.getMintPolicyID();
                         invocationsPerHash = dappFeed.getInvocationsCountPerHash().get(mintPolicyID);
 
                         if (invocationsPerHash == null) {
@@ -100,7 +101,7 @@ public class DappFeedProcessor implements FeedProcessor {
                         totalScriptInvocations += invocationsPerHash;
                     }
                     if (contractAddress != null && scriptItem.getPurpose() == Purpose.SPEND) {
-                        var scriptsLocked = dappFeed.getScriptLockedPerContractAddress().get(contractAddress);
+                        val scriptsLocked = dappFeed.getScriptLockedPerContractAddress().get(contractAddress);
                         if (scriptsLocked != null) {
                             if (isLastVersion) {
                                 lastVersionTotalScriptsLocked += scriptsLocked;
@@ -110,7 +111,7 @@ public class DappFeedProcessor implements FeedProcessor {
                             log.warn("Unable to find scriptsLocked for contractAddress:{}", contractAddress);
                         }
 
-                        var trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
+                        val trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
                         if (trxCount != null) {
                             if (isLastVersion) {
                                 lastVersionTotalTransactionsCount += trxCount;

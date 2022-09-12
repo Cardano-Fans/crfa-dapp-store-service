@@ -8,6 +8,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -46,7 +47,7 @@ public class GlobalResource {
         builder.trxCount(dappsRepository.totalScriptInvocations());
 
         try {
-            var dappUniqueReleases = dappsRepository.listDapps(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC), ALL).stream().count();
+            val dappUniqueReleases = dappsRepository.listDapps(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC), ALL).stream().count();
             builder.totalDappsCount(dappUniqueReleases);
         } catch (InvalidParameterException e) {
             throw new RuntimeException(e);

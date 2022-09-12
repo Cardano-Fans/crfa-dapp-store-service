@@ -26,10 +26,11 @@ dbPath-dapps-release-items: crfa-cardano-dapp-store-dapps-release-items-dev.db
 dbPath-dapps-ada-price: crfa-cardano-dapp-store-ada-price-dev.db
 dbPath-dapps-script-stats: crfa-cardano-dapp-store-script-hashes-stats-dev.db
 blockfrost-projectId: mainnetS6e1C6yuxQNHOX8SwVNHPvomtpOdD5Iu
-#redis-host: localhost
-redis-host: kajka.lan
+redis-host: localhost
+#redis-host: kajka.lan
 
 jackson:
   serialization-inclusion: NON_ABSENT # Omit null and Optional.empty(), but include empty collections
   serialization:
     indent-output: true # Pretty-print JSON
+

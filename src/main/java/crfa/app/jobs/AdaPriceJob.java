@@ -8,6 +8,7 @@ import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import reactor.core.publisher.Mono;
 
 import java.text.SimpleDateFormat;
@@ -27,9 +28,9 @@ public class AdaPriceJob {
     public void onScheduled() {
         log.info("Ada price update...");
 
-        var format = new SimpleDateFormat("yyyy-MM-dd");
+        val format = new SimpleDateFormat("yyyy-MM-dd");
 
-        var adaPrices = Mono.from(adaPriceClient.adaPrices()).block();
+        val adaPrices = Mono.from(adaPriceClient.adaPrices()).block();
 
         long now = System.currentTimeMillis();
 

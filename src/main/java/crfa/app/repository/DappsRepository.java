@@ -16,6 +16,7 @@ import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -101,8 +102,8 @@ public class DappsRepository {
     }
 
     public List<DApp> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder, DappAggrType dappAggrType) throws InvalidParameterException {
-        var decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy, dappAggrType);
-        var decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
+        val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy, dappAggrType);
+        val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
         if (decomposedSortBy.isEmpty()) {
             throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
@@ -112,7 +113,7 @@ public class DappsRepository {
         }
 
         try {
-            var statementBuilder = dAppDao.queryBuilder();
+            val statementBuilder = dAppDao.queryBuilder();
 
             final var columnName = decomposedSortBy.get();
             final var ascending = decomposedSortOrder.get();

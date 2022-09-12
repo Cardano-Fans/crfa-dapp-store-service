@@ -13,6 +13,7 @@ import io.blockfrost.sdk.api.exception.APIException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
@@ -45,17 +46,17 @@ public class DappFeedCreator {
 
     public DappFeed createFeed() {
         log.info("metadata service - fetching all dapps...");
-        var dappSearchResult = Mono.from(crfaMetaDataServiceClient.fetchAllDapps()).block();
+        val dappSearchResult = Mono.from(crfaMetaDataServiceClient.fetchAllDapps()).block();
         log.info("metadata service - fetched all dapps.");
 
-        var addressPointersList = new HashSet<AddressPointers>();
-        var mintPolicyIds = new ArrayList<String>();
-        var assetNameHexesToTokenHolders = new HashMap<String, Set<String>>();
+        val addressPointersList = new HashSet<AddressPointers>();
+        val mintPolicyIds = new ArrayList<String>();
+        val assetNameHexesToTokenHolders = new HashMap<String, Set<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
-                var dappReleaseId = new DappReleaseId();
+                val dappReleaseId = new DappReleaseId();
                 dappReleaseId.setDappId(dappSearchItem.getId());
                 dappReleaseId.setReleaseNumber(dappReleaseItem.getReleaseNumber());
 
@@ -65,10 +66,10 @@ public class DappFeedCreator {
                         mintPolicyIds.add(scriptItem.getMintPolicyID());
                         if (scriptItem.getIncludeScriptBalanceFromAsset() != null) {
                             try {
-                                var assetNameHex = scriptItem.getAssetNameAsHex().get();
+                                val assetNameHex = scriptItem.getAssetNameAsHex().get();
                                 log.info("Fetching holders for assetNameHex:" + assetNameHex);
 
-                                var tokenHolders = blockfrostAPI.tokenHolders(assetNameHex);
+                                val tokenHolders = blockfrostAPI.tokenHolders(assetNameHex);
 
                                 log.info("got holders count:{}", tokenHolders.size());
                                 assetNameHexesToTokenHolders.put(assetNameHex, tokenHolders);
@@ -80,7 +81,7 @@ public class DappFeedCreator {
                         dappReleaseId.setHash(scriptItem.getScriptHash());
                     }
 
-                    var addressPointer = new AddressPointers();
+                    val addressPointer = new AddressPointers();
                     addressPointer.setScriptHash(scriptItem.getScriptHash());
 
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
@@ -93,7 +94,7 @@ public class DappFeedCreator {
 
         });
 
-        var contractAddresses = addressPointersList.stream()
+        val contractAddresses = addressPointersList.stream()
                 .filter(addressPointers -> addressPointers.getContractAddress() != null)
                 .map(AddressPointers::getContractAddress)
                 .toList();

@@ -10,6 +10,7 @@ import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import java.util.Date;
 import java.util.Optional;
@@ -30,7 +31,7 @@ public class ReleasesFeedProcessor implements FeedProcessor {
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
 
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
-                var dappRelease = new DAppRelease();
+                val dappRelease = new DAppRelease();
 
                 dappRelease.setId(dappSearchItem.getId());
                 dappRelease.setName(dappSearchItem.getName());
@@ -63,11 +64,11 @@ public class ReleasesFeedProcessor implements FeedProcessor {
                 });
 
                 for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
-                    var contractAddress = scriptItem.getContractAddress();
+                    val contractAddress = scriptItem.getContractAddress();
 
                     Long invocationsPerHash = null;
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        var scriptHash = scriptItem.getScriptHash();
+                        val scriptHash = scriptItem.getScriptHash();
 
                         invocationsPerHash = dappFeed.getInvocationsCountPerHash().get(scriptHash);
                         if (invocationsPerHash == null) {
@@ -75,7 +76,7 @@ public class ReleasesFeedProcessor implements FeedProcessor {
                         }
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
-                        var mintPolicyID = scriptItem.getMintPolicyID();
+                        val mintPolicyID = scriptItem.getMintPolicyID();
                         invocationsPerHash = dappFeed.getInvocationsCountPerHash().get(mintPolicyID);
 
                         if (invocationsPerHash == null) {
@@ -87,22 +88,22 @@ public class ReleasesFeedProcessor implements FeedProcessor {
                         totalInvocations += invocationsPerHash;
                     }
                     if (contractAddress != null && scriptItem.getPurpose() == Purpose.SPEND) {
-                        var scriptsLocked = dappFeed.getScriptLockedPerContractAddress().get(contractAddress);
+                        val scriptsLocked = dappFeed.getScriptLockedPerContractAddress().get(contractAddress);
                         if (scriptsLocked != null) {
                             totalScriptsLocked += scriptsLocked;
                         } else {
                             log.warn("Unable to find scriptsLocked for contractAddress:{}", contractAddress);
                         }
 
-                        var trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
+                        val trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
                         if (trxCount != null) {
                             totalTransactionsCount += trxCount;
                         }
                     }
                     if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetNameAsHex().isPresent()) {
-                        var assetNameHex = scriptItem.getAssetNameAsHex().get();
+                        val assetNameHex = scriptItem.getAssetNameAsHex().get();
 
-                        var adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
+                        val adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
                         if (adaBalance != null) {
                             log.info("Setting ada balance:{}, for mintPolicyId:{}", adaBalance, scriptItem.getMintPolicyID());
                             totalScriptsLocked += adaBalance;

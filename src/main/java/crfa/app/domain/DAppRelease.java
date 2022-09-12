@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.util.Date;
 
+// table to represent dApp release
+
 @Builder
 @DatabaseTable(tableName = "dapp_release")
 @Getter

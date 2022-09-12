@@ -5,6 +5,7 @@ import io.micronaut.context.ApplicationContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 @Singleton
 @Slf4j
@@ -14,7 +15,7 @@ public class DappIngestionService {
     private ApplicationContext appContext;
 
     public void process(DappFeed dappFeed) {
-        var beans = appContext.getActiveBeanRegistrations(FeedProcessor.class);
+        val beans = appContext.getActiveBeanRegistrations(FeedProcessor.class);
 
         beans.forEach(b -> {
             log.info("Processing, dappFeed:{}", b.getName());

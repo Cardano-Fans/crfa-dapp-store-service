@@ -10,6 +10,7 @@ import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import reactor.core.publisher.Mono;
 
 import static crfa.app.domain.ScriptType.SPEND;
@@ -110,21 +111,21 @@ public class ScriptHashesJob {
 //    }
 
     private void processDbSync() {
-        var listReleaseItems = releaseItemsRepository.listReleaseItems();
-        final var count = (long) listReleaseItems.size();
+        val listReleaseItems = releaseItemsRepository.listReleaseItems();
+        val count = (long) listReleaseItems.size();
 
         if (count == 0) {
             log.warn("Job finished, empty script release items db!");
             return;
         }
 
-        var map = Mono.from(crfaDbSyncApi.topScripts(5000)).block();
+        val topScriptsMap = Mono.from(crfaDbSyncApi.topScripts(5000)).block();
 
-        map.forEach((key, scriptInvocations) -> {
-            var foundIt = listReleaseItems.stream().filter(dAppReleaseItem -> dAppReleaseItem.getHash().contains(key)).findAny();
+        topScriptsMap.forEach((key, scriptInvocations) -> {
+            val foundIt = listReleaseItems.stream().filter(dAppReleaseItem -> dAppReleaseItem.getHash().contains(key)).findAny();
 
             if (foundIt.isEmpty()) {
-                var scriptStats = ScriptStats.builder()
+                val scriptStats = ScriptStats.builder()
                         .scriptHash(key)
                         .scriptType(SPEND)
                         .count(scriptInvocations)

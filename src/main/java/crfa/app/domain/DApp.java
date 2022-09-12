@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.util.Date;
 
+// table to represent dapp, either last version or all versions
+
 @Builder
 @DatabaseTable(tableName = "dapp")
 @Getter
@@ -61,7 +63,6 @@ public class DApp {
     @Nullable
     @DatabaseField(columnName = "last_version_open_source_link")
     String lastVersionOpenSourceLink;
-
 
     @DatabaseField(columnName = "last_version_scripts_locked", index = true)
     @Nullable
