@@ -17,8 +17,8 @@ import java.util.Optional;
 
 @Slf4j
 @Singleton
-// releases feed processor handles top level list-releases
-public class ReleasesFeedProcessor implements FeedProcessor {
+// DappReleasesFeedProcessor handles medium level list-releases case
+public class DappReleasesFeedProcessor implements FeedProcessor {
 
     @Value("${dryRunMode:true}")
     private boolean dryRunMode;

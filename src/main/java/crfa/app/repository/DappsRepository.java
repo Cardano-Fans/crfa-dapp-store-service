@@ -115,8 +115,8 @@ public class DappsRepository {
         try {
             val statementBuilder = dAppDao.queryBuilder();
 
-            final var columnName = decomposedSortBy.get();
-            final var ascending = decomposedSortOrder.get();
+            val columnName = decomposedSortBy.get();
+            val ascending = decomposedSortOrder.get();
 
             return statementBuilder
                     .orderBy(columnName, ascending)

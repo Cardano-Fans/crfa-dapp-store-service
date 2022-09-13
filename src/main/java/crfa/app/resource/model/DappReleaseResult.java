@@ -1,4 +1,4 @@
-package crfa.app.resource;
+package crfa.app.resource.model;
 
 import crfa.app.domain.DAppType;
 import io.micronaut.core.annotation.Nullable;

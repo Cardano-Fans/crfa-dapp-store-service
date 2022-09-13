@@ -1,7 +1,6 @@
-package crfa.app.resource;
+package crfa.app.resource.model;
 
 
-import crfa.app.domain.DAppReleaseItem;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

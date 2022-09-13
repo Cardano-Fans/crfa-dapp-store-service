@@ -56,7 +56,7 @@ public class DappFeedProcessor implements FeedProcessor {
 
             val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
 
-            for (var dappReleaseItem : dappSearchItem.getReleases()) {
+            for (val dappReleaseItem : dappSearchItem.getReleases()) {
                 val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
 
                 boolean isLastVersion = isLastVersion(dappReleaseItem, maxVersion);
@@ -121,8 +121,8 @@ public class DappFeedProcessor implements FeedProcessor {
                     }
 
                     if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetNameAsHex().isPresent()) {
-                        final var assetNameHex = scriptItem.getAssetNameAsHex().get();
-                        var adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
+                        val assetNameHex = scriptItem.getAssetNameAsHex().get();
+                        val adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
                         if (adaBalance != null) {
                             log.info("Setting ada balance:{}, for assetNameHex:{}", adaBalance, assetNameHex);
                             if (isLastVersion) {

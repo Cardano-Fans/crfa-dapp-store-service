@@ -15,10 +15,15 @@ import java.util.Map;
 public class DappFeed {
 
     List<DappSearchItem> dappSearchResult;
+
     Map<String, Long> invocationsCountPerHash;
     Map<String, Long> scriptLockedPerContractAddress;
     Map<String, Long> transactionCountsPerContractAddress;
-
     Map<String, Long> tokenHoldersBalance;
+
+    Map<EpochValue<String>, Long> invocationsCountPerHashEpoch;
+    Map<EpochValue<String>, Long> scriptLockedPerContractAddressEpoch;
+    Map<EpochValue<String>, Long> transactionCountsPerContractAddressEpoch;
+    Map<EpochValue<String>, Long> tokenHoldersBalanceEpoch;
 
 }

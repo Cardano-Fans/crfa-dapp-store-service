@@ -17,7 +17,8 @@ import java.util.Date;
 
 @Singleton
 @Slf4j
-public class ReleaseItemsFeedProcessor implements FeedProcessor {
+// DapppReleasesFeedProcessor handles low level - release items (scripts)
+public class DappReleaseItemsFeedProcessor implements FeedProcessor {
 
     @Value("${dryRunMode:true}")
     private boolean dryRunMode;

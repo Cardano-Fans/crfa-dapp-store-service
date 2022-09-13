@@ -6,6 +6,10 @@ import crfa.app.domain.SortOrder;
 import crfa.app.repository.DappReleaseItemRepository;
 import crfa.app.repository.DappReleasesRepository;
 import crfa.app.repository.DappsRepository;
+import crfa.app.resource.model.DAppReleaseItemResult;
+import crfa.app.resource.model.DappReleaseResult;
+import crfa.app.resource.model.DappResult;
+import crfa.app.resource.model.DappScriptsResponse;
 import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -167,7 +171,7 @@ public class DappsResource {
                 .contractsAuditedLink(dAppRelease.getAuditLink())
                 .build();
 
-        val releaseItems = dappReleaseItemRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder)
+        val dAppReleaseItemResults = dappReleaseItemRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder)
                 .stream()
                 .map(item -> DAppReleaseItemResult.builder()
                 .dappId(item.getDappId())
@@ -190,7 +194,7 @@ public class DappsResource {
 
         return DappScriptsResponse.builder()
                 .release(dappReleaseResult)
-                .scripts(releaseItems)
+                .scripts(dAppReleaseItemResults)
                 .build();
     }
 
