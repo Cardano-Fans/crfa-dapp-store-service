@@ -78,9 +78,9 @@ public class DappFeedCreator {
         return assetNameHexesToTokenHolders.entrySet().stream()
                 .map(entry -> {
                     val assetNameHex = entry.getKey();
-                    val addresses = entry.getValue();
+                    val tokenHolderAddresses = entry.getValue();
 
-                    val balanceMap = scrollsOnChainDataService.scriptLocked(addresses);
+                    val balanceMap = scrollsOnChainDataService.scriptLocked(tokenHolderAddresses);
                     val adaBalance = balanceMap.values().stream().reduce(0L, Long::sum);
 
                     return new AbstractMap.SimpleEntry<>(assetNameHex, adaBalance);
@@ -109,7 +109,7 @@ public class DappFeedCreator {
 //                        Map.Entry::getValue
 //                ));
 //    }
-//
+
 //    private Map<Integer, Long> reduceAddresses(Map<EpochValue<String>, Long> data) {
 //
 //    }

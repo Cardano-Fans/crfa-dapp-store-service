@@ -1,14 +1,11 @@
 package crfa.app.repository;
 
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.table.TableUtils;
 import crfa.app.domain.AdaPricePerDay;
-import io.micronaut.context.annotation.Value;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,29 +16,12 @@ import java.util.Optional;
 @Slf4j
 public class AdaPriceRepository {
 
-    private JdbcConnectionSource connectionSource;
-
-    @Value("${dbPath-dapps-ada-price:crfa-cardano-dapp-store-ada-price.db}")
-    private String dbPath;
-
-    private Dao<AdaPricePerDay, String> adaPricePerDayDao;
-
-    @EventListener
-    public void onStartup(ServerStartupEvent event) throws SQLException {
-        log.info("Starting DappResultItemRepository..., dbPath:{}", dbPath);
-
-        String databaseUrl = String.format("jdbc:sqlite:%s", dbPath);
-        // create a connection source to our database
-        this.connectionSource = new JdbcConnectionSource(databaseUrl);
-
-        this.adaPricePerDayDao = DaoManager.createDao(connectionSource, AdaPricePerDay.class);
-
-        createDbsIfNecessary();
-    }
+    @Inject
+    private DbManager dbManager;
 
     public Optional<AdaPricePerDay> getLatestPrice(String currency) {
         try {
-            QueryBuilder<AdaPricePerDay, String> statementBuilder = adaPricePerDayDao.queryBuilder();
+            QueryBuilder<AdaPricePerDay, String> statementBuilder = dbManager.getAdaPricePerDayDao().queryBuilder();
 
             statementBuilder.orderBy("moddate", false);
 
@@ -57,15 +37,11 @@ public class AdaPriceRepository {
 
     public void updatePrice(AdaPricePerDay adaPricePerDay) {
         try {
-            adaPricePerDayDao.createOrUpdate(adaPricePerDay);
+            dbManager.getAdaPricePerDayDao().createOrUpdate(adaPricePerDay);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
-    }
-
-    public void createDbsIfNecessary() throws SQLException {
-        TableUtils.createTableIfNotExists(this.connectionSource, AdaPricePerDay.class);
     }
 
 }

@@ -27,7 +27,9 @@ public class BlockfrostAPI {
     public Set<String> tokenHolders(String assetHex) throws APIException {
 
         return assetService.getAllAssetAddresses(assetHex)
-                .stream().map(AssetAddress::getAddress)
+                .stream()
+                .peek(a -> log.info("addr:{}, q:{}", a.getAddress(), a.getQuantity()))
+                .map(AssetAddress::getAddress)
                 .collect(Collectors.toSet());
     }
 

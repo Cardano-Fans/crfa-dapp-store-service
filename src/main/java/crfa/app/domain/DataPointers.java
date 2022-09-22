@@ -11,6 +11,7 @@ public class DataPointers {
 
     public Set<AddressPointers> addressPointersList;
     public List<String> mintPolicyIds;
+
     public Map<String, Set<String>> assetNameHexesToTokenHolders;
 
     public List<String> contractAddresses;
