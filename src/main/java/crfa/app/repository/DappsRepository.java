@@ -2,10 +2,7 @@ package crfa.app.repository;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
-import crfa.app.domain.DApp;
-import crfa.app.domain.DappAggrType;
-import crfa.app.domain.SortBy;
-import crfa.app.domain.SortOrder;
+import crfa.app.domain.*;
 import crfa.app.resource.InvalidParameterException;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
@@ -16,6 +13,7 @@ import lombok.val;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,6 +111,10 @@ public class DappsRepository {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void removeAllExcept(Collection<DApp> items) {
+        dbManager.removeAllExcept(items, () -> dbManager.getdAppDao());
     }
 
 }

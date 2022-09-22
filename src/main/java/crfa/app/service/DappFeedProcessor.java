@@ -13,6 +13,7 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 
@@ -33,6 +34,8 @@ public class DappFeedProcessor implements FeedProcessor {
 
     @Override
     public void process(DappFeed dappFeed) {
+        val dapps = new ArrayList<DApp>();
+
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
             val dapp = new DApp();
 
@@ -140,6 +143,8 @@ public class DappFeedProcessor implements FeedProcessor {
                 dapp.setLastVersionTransactionsCount(lastVersionTotalTransactionsCount);
                 dapp.setLastVersionScriptInvocationsCount(lastVersionTotalScriptInvocations);
 
+                dapps.add(dapp);
+
                 if (!dryRunMode) {
                     log.debug("Upserting dapp, dappname:{}", dapp.getName());
 
@@ -147,6 +152,8 @@ public class DappFeedProcessor implements FeedProcessor {
                 }
             }
         });
+
+        dappsRepository.removeAllExcept(dapps);
     }
 
     private static boolean isLastVersion(DappReleaseItem dappReleaseItem, Float maxVersion) {

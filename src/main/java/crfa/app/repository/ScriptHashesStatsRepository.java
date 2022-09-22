@@ -1,6 +1,7 @@
 package crfa.app.repository;
 
 import com.j256.ormlite.stmt.QueryBuilder;
+import crfa.app.domain.DApp;
 import crfa.app.domain.ScriptStats;
 import crfa.app.domain.ScriptStatsType;
 import jakarta.inject.Inject;
@@ -24,7 +25,7 @@ public class ScriptHashesStatsRepository {
 
     public List<ScriptStats> listScriptStatsOrderedByTransactionCount(ScriptStatsType type) {
         try {
-            QueryBuilder<ScriptStats, String> statementBuilder = dbManager.getScriptsDao().queryBuilder();
+            QueryBuilder<ScriptStats, String> statementBuilder = dbManager.getScriptsStatsDao().queryBuilder();
 
             return statementBuilder
                     .orderBy("count", false)
@@ -37,7 +38,7 @@ public class ScriptHashesStatsRepository {
     }
     public void upsert(ScriptStats scriptStats) {
         try {
-            dbManager.getScriptsDao().createOrUpdate(scriptStats);
+            dbManager.getScriptsStatsDao().createOrUpdate(scriptStats);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -46,11 +47,15 @@ public class ScriptHashesStatsRepository {
 
     public void upsert(Collection<ScriptStats> scriptStats) {
         try {
-            dbManager.getScriptsDao().create(scriptStats);
+            dbManager.getScriptsStatsDao().create(scriptStats);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void removeAllExcept(Collection<ScriptStats> items) {
+        //dbManager.removeAllExcept(items, () -> dbManager.getScriptsStatsDao());
     }
 
 }

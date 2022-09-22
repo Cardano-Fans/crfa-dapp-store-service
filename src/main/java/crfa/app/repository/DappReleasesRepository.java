@@ -1,13 +1,10 @@
 package crfa.app.repository;
 
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.DAppRelease;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.resource.InvalidParameterException;
-import io.micronaut.runtime.event.annotation.EventListener;
-import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +12,7 @@ import lombok.val;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +27,7 @@ public class DappReleasesRepository {
     private RepositoryColumnConverter repositoryColumnConverter;
 
     public float getMaxReleaseVersion(String id) {
-        QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppResultItemDao().queryBuilder();
+        QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
 
         try {
             return Optional.ofNullable(statementBuilder
@@ -48,12 +46,12 @@ public class DappReleasesRepository {
 
     public Optional<DAppRelease> findByReleaseKey(String releaseKey) {
         try {
-            QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppResultItemDao().queryBuilder();
+            QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
 
             statementBuilder
                     .where().eq("key", releaseKey);
 
-            return dbManager.getdAppResultItemDao().query(statementBuilder.prepare()).stream().findFirst();
+            return dbManager.getdAppReleasesDao().query(statementBuilder.prepare()).stream().findFirst();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -72,7 +70,7 @@ public class DappReleasesRepository {
         }
 
         try {
-            QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppResultItemDao().queryBuilder();
+            QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
 
             return statementBuilder
                     .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
@@ -85,11 +83,15 @@ public class DappReleasesRepository {
 
     public void upsertDAppRelease(DAppRelease dAppRelease) {
         try {
-            dbManager.getdAppResultItemDao().createOrUpdate(dAppRelease);
+            dbManager.getdAppReleasesDao().createOrUpdate(dAppRelease);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void removeAllExcept(Collection<DAppRelease> items) {
+        dbManager.removeAllExcept(items, () -> dbManager.getdAppReleasesDao());
     }
 
 }

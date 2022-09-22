@@ -12,6 +12,7 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 
@@ -28,6 +29,8 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
 
     @Override
     public void process(DappFeed dappFeed) {
+        val dappReleases = new ArrayList<DAppRelease>();
+
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
 
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
@@ -115,6 +118,8 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setScriptsLocked(totalScriptsLocked);
                 dappRelease.setTransactionsCount(totalTransactionsCount);
 
+                dappReleases.add(dappRelease);
+
                 if (!dryRunMode) {
                     log.debug("Upserting, dappname:{} - {}", dappRelease.getName(), dappReleaseItem.getReleaseName());
 
@@ -122,6 +127,8 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 }
             });
         });
+
+        dappReleasesRepository.removeAllExcept(dappReleases);
     }
 
 }

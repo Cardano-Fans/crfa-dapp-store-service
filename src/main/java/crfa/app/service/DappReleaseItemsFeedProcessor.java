@@ -105,6 +105,8 @@ public class DappReleaseItemsFeedProcessor implements FeedProcessor {
                 }
             });
         });
+
+        dappReleaseItemRepository.removeAllExcept(items);
     }
 
 }

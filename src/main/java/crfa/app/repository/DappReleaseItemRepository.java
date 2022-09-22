@@ -12,6 +12,7 @@ import lombok.val;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,6 +88,10 @@ public class DappReleaseItemRepository {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void removeAllExcept(Collection<DAppReleaseItem> dAppReleaseItems) {
+        dbManager.removeAllExcept(dAppReleaseItems, () -> dbManager.getDappReleaseItemDao());
     }
 
 }

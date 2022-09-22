@@ -10,8 +10,12 @@ import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Supplier;
 
 @Singleton
 @Slf4j
@@ -46,7 +50,7 @@ public class DbManager {
         createDbsIfNecessary();
     }
 
-    public Dao<DAppRelease, String> getdAppResultItemDao() {
+    public Dao<DAppRelease, String> getdAppReleasesDao() {
         return dAppResultItemDao;
     }
 
@@ -54,7 +58,7 @@ public class DbManager {
         return dAppDao;
     }
 
-    public Dao<ScriptStats, String> getScriptsDao() {
+    public Dao<ScriptStats, String> getScriptsStatsDao() {
         return scriptsDao;
     }
 
@@ -80,6 +84,37 @@ public class DbManager {
         TableUtils.createTableIfNotExists(this.connectionSource, DApp.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DAppRelease.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DAppReleaseItem.class);
+    }
+
+    // TODO optimise this by moving responsibility to db engine via SQL delete statement
+    public <T> void removeAllExcept(Collection<T> items, Supplier<Dao<T, String>> supplier) {
+        log.info("removeAllExcept, items_count:{}", items.size());
+
+        var allLiveIds = new ArrayList<String>();
+
+        val dao = supplier.get();
+
+        dao.forEach(item -> {
+            try {
+                allLiveIds.add(dao.extractId(item));
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        items.forEach(item -> {
+            try {
+                val id = dao.extractId(item);
+                if (!allLiveIds.contains(id)) {
+                    log.info("Clearing dangling item from db, id:{}", id);
+                    dao.deleteById(id);
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        log.info("removeAllExcept done.");
     }
 
 }

@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+
 import static crfa.app.domain.ScriptType.SPEND;
 
 @Slf4j
@@ -121,6 +123,8 @@ public class ScriptHashesJob {
 
         val topScriptsMap = Mono.from(crfaDbSyncApi.topScripts(5000)).block();
 
+        val scriptStatsList = new ArrayList<ScriptStats>();
+
         topScriptsMap.forEach((key, scriptInvocations) -> {
             val foundIt = listReleaseItems.stream().filter(dAppReleaseItem -> dAppReleaseItem.getHash().contains(key)).findAny();
 
@@ -132,9 +136,13 @@ public class ScriptHashesJob {
                         .type(ScriptStatsType.DB_SYNC)
                         .build();
 
+                scriptStatsList.add(scriptStats);
+
                 scriptHashesStatsRepository.upsert(scriptStats);
             }
         });
+
+        scriptHashesStatsRepository.removeAllExcept(scriptStatsList);
     }
 
 }
