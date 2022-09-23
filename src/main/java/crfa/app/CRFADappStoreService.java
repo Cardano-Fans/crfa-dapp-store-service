@@ -1,6 +1,5 @@
 package crfa.app;
 
-import io.blockfrost.sdk.api.util.NetworkHelper;
 import io.micronaut.runtime.Micronaut;
 import io.micronaut.runtime.event.ApplicationShutdownEvent;
 import io.micronaut.runtime.event.annotation.EventListener;
@@ -28,7 +27,6 @@ public class CRFADappStoreService {
     @EventListener
     public void stop(final ApplicationShutdownEvent event) {
         log.info("Stopping CRFADappStoreService...");
-        NetworkHelper.getInstance().shutdown();
         log.info("CRFADappStoreService stopped.");
     }
 
