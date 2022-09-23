@@ -120,10 +120,10 @@ public class DappFeedProcessor implements FeedProcessor {
                     }
 
                     if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetId().isPresent()) {
-                        val assetNameHex = scriptItem.getAssetId().get();
-                        val adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
+                        val assetId = scriptItem.getAssetId().get();
+                        val adaBalance = dappFeed.getTokenHoldersBalance().get(assetId);
                         if (adaBalance != null) {
-                            log.info("Setting ada balance:{}, for assetNameHex:{}", adaBalance, assetNameHex);
+                            log.debug("Setting ada balance:{}, for assetId:{}", adaBalance, assetId);
                             if (isLastVersion) {
                                 lastVersionTotalScriptsLocked += adaBalance;
                             }

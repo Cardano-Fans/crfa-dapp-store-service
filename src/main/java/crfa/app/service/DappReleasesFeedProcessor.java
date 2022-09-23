@@ -42,7 +42,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
                 dappRelease.setTwitter(dappSearchItem.getTwitter());
 
-                dappRelease.setKey(String.format("%s.%f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
+                dappRelease.setKey(String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
                 dappRelease.setReleaseNumber(dappReleaseItem.getReleaseNumber());
                 dappRelease.setReleaseName(dappReleaseItem.getReleaseName());
                 dappRelease.setFullName(String.format("%s - %s", dappSearchItem.getName(), dappReleaseItem.getReleaseName()));
@@ -100,11 +100,11 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                         }
                     }
                     if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetId().isPresent()) {
-                        val assetNameHex = scriptItem.getAssetId().get();
+                        val assetId = scriptItem.getAssetId().get();
 
-                        val adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
+                        val adaBalance = dappFeed.getTokenHoldersBalance().get(assetId);
                         if (adaBalance != null) {
-                            log.info("Setting ada balance:{}, for mintPolicyId:{}", adaBalance, scriptItem.getMintPolicyID());
+                            log.debug("Setting ada balance:{}, for mintPolicyId:{}", adaBalance, scriptItem.getMintPolicyID());
                             totalScriptsLocked += adaBalance;
                         }
                     }

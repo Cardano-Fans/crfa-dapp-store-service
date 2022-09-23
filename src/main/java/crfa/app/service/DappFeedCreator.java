@@ -50,13 +50,13 @@ public class DappFeedCreator {
         val transactionsCountPerContractAddr = scrollsOnChainDataService.transactionsCount(dataPointers.contractAddresses);
         log.debug("Loaded transaction counts.");
 
-        val tokenHoldersAssetNamesHexToAdaBalance = loadTokenHoldersBalance(dataPointers.assetNameHexesToTokenHolders);
+        val tokenHoldersAssetIdToAdaBalance = loadTokenHoldersBalance(dataPointers.assetIdToTokenHolders);
 
         val scriptLockedPerContractWithEpoch = scrollsOnChainDataService.scriptLockedWithEpochs(dataPointers.contractAddresses);
         val transactionsCountPerContractWithEpoch = scrollsOnChainDataService.transactionsCountWithEpochs(dataPointers.contractAddresses);
         val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintScriptsCountWithEpochs(dataPointers.mintPolicyIds);
         val scriptHashesCountWithEpoch = scrollsOnChainDataService.scriptHashesCountWithEpochs(dataPointers.scriptHashes, true);
-        val tokenHoldersAssetNamesHexToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetNameHexesToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch);
+        val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch);
 
         return DappFeed.builder()
                 .dappSearchResult(dappSearchResult)
@@ -65,19 +65,19 @@ public class DappFeedCreator {
                 .scriptLockedPerContractAddress(scriptLockedPerContractAddr)
                 .invocationsCountPerHash(addMaps(mintPolicyCounts, scriptHashesCount))
                 .transactionCountsPerContractAddress(transactionsCountPerContractAddr)
-                .tokenHoldersBalance(tokenHoldersAssetNamesHexToAdaBalance)
+                .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
 
                 // epoch level
                 .scriptLockedPerContractAddressEpoch(scriptLockedPerContractWithEpoch)
                 .transactionCountsPerContractAddressEpoch(transactionsCountPerContractWithEpoch)
                 .invocationsCountPerHashEpoch(addMaps(mintPolicyCountsWithEpoch, scriptHashesCountWithEpoch))
-                .tokenHoldersBalanceEpoch(tokenHoldersAssetNamesHexToAdaBalanceWithEpoch)
+                .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
                 .build();
     }
 
-    private Map<String, Long> loadTokenHoldersBalance(Map<String, Set<String>> assetNameHexesToTokenHolders) {
+    private Map<String, Long> loadTokenHoldersBalance(Map<String, Set<String>> assetIdToTokenHolders) {
         // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
-        return assetNameHexesToTokenHolders.entrySet().stream()
+        return assetIdToTokenHolders.entrySet().stream()
                 .map(entry -> {
                     val assetId = entry.getKey();
                     val tokenHolderAddresses = entry.getValue();
@@ -94,10 +94,10 @@ public class DappFeedCreator {
     }
 
     private Map<EpochKey<String>, Long> loadTokenHoldersBalanceWithEpoch(
-            Map<EpochKey<String>, Set<String>> assetNameHexesToTokenHoldersWithEpoch,
+            Map<EpochKey<String>, Set<String>> assetIdToTokenHoldersWithEpoch,
             Map<EpochKey<String>, Long> scriptLockedPerContractWithEpoch) {
         // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
-        return assetNameHexesToTokenHoldersWithEpoch.entrySet().stream()
+        return assetIdToTokenHoldersWithEpoch.entrySet().stream()
                 .map(entry -> {
                     val assetIdWithEpoch = entry.getKey();
                     val assetId = assetIdWithEpoch.getValue();

@@ -13,13 +13,13 @@ public class DataPointers {
 
     public List<String> mintPolicyIds;
 
-    // key = asset_id / hex, value: set of holders
-    public Map<String, Set<String>> assetNameHexesToTokenHolders;
-
-    public Map<EpochKey<String>, Set<String>> assetNameHexesToTokenHoldersWithEpoch;
-
     public List<String> contractAddresses;
 
     public List<String> scriptHashes;
+
+    // key = asset_id / hex, value: set of holders
+    public Map<String, Set<String>> assetIdToTokenHolders;
+
+    public Map<EpochKey<String>, Set<String>> assetIdToTokenHoldersWithEpoch;
 
 }

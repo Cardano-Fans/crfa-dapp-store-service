@@ -19,8 +19,8 @@ public class DataPointsLoader {
     public DataPointers load(List<DappSearchItem> dappSearchResult) {
         val addressPointersList = new HashSet<AddressPointers>();
         val mintPolicyIds = new ArrayList<String>();
-        val assetNameHexesToTokenHolders = new HashMap<String, Set<String>>();
-        val assetNameHexesToTokenHoldersWithEpoch = new HashMap<EpochKey<String>, Set<String>>();
+        val assetIdToTokenHolders = new HashMap<String, Set<String>>();
+        val assetIdToTokenHoldersWithEpoch = new HashMap<EpochKey<String>, Set<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
@@ -43,10 +43,10 @@ public class DataPointsLoader {
                             val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId);
 
                             log.info("got holders count:{}", tokenHolders.size());
-                            assetNameHexesToTokenHolders.put(assetId, tokenHolders);
+                            assetIdToTokenHolders.put(assetId, tokenHolders);
 
                             tokenHoldersWithEpochs.forEach((epochNo, tokenHoldersWith) -> {
-                                assetNameHexesToTokenHoldersWithEpoch.put(new EpochKey<>(epochNo, assetId), tokenHoldersWith);
+                                assetIdToTokenHoldersWithEpoch.put(new EpochKey<>(epochNo, assetId), tokenHoldersWith);
                             });
 
                         }
@@ -78,8 +78,8 @@ public class DataPointsLoader {
 
         return DataPointers.builder()
                 .addressPointersList(addressPointersList)
-                .assetNameHexesToTokenHolders(assetNameHexesToTokenHolders)
-                .assetNameHexesToTokenHoldersWithEpoch(assetNameHexesToTokenHoldersWithEpoch)
+                .assetIdToTokenHolders(assetIdToTokenHolders)
+                .assetIdToTokenHoldersWithEpoch(assetIdToTokenHoldersWithEpoch)
                 .mintPolicyIds(mintPolicyIds)
                 .contractAddresses(contractAddresses)
                 .scriptHashes(scriptHashes)
