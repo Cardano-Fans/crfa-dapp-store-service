@@ -20,7 +20,7 @@ public class DataPointsLoader {
         val addressPointersList = new HashSet<AddressPointers>();
         val mintPolicyIds = new ArrayList<String>();
         val assetNameHexesToTokenHolders = new HashMap<String, Set<String>>();
-        val assetNameHexesToTokenHoldersWithEpoch = new HashMap<EpochValue<String>, Set<String>>();
+        val assetNameHexesToTokenHoldersWithEpoch = new HashMap<EpochKey<String>, Set<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
@@ -41,13 +41,12 @@ public class DataPointsLoader {
 
                             val tokenHolders = scrollsOnChainDataService.getCurrentAssetHolders(assetId);
                             val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId);
-                            //val tokenHolders = blockfrostAPI.tokenHolders(assetId);
 
                             log.info("got holders count:{}", tokenHolders.size());
                             assetNameHexesToTokenHolders.put(assetId, tokenHolders);
 
                             tokenHoldersWithEpochs.forEach((epochNo, tokenHoldersWith) -> {
-                                assetNameHexesToTokenHoldersWithEpoch.put(new EpochValue<>(epochNo, assetId), tokenHoldersWith);
+                                assetNameHexesToTokenHoldersWithEpoch.put(new EpochKey<>(epochNo, assetId), tokenHoldersWith);
                             });
 
                         }

@@ -9,7 +9,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @AllArgsConstructor
 @ToString
-public class EpochValue<T> {
+public class EpochKey<T> {
 
     private int epochNo;
     private T value;

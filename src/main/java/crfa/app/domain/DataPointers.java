@@ -16,7 +16,7 @@ public class DataPointers {
     // key = asset_id / hex, value: set of holders
     public Map<String, Set<String>> assetNameHexesToTokenHolders;
 
-    public Map<EpochValue<String>, Set<String>> assetNameHexesToTokenHoldersWithEpoch;
+    public Map<EpochKey<String>, Set<String>> assetNameHexesToTokenHoldersWithEpoch;
 
     public List<String> contractAddresses;
 

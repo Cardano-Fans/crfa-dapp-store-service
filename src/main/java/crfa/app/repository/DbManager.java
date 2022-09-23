@@ -29,7 +29,7 @@ public class DbManager {
     private Dao<DAppRelease, String> dAppResultItemDao;
     private Dao<DApp, String> dAppDao;
     private Dao<ScriptStats, String> scriptsDao;
-    private Dao<DAppReleaseItem, String> dappReleaseItemDao;
+    private Dao<DappScriptItem, String> dappReleaseItemDao;
 
     private Dao<AdaPricePerDay, String> adaPricePerDayDao;
 
@@ -43,7 +43,7 @@ public class DbManager {
 
         this.dAppDao = DaoManager.createDao(connectionSource, DApp.class);
         this.scriptsDao = DaoManager.createDao(connectionSource, ScriptStats.class);
-        this.dappReleaseItemDao = DaoManager.createDao(connectionSource, DAppReleaseItem.class);
+        this.dappReleaseItemDao = DaoManager.createDao(connectionSource, DappScriptItem.class);
         this.dAppResultItemDao = DaoManager.createDao(connectionSource, DAppRelease.class);
         this.adaPricePerDayDao = DaoManager.createDao(connectionSource, AdaPricePerDay.class);
 
@@ -62,7 +62,7 @@ public class DbManager {
         return scriptsDao;
     }
 
-    public Dao<DAppReleaseItem, String> getDappReleaseItemDao() {
+    public Dao<DappScriptItem, String> getDappReleaseItemDao() {
         return dappReleaseItemDao;
     }
 
@@ -83,7 +83,7 @@ public class DbManager {
         TableUtils.createTableIfNotExists(this.connectionSource, ScriptStats.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DApp.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DAppRelease.class);
-        TableUtils.createTableIfNotExists(this.connectionSource, DAppReleaseItem.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, DappScriptItem.class);
     }
 
     // TODO optimise this by moving responsibility to db engine via SQL delete statement

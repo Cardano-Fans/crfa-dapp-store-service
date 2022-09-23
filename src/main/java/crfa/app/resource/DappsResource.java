@@ -3,8 +3,8 @@ package crfa.app.resource;
 import crfa.app.domain.DappAggrType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
-import crfa.app.repository.DappReleaseItemRepository;
-import crfa.app.repository.DappReleasesRepository;
+import crfa.app.repository.DappScriptsRepository;
+import crfa.app.repository.DappReleaseRepository;
 import crfa.app.repository.DappsRepository;
 import crfa.app.resource.model.DAppReleaseItemResult;
 import crfa.app.resource.model.DappReleaseResult;
@@ -35,10 +35,10 @@ public class DappsResource {
     private DappsRepository dappsRepository;
 
     @Inject
-    private DappReleasesRepository dappReleasesRepository;
+    private DappReleaseRepository dappReleaseRepository;
 
     @Inject
-    private DappReleaseItemRepository dappReleaseItemRepository;
+    private DappScriptsRepository dappScriptsRepository;
 
     @Inject
     private DappService dappService;
@@ -49,7 +49,7 @@ public class DappsResource {
 
         val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
 
-        return dappReleasesRepository.listDappReleases(sortBy, sortOrder)
+        return dappReleaseRepository.listDappReleases(sortBy, sortOrder)
                 .stream().map(dAppRelease -> {
                     val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getId());
 
@@ -131,7 +131,7 @@ public class DappsResource {
     public DappScriptsResponse listScriptsResponse(@PathVariable String releaseKey,
                                                    @QueryValue Optional<SortBy> sortBy,
                                                    @QueryValue Optional<SortOrder> sortOrder) throws DappReleaseNotFoundException, InvalidParameterException {
-        val maybeDappRelease = dappReleasesRepository.findByReleaseKey(releaseKey);
+        val maybeDappRelease = dappReleaseRepository.findByReleaseKey(releaseKey);
 
         if (maybeDappRelease.isEmpty()) {
             throw new DappReleaseNotFoundException("Dapp release key not found: " + releaseKey);
@@ -171,7 +171,7 @@ public class DappsResource {
                 .contractsAuditedLink(dAppRelease.getAuditLink())
                 .build();
 
-        val dAppReleaseItemResults = dappReleaseItemRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder)
+        val dAppReleaseItemResults = dappScriptsRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder)
                 .stream()
                 .map(item -> DAppReleaseItemResult.builder()
                 .dappId(item.getDappId())

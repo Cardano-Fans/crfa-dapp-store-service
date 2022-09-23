@@ -2,7 +2,7 @@ package crfa.app.service;
 
 import crfa.app.client.metadata.CRFAMetaDataServiceClient;
 import crfa.app.domain.DappFeed;
-import crfa.app.domain.EpochValue;
+import crfa.app.domain.EpochKey;
 import io.vavr.Tuple2;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -93,9 +93,9 @@ public class DappFeedCreator {
                 ));
     }
 
-    private Map<EpochValue<String>, Long> loadTokenHoldersBalanceWithEpoch(
-            Map<EpochValue<String>, Set<String>> assetNameHexesToTokenHoldersWithEpoch,
-            Map<EpochValue<String>, Long> scriptLockedPerContractWithEpoch) {
+    private Map<EpochKey<String>, Long> loadTokenHoldersBalanceWithEpoch(
+            Map<EpochKey<String>, Set<String>> assetNameHexesToTokenHoldersWithEpoch,
+            Map<EpochKey<String>, Long> scriptLockedPerContractWithEpoch) {
         // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
         return assetNameHexesToTokenHoldersWithEpoch.entrySet().stream()
                 .map(entry -> {
@@ -105,23 +105,23 @@ public class DappFeedCreator {
                     val addresses = entry.getValue();
 
                     val balanceMap = addresses.stream().map(addr -> {
-                                val epochValue = new EpochValue<>(epochNo, addr);
+                        val epochKey = new EpochKey<>(epochNo, addr);
 
-                                val balance = scriptLockedPerContractWithEpoch.getOrDefault(epochValue, 0L);
+                        val balance = scriptLockedPerContractWithEpoch.getOrDefault(epochKey, 0L);
 
-                                log.debug("loadTokenHoldersBalanceWithEpoch - addr:{}, balanceAtEpoch:{}, epoch:{}", addr, balance, epochNo);
+                        log.debug("loadTokenHoldersBalanceWithEpoch - addr:{}, balanceAtEpoch:{}, epoch:{}", addr, balance, epochNo);
 
-                                return new Tuple2<>(epochValue, balance);
-                            })
-                            .collect(Collectors.toMap(
-                                    Tuple2::_1,
-                                    Tuple2::_2
-                            ));
+                        return new Tuple2<>(epochKey, balance);
+                    })
+                    .collect(Collectors.toMap(
+                            Tuple2::_1,
+                            Tuple2::_2
+                    ));
 
                     // epochNo -> Long
                     val balancePerEpoch = balanceMap.values().stream().reduce(0L, Long::sum);
 
-                    return new AbstractMap.SimpleEntry<>(new EpochValue<>(epochNo, assetId), balancePerEpoch);
+                    return new AbstractMap.SimpleEntry<>(new EpochKey<>(epochNo, assetId), balancePerEpoch);
                 }).collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue

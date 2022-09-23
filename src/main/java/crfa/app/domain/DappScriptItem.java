@@ -17,7 +17,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DAppReleaseItem {
+public class DappScriptItem {
 
     @DatabaseField(id = true, canBeNull = false, index = true, columnName = "hash")
     String hash; // either script hash or mintPolicyId

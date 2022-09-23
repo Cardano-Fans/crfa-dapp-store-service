@@ -18,10 +18,8 @@ micronaut:
       access-logger:
         enabled: true
 
-dryRunMode: false
 env: dev
 dbPath-dapps: crfa-dapp-store-dapps-dev.db
-blockfrost-projectId: mainnetS6e1C6yuxQNHOX8SwVNHPvomtpOdD5Iu
 redis-host: localhost
 #redis-host: kajka.lan
 

@@ -21,9 +21,9 @@ public class DappFeed {
     Map<String, Long> transactionCountsPerContractAddress;
     Map<String, Long> tokenHoldersBalance;
 
-    Map<EpochValue<String>, Long> invocationsCountPerHashEpoch;
-    Map<EpochValue<String>, Long> scriptLockedPerContractAddressEpoch;
-    Map<EpochValue<String>, Long> transactionCountsPerContractAddressEpoch;
-    Map<EpochValue<String>, Long> tokenHoldersBalanceEpoch;
+    Map<EpochKey<String>, Long> invocationsCountPerHashEpoch;
+    Map<EpochKey<String>, Long> scriptLockedPerContractAddressEpoch;
+    Map<EpochKey<String>, Long> transactionCountsPerContractAddressEpoch;
+    Map<EpochKey<String>, Long> tokenHoldersBalanceEpoch;
 
 }

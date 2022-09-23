@@ -5,8 +5,7 @@ import crfa.app.domain.DAppRelease;
 import crfa.app.domain.DAppType;
 import crfa.app.domain.DappFeed;
 import crfa.app.domain.Purpose;
-import crfa.app.repository.DappReleasesRepository;
-import io.micronaut.context.annotation.Value;
+import crfa.app.repository.DappReleaseRepository;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +20,8 @@ import java.util.Optional;
 // DappReleasesFeedProcessor handles medium level list-releases case
 public class DappReleasesFeedProcessor implements FeedProcessor {
 
-    @Value("${dryRunMode:true}")
-    private boolean dryRunMode;
-
     @Inject
-    private DappReleasesRepository dappReleasesRepository;
+    private DappReleaseRepository dappReleaseRepository;
 
     @Override
     public void process(DappFeed dappFeed) {
@@ -120,15 +116,13 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
 
                 dappReleases.add(dappRelease);
 
-                if (!dryRunMode) {
-                    log.debug("Upserting, dappname:{} - {}", dappRelease.getName(), dappReleaseItem.getReleaseName());
+                log.debug("Upserting, dappname:{} - {}", dappRelease.getName(), dappReleaseItem.getReleaseName());
 
-                    dappReleasesRepository.upsertDAppRelease(dappRelease);
-                }
+                dappReleaseRepository.upsertDAppRelease(dappRelease);
             });
         });
 
-        dappReleasesRepository.removeAllExcept(dappReleases);
+        dappReleaseRepository.removeAllExcept(dappReleases);
     }
 
 }

@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Singleton
 @Slf4j
-public class DappReleasesRepository {
+public class DappReleaseRepository {
 
     @Inject
     private DbManager dbManager;

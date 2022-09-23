@@ -1,7 +1,7 @@
 package crfa.app.service;
 
 import com.google.common.collect.Maps;
-import crfa.app.domain.EpochValue;
+import crfa.app.domain.EpochKey;
 import crfa.app.domain.Eras;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -48,10 +48,10 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<EpochValue<String>, Long> mintScriptsCountWithEpochs(Collection<String> mintPolicyIds) {
+    public Map<EpochKey<String>, Long> mintScriptsCountWithEpochs(Collection<String> mintPolicyIds) {
         log.info("loading mint policy ids counts...");
 
-        val m = new HashMap<EpochValue<String>, Long>();
+        val m = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c8";
 
@@ -73,7 +73,7 @@ public class ScrollsOnChainDataService {
 
                 log.debug("Trx count for addr:{}, mintPolicyId:{}", key, c);
 
-                m.put(new EpochValue<>(epochNo, key), c);
+                m.put(new EpochKey<>(epochNo, key), c);
             });
         }
 
@@ -123,11 +123,11 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<EpochValue<String>, Long> scriptHashesCountWithEpochs(Collection<String> scriptHashes,
-                                                                     boolean appendPrefix) {
+    public Map<EpochKey<String>, Long> scriptHashesCountWithEpochs(Collection<String> scriptHashes,
+                                                                   boolean appendPrefix) {
         log.info("loading scriptHashes counts...");
 
-        val m = new HashMap<EpochValue<String>, Long>();
+        val m = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c7";
 
@@ -144,7 +144,7 @@ public class ScrollsOnChainDataService {
             log.debug("scriptHashesCountWithEpochs - processing epochNo:{}", epochNo);
 
             scriptHashes.forEach(k -> {
-                val key = new EpochValue<>(epochNo, k);
+                val key = new EpochKey<>(epochNo, k);
                 log.debug("Loading trx count for scriptHash:{}", key);
 
                 val firstPrefix = appendPrefix ? ".71" : "";
@@ -198,8 +198,8 @@ public class ScrollsOnChainDataService {
         return transactionCountPerAddr;
     }
 
-    public Map<EpochValue<String>, Long> transactionsCountWithEpochs(Collection<String> addresses) {
-        val transactionCountPerAddr = new HashMap<EpochValue<String>, Long>();
+    public Map<EpochKey<String>, Long> transactionsCountWithEpochs(Collection<String> addresses) {
+        val transactionCountPerAddr = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c6";
 
@@ -222,7 +222,7 @@ public class ScrollsOnChainDataService {
 
                 log.debug("Trx count for addr:{}, trxCount:{}", addr, result);
 
-                transactionCountPerAddr.put(new EpochValue<>(epochNo, addr), result);
+                transactionCountPerAddr.put(new EpochKey<>(epochNo, addr), result);
             });
         }
 
@@ -259,8 +259,8 @@ public class ScrollsOnChainDataService {
         throw new NotImplementedException();
     }
 
-    public Map<EpochValue<String>, Long> scriptLockedWithEpochs(Collection<String> addresses) {
-        val lockedPerAddress = new HashMap<EpochValue<String>, Long>();
+    public Map<EpochKey<String>, Long> scriptLockedWithEpochs(Collection<String> addresses) {
+        val lockedPerAddress = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c5";
 
@@ -289,9 +289,9 @@ public class ScrollsOnChainDataService {
                     val resultAda = result / ONE_MLN;
                     log.debug("Script locked for addr:{}, lockedAda:{}, epoch:{}", addr, resultAda, epochNo);
 
-                    lockedPerAddress.put(new EpochValue<>(epochNo, addr), resultAda);
+                    lockedPerAddress.put(new EpochKey<>(epochNo, addr), resultAda);
                 } else {
-                    lockedPerAddress.put(new EpochValue<>(epochNo, addr), 0L);
+                    lockedPerAddress.put(new EpochKey<>(epochNo, addr), 0L);
                 }
             });
         }

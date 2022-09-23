@@ -3,7 +3,7 @@ package crfa.app.jobs;
 import crfa.app.client.crfa_db_sync_api.CRFADbSyncApi;
 import crfa.app.domain.ScriptStats;
 import crfa.app.domain.ScriptStatsType;
-import crfa.app.repository.DappReleaseItemRepository;
+import crfa.app.repository.DappScriptsRepository;
 import crfa.app.repository.ScriptHashesStatsRepository;
 import crfa.app.service.ScrollsOnChainDataService;
 import io.micronaut.scheduling.annotation.Scheduled;
@@ -28,7 +28,7 @@ public class ScriptHashesJob {
     private ScriptHashesStatsRepository scriptHashesStatsRepository;
 
     @Inject
-    private DappReleaseItemRepository releaseItemsRepository;
+    private DappScriptsRepository releaseItemsRepository;
 
     @Inject
     private CRFADbSyncApi crfaDbSyncApi;

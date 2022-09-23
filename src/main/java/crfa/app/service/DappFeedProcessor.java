@@ -7,7 +7,6 @@ import crfa.app.domain.DAppType;
 import crfa.app.domain.DappFeed;
 import crfa.app.domain.Purpose;
 import crfa.app.repository.DappsRepository;
-import io.micronaut.context.annotation.Value;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +21,6 @@ import java.util.Optional;
 
 // DappsFeedProcessor handles top level list-dapps case
 public class DappFeedProcessor implements FeedProcessor {
-
-    @Value("${dryRunMode:true}")
-    private boolean dryRunMode;
 
     @Inject
     private DappService dappService;
@@ -145,11 +141,9 @@ public class DappFeedProcessor implements FeedProcessor {
 
                 dapps.add(dapp);
 
-                if (!dryRunMode) {
-                    log.debug("Upserting dapp, dappname:{}", dapp.getName());
+                log.debug("Upserting dapp, dappname:{}", dapp.getName());
 
-                    dappsRepository.upsertDApp(dapp);
-                }
+                dappsRepository.upsertDApp(dapp);
             }
         });
 

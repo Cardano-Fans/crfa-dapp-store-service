@@ -2,9 +2,7 @@ package crfa.app.service;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import crfa.app.domain.SortBy;
-import crfa.app.domain.SortOrder;
-import crfa.app.repository.DappReleasesRepository;
+import crfa.app.repository.DappReleaseRepository;
 import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -19,16 +17,16 @@ import static crfa.app.domain.SortOrder.ASC;
 public class DappService {
 
     @Inject
-    private DappReleasesRepository dappReleasesRepository;
+    private DappReleaseRepository dappReleaseRepository;
 
     public Cache<String, Float> buildMaxReleaseVersionCache() {
         Cache<String, Float> releaseVersionsCache = CacheBuilder.newBuilder()
                 .build();
 
         try {
-            dappReleasesRepository.listDappReleases(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC)).forEach(dAppRelease -> {
+            dappReleaseRepository.listDappReleases(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC)).forEach(dAppRelease -> {
                 val dappId = dAppRelease.getId();
-                releaseVersionsCache.put(dappId, dappReleasesRepository.getMaxReleaseVersion(dappId));
+                releaseVersionsCache.put(dappId, dappReleaseRepository.getMaxReleaseVersion(dappId));
             });
         } catch (InvalidParameterException e) {
             throw new RuntimeException(e);
