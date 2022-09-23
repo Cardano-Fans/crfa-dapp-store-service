@@ -1,6 +1,7 @@
 package crfa.app.service;
 
 import crfa.app.domain.DappFeed;
+import crfa.app.service.processor.FeedProcessor;
 import io.micronaut.context.ApplicationContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;

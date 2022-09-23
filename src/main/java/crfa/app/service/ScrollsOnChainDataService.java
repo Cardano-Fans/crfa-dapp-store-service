@@ -36,13 +36,18 @@ public class ScrollsOnChainDataService {
         val collection = "c4";
 
         mintPolicyIds.forEach(key -> {
-            log.debug("Loading trx count for mintPolicyId:{}", key);
+            log.debug("Loading transactions count for mintPolicyId:{}", key);
 
-            val c = redissonClient.getAtomicLong(collection + "." + key).get();
+            val c = redissonClient.getAtomicLong(collection + "." + key);
 
-            log.debug("Trx count for addr:{}, mintPolicyId:{}", key, c);
+            if (c.isExists()) {
+                val value = c.get();
+                log.debug("Trx count for addr:{}, mintPolicyId:{}", key, value);
 
-            m.put(key, c);
+                m.put(key, value);
+            } else {
+                m.put(key, 0L);
+            }
         });
 
         return m;
@@ -69,11 +74,14 @@ public class ScrollsOnChainDataService {
             mintPolicyIds.forEach(key -> {
                 log.debug("Loading trx count for mintPolicyId:{}", key);
 
-                val c = redissonClient.getAtomicLong(collection + "." + key).get();
+                val c = redissonClient.getAtomicLong(collection + "." + key);
+                if (c.isExists()) {
+                    log.debug("Trx count for addr:{}, mintPolicyId:{}", key, c.get());
 
-                log.debug("Trx count for addr:{}, mintPolicyId:{}", key, c);
-
-                m.put(new EpochKey<>(epochNo, key), c);
+                    m.put(new EpochKey<>(epochNo, key), c.get());
+                } else {
+                    m.put(new EpochKey<>(epochNo, key), 0L);
+                }
             });
         }
 

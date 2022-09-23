@@ -1,4 +1,4 @@
-package crfa.app.service;
+package crfa.app.service.processor;
 
 import crfa.app.domain.DappFeed;
 

@@ -1,4 +1,4 @@
-package crfa.app.service;
+package crfa.app.service.processor;
 
 import crfa.app.domain.DAppRelease;
 import crfa.app.domain.DAppType;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 
-import static crfa.app.service.ProcessorHelper.*;
+import static crfa.app.service.processor.ProcessorHelper.*;
 
 @Slf4j
 @Singleton

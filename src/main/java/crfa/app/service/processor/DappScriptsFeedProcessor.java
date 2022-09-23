@@ -1,4 +1,4 @@
-package crfa.app.service;
+package crfa.app.service.processor;
 
 import crfa.app.domain.DappFeed;
 import crfa.app.domain.DappScriptItem;
@@ -13,7 +13,7 @@ import lombok.val;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static crfa.app.service.ProcessorHelper.*;
+import static crfa.app.service.processor.ProcessorHelper.*;
 
 @Singleton
 @Slf4j
