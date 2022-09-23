@@ -11,7 +11,7 @@ import java.util.Date;
 // table to represent dapp release item, which is in fact on script level
 
 @Builder
-@DatabaseTable(tableName = "dapp_release_item")
+@DatabaseTable(tableName = "dapp_script_item")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -51,7 +51,7 @@ public class DappScriptItem {
     Long scriptsLocked; // for mint scripts we don't have scripts locked value
 
     // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "trx_count", index = true)
+    @DatabaseField(columnName = "transactionsCount", index = true)
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long transactionsCount;
 

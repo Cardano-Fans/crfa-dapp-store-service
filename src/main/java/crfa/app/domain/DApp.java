@@ -48,7 +48,7 @@ public class DApp {
     Long scriptsLocked;
 
     // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "trx_count", index = true)
+    @DatabaseField(columnName = "transactions_count", index = true)
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long transactionsCount; // value across all scripts per dApp
 
@@ -69,7 +69,7 @@ public class DApp {
     Long lastVersionScriptsLocked;
 
     // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "last_version_trx_count", index = true)
+    @DatabaseField(columnName = "last_version_transactions_count", index = true)
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long lastVersionTransactionsCount;
 

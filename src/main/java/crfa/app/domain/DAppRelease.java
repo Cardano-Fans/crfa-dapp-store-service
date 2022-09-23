@@ -60,7 +60,7 @@ public class DAppRelease {
     Long scriptsLocked;
 
     // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "trx_count", index = true)
+    @DatabaseField(columnName = "transactions_count", index = true)
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long transactionsCount; // value across all scripts per dApp
 

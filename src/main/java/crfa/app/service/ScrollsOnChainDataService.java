@@ -186,11 +186,11 @@ public class ScrollsOnChainDataService {
         val collection = "c2";
 
         addresses.forEach(addr -> {
-            log.debug("Loading trx count for addr:{}", addr);
+            log.debug("Loading transactions count for addr:{}", addr);
 
             val result = redissonClient.getAtomicLong(collection + "." + addr).get();
 
-            log.debug("Trx count for addr:{}, trxCount:{}", addr, result);
+            log.debug("Transactions count for addr:{}, transactions count:{}", addr, result);
 
             transactionCountPerAddr.put(addr, result);
         });
@@ -216,11 +216,11 @@ public class ScrollsOnChainDataService {
             log.debug("transactionsCountWithEpochs - processing epochNo:{}", epochNo);
 
             addresses.forEach(addr -> {
-                log.debug("Loading trx count for addr:{}", addr);
+                log.debug("Loading transactions count for addr:{}", addr);
 
                 val result = redissonClient.getAtomicLong(collection + "." + addr).get();
 
-                log.debug("Trx count for addr:{}, trxCount:{}", addr, result);
+                log.debug("transactions count for addr:{}, transactions:{}", addr, result);
 
                 transactionCountPerAddr.put(new EpochKey<>(epochNo, addr), result);
             });

@@ -94,9 +94,9 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                             log.warn("Unable to find scriptsLocked for contractAddress:{}", contractAddress);
                         }
 
-                        val trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
-                        if (trxCount != null) {
-                            totalTransactionsCount += trxCount;
+                        val transactionsCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
+                        if (transactionsCount != null) {
+                            totalTransactionsCount += transactionsCount;
                         }
                     }
                     if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetId().isPresent()) {

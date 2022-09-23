@@ -110,12 +110,12 @@ public class DappFeedProcessor implements FeedProcessor {
                             log.warn("Unable to find scriptsLocked for contractAddress:{}", contractAddress);
                         }
 
-                        val trxCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
-                        if (trxCount != null) {
+                        val transactionsCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
+                        if (transactionsCount != null) {
                             if (isLastVersion) {
-                                lastVersionTotalTransactionsCount += trxCount;
+                                lastVersionTotalTransactionsCount += transactionsCount;
                             }
-                            totalTransactionsCount += trxCount;
+                            totalTransactionsCount += transactionsCount;
                         }
                     }
 
