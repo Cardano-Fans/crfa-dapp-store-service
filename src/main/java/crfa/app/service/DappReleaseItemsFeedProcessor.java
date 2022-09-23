@@ -64,8 +64,8 @@ public class DappReleaseItemsFeedProcessor implements FeedProcessor {
                         newDappReleaseItem.setScriptType(ScriptType.MINT);
                         newDappReleaseItem.setHash(scriptItem.getMintPolicyID());
                         newDappReleaseItem.setMintPolicyID(scriptItem.getMintPolicyID());
-                        if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getAssetNameAsHex().isPresent()) {
-                            val assetMameHex =  scriptItem.getAssetNameAsHex().get();
+                        if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getAssetId().isPresent()) {
+                            val assetMameHex =  scriptItem.getAssetId().get();
                             val adaBalance = dappFeed.getTokenHoldersBalance().get(assetMameHex);
                             if (adaBalance != null) {
                                 log.info("setting script balance for assetMameHex:{}, ada balance:{}", assetMameHex, adaBalance);

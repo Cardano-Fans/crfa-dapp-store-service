@@ -1,12 +1,7 @@
 package crfa.app.service;
 
-import crfa.app.client.blockfrost.BlockfrostAPI;
 import crfa.app.client.metadata.DappSearchItem;
-import crfa.app.domain.AddressPointers;
-import crfa.app.domain.DappReleaseId;
-import crfa.app.domain.DataPointers;
-import crfa.app.domain.Purpose;
-import io.blockfrost.sdk.api.exception.APIException;
+import crfa.app.domain.*;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +14,13 @@ import java.util.*;
 public class DataPointsLoader {
 
     @Inject
-    private BlockfrostAPI blockfrostAPI;
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     public DataPointers load(List<DappSearchItem> dappSearchResult) {
         val addressPointersList = new HashSet<AddressPointers>();
         val mintPolicyIds = new ArrayList<String>();
         val assetNameHexesToTokenHolders = new HashMap<String, Set<String>>();
+        val assetNameHexesToTokenHoldersWithEpoch = new HashMap<EpochValue<String>, Set<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
 
@@ -40,17 +36,20 @@ public class DataPointsLoader {
 
                         mintPolicyIds.add(scriptItem.getMintPolicyID());
                         if (scriptItem.getIncludeScriptBalanceFromAsset() != null) {
-                            try {
-                                val assetNameHex = scriptItem.getAssetNameAsHex().get();
-                                log.info("Fetching holders for assetNameHex:" + assetNameHex);
+                            val assetId = scriptItem.getAssetId().get();
+                            log.info("Fetching holders for assetId:" + assetId);
 
-                                val tokenHolders = blockfrostAPI.tokenHolders(assetNameHex);
+                            val tokenHolders = scrollsOnChainDataService.getCurrentAssetHolders(assetId);
+                            val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId);
+                            //val tokenHolders = blockfrostAPI.tokenHolders(assetId);
 
-                                log.info("got holders count:{}", tokenHolders.size());
-                                assetNameHexesToTokenHolders.put(assetNameHex, tokenHolders);
-                            } catch (APIException e) {
-                                throw new RuntimeException("blockfrost exception, unable to fetch token holders", e);
-                            }
+                            log.info("got holders count:{}", tokenHolders.size());
+                            assetNameHexesToTokenHolders.put(assetId, tokenHolders);
+
+                            tokenHoldersWithEpochs.forEach((epochNo, tokenHoldersWith) -> {
+                                assetNameHexesToTokenHoldersWithEpoch.put(new EpochValue<>(epochNo, assetId), tokenHoldersWith);
+                            });
+
                         }
                     } else if (scriptItem.getPurpose() == Purpose.SPEND) {
                         dappReleaseId.setHash(scriptItem.getScriptHash());
@@ -81,6 +80,7 @@ public class DataPointsLoader {
         return DataPointers.builder()
                 .addressPointersList(addressPointersList)
                 .assetNameHexesToTokenHolders(assetNameHexesToTokenHolders)
+                .assetNameHexesToTokenHoldersWithEpoch(assetNameHexesToTokenHoldersWithEpoch)
                 .mintPolicyIds(mintPolicyIds)
                 .contractAddresses(contractAddresses)
                 .scriptHashes(scriptHashes)

@@ -88,7 +88,7 @@ public class DbManager {
 
     // TODO optimise this by moving responsibility to db engine via SQL delete statement
     public <T> void removeAllExcept(Collection<T> items, Supplier<Dao<T, String>> supplier) {
-        log.info("removeAllExcept, items_count:{}", items.size());
+        log.info("removeAllExcept, itemsCount:{}", items.size());
 
         var allLiveIds = new ArrayList<String>();
 

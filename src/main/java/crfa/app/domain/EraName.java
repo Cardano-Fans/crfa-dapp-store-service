@@ -6,5 +6,5 @@ public enum EraName {
     ALEGRA,
     MARY,
     ALONZO,
-    VASIL;
+    BABBAGE;
 }

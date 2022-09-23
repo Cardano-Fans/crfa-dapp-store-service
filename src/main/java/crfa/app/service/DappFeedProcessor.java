@@ -123,8 +123,8 @@ public class DappFeedProcessor implements FeedProcessor {
                         }
                     }
 
-                    if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetNameAsHex().isPresent()) {
-                        val assetNameHex = scriptItem.getAssetNameAsHex().get();
+                    if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetId().isPresent()) {
+                        val assetNameHex = scriptItem.getAssetId().get();
                         val adaBalance = dappFeed.getTokenHoldersBalance().get(assetNameHex);
                         if (adaBalance != null) {
                             log.info("Setting ada balance:{}, for assetNameHex:{}", adaBalance, assetNameHex);

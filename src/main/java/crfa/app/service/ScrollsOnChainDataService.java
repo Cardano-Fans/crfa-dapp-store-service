@@ -1,23 +1,23 @@
 package crfa.app.service;
 
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Maps;
 import crfa.app.domain.EpochValue;
-import crfa.app.domain.Era;
-import crfa.app.domain.EraName;
+import crfa.app.domain.Eras;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.NotImplementedException;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.codec.StringCodec;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.domain.EraName.MARY;
+import static java.lang.Integer.MAX_VALUE;
+import static java.lang.String.format;
 
 @Singleton
 @Slf4j
@@ -62,10 +62,10 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = new Era(EraName.MARY).allEpochNumbersBetween(currentEpochNo);
+        val epochs = Eras.epochsBetween(MARY, currentEpochNo);
 
-        for(int epochNo : ContiguousSet.create(epochs, DiscreteDomain.integers())) {
-            log.info("mintScriptsCountWithEpochs - processing epochNo:{}", epochNo);
+        for(int epochNo : epochs) {
+            log.debug("mintScriptsCountWithEpochs - processing epochNo:{}", epochNo);
             mintPolicyIds.forEach(key -> {
                 log.debug("Loading trx count for mintPolicyId:{}", key);
 
@@ -138,10 +138,10 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = new Era(ALONZO).allEpochNumbersBetween(currentEpochNo);
+        val epochs = Eras.epochsBetween(ALONZO, currentEpochNo);
 
-        for(int epochNo : ContiguousSet.create(epochs, DiscreteDomain.integers())) {
-            log.info("scriptHashesCountWithEpochs - processing epochNo:{}", epochNo);
+        for(int epochNo : epochs) {
+            log.debug("scriptHashesCountWithEpochs - processing epochNo:{}", epochNo);
 
             scriptHashes.forEach(k -> {
                 val key = new EpochValue<>(epochNo, k);
@@ -210,10 +210,10 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = new Era(ALONZO).allEpochNumbersBetween(currentEpochNo);
+        val epochs = Eras.epochsBetween(ALONZO, currentEpochNo);
 
-        for(int epochNo : ContiguousSet.create(epochs, DiscreteDomain.integers())) {
-            log.info("transactionsCountWithEpochs - processing epochNo:{}", epochNo);
+        for(int epochNo : epochs) {
+            log.debug("transactionsCountWithEpochs - processing epochNo:{}", epochNo);
 
             addresses.forEach(addr -> {
                 log.debug("Loading trx count for addr:{}", addr);
@@ -243,18 +243,20 @@ public class ScrollsOnChainDataService {
 
                 log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
 
-                if (result > 0) {
-                    val resultADA = result / ONE_MLN;
-                    log.debug("Script locked for addr:{}, lockedAda:{}", addr, resultADA);
+                val resultADA = result / ONE_MLN;
+                log.debug("Script locked for addr:{}, lockedAda:{}", addr, resultADA);
 
-                    lockedPerAddress.put(addr, resultADA);
-                } else {
-                    lockedPerAddress.put(addr, 0L);
-                }
+                lockedPerAddress.put(addr, resultADA);
+            } else {
+                lockedPerAddress.put(addr, 0L);
             }
         });
 
         return lockedPerAddress;
+    }
+
+    public Map<String, Long> scriptLockedAtEpoch(Collection<String> addresses, int epochNo) {
+        throw new NotImplementedException();
     }
 
     public Map<EpochValue<String>, Long> scriptLockedWithEpochs(Collection<String> addresses) {
@@ -269,28 +271,27 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = new Era(ALONZO).allEpochNumbersBetween(currentEpochNo);
+        val epochs = Eras.epochsBetween(MARY, currentEpochNo);
 
-        for(int epochNo : ContiguousSet.create(epochs, DiscreteDomain.integers())) {
-            log.info("scriptLockedWithEpochs - processing epochNo:{}", epochNo);
+        for(int epochNo : epochs) {
+            log.debug("scriptLockedWithEpochs - processing epochNo:{}", epochNo);
 
             addresses.forEach(addr -> {
                 log.debug("Loading script locked addr:{} for maybeCurrentEpochNo:{}", addr, epochNo);
 
-                val key = String.format(collection + ".%d.%s", epochNo, addr);
+                val key = format(collection + ".%s.%d", addr, epochNo);
 
                 val r = redissonClient.getAtomicLong(key);
 
                 if (r.isExists()) {
                     val result = r.get();
-                    log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
 
-                    if (result > 0) {
-                        val resultAda = result / ONE_MLN;
-                        log.debug("Script locked for addr:{}, lockedAda:{}", addr, resultAda);
+                    val resultAda = result / ONE_MLN;
+                    log.debug("Script locked for addr:{}, lockedAda:{}, epoch:{}", addr, resultAda, epochNo);
 
-                        lockedPerAddress.put(new EpochValue<>(epochNo, addr), resultAda);
-                    }
+                    lockedPerAddress.put(new EpochValue<>(epochNo, addr), resultAda);
+                } else {
+                    lockedPerAddress.put(new EpochValue<>(epochNo, addr), 0L);
                 }
             });
         }
@@ -306,6 +307,37 @@ public class ScrollsOnChainDataService {
         }
 
         return Optional.empty();
+    }
+
+    // current asset holders, that is per this epoch
+
+    // ZRANGEBYSCORE "c14.026a18d04a0c642759bb3d83b12e3344894e5c1c7b2aeb1a2113a5704c" 1 +inf
+    public Set<String> getCurrentAssetHolders(String assetId) {
+        val assetMembersRScored = redissonClient.<String>getScoredSortedSet(format("%s.%s", "c14", assetId), new StringCodec());
+        val tokenHolders= assetMembersRScored.valueRangeReversed(1, MAX_VALUE);
+
+        return Set.copyOf(tokenHolders);
+    }
+
+    // TODO allow to specify from which epoch / era to load data
+    // ZRANGEBYSCORE "c14.026a18d04a0c642759bb3d83b12e3344894e5c1c7b2aeb1a2113a5704c".364 1 +inf
+    public Map<Integer, Set<String>> getAssetHoldersWithEpochs(String assetId) {
+        // c15
+        val currentEpoch = currentEpoch().orElseThrow(() -> new RuntimeException("unable to read current epoch"));
+
+        val epochs = Eras.epochsBetween(MARY, currentEpoch);
+
+        val tokenHoldersPerEpoch = new HashMap<Integer, Set<String>>();
+
+        for (int epoch : epochs) {
+            val assetMembersRScored = redissonClient.<String>getScoredSortedSet(format("%s.%s.%d", "c15", assetId, epoch), new StringCodec());
+
+            val assetMembersPerEpoch = assetMembersRScored.stream().collect(Collectors.toSet());
+
+            tokenHoldersPerEpoch.put(epoch, assetMembersPerEpoch);
+        }
+
+        return tokenHoldersPerEpoch;
     }
 
 //    public Set<String> listScriptHashes() {

@@ -1,8 +1,9 @@
 package crfa.app.service;
 
-import com.google.common.collect.Maps;
 import crfa.app.client.metadata.CRFAMetaDataServiceClient;
 import crfa.app.domain.DappFeed;
+import crfa.app.domain.EpochValue;
+import io.vavr.Tuple2;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,7 @@ public class DappFeedCreator {
         val transactionsCountPerContractWithEpoch = scrollsOnChainDataService.transactionsCountWithEpochs(dataPointers.contractAddresses);
         val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintScriptsCountWithEpochs(dataPointers.mintPolicyIds);
         val scriptHashesCountWithEpoch = scrollsOnChainDataService.scriptHashesCountWithEpochs(dataPointers.scriptHashes, true);
+        val tokenHoldersAssetNamesHexToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetNameHexesToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch);
 
         return DappFeed.builder()
                 .dappSearchResult(dappSearchResult)
@@ -69,7 +71,7 @@ public class DappFeedCreator {
                 .scriptLockedPerContractAddressEpoch(scriptLockedPerContractWithEpoch)
                 .transactionCountsPerContractAddressEpoch(transactionsCountPerContractWithEpoch)
                 .invocationsCountPerHashEpoch(addMaps(mintPolicyCountsWithEpoch, scriptHashesCountWithEpoch))
-                .tokenHoldersBalance(Maps.newHashMap()) // TODO - implement
+                .tokenHoldersBalanceEpoch(tokenHoldersAssetNamesHexToAdaBalanceWithEpoch)
                 .build();
     }
 
@@ -77,13 +79,13 @@ public class DappFeedCreator {
         // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
         return assetNameHexesToTokenHolders.entrySet().stream()
                 .map(entry -> {
-                    val assetNameHex = entry.getKey();
+                    val assetId = entry.getKey();
                     val tokenHolderAddresses = entry.getValue();
 
                     val balanceMap = scrollsOnChainDataService.scriptLocked(tokenHolderAddresses);
                     val adaBalance = balanceMap.values().stream().reduce(0L, Long::sum);
 
-                    return new AbstractMap.SimpleEntry<>(assetNameHex, adaBalance);
+                    return new AbstractMap.SimpleEntry<>(assetId, adaBalance);
                 })
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -91,27 +93,39 @@ public class DappFeedCreator {
                 ));
     }
 
-//    private Map<EpochValue<String>, Long> loadTokenHoldersBalanceWithEpoch(Map<String, Set<String>> assetNameHexesToTokenHolders) {
-//        // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
-//        return assetNameHexesToTokenHolders.entrySet().stream()
-//                .map(entry -> {
-//                    val assetNameHex = entry.getKey();
-//                    val addresses = entry.getValue();
-//                    val balanceMap = scrollsOnChainDataService.scriptLockedWithEpochs(addresses);
-//
-//                    // epochNo -> Long
-//                    val balancePerEpoch = reduceAddresses(balanceMap);
-//
-//                    return new AbstractMap.SimpleEntry<>(assetNameHex, balancePerEpoch);
-//                })
-//                .collect(Collectors.toMap(
-//                        Map.Entry::getKey,
-//                        Map.Entry::getValue
-//                ));
-//    }
+    private Map<EpochValue<String>, Long> loadTokenHoldersBalanceWithEpoch(
+            Map<EpochValue<String>, Set<String>> assetNameHexesToTokenHoldersWithEpoch,
+            Map<EpochValue<String>, Long> scriptLockedPerContractWithEpoch) {
+        // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
+        return assetNameHexesToTokenHoldersWithEpoch.entrySet().stream()
+                .map(entry -> {
+                    val assetIdWithEpoch = entry.getKey();
+                    val assetId = assetIdWithEpoch.getValue();
+                    val epochNo = assetIdWithEpoch.getEpochNo();
+                    val addresses = entry.getValue();
 
-//    private Map<Integer, Long> reduceAddresses(Map<EpochValue<String>, Long> data) {
-//
-//    }
+                    val balanceMap = addresses.stream().map(addr -> {
+                                val epochValue = new EpochValue<>(epochNo, addr);
+
+                                val balance = scriptLockedPerContractWithEpoch.getOrDefault(epochValue, 0L);
+
+                                log.debug("loadTokenHoldersBalanceWithEpoch - addr:{}, balanceAtEpoch:{}, epoch:{}", addr, balance, epochNo);
+
+                                return new Tuple2<>(epochValue, balance);
+                            })
+                            .collect(Collectors.toMap(
+                                    Tuple2::_1,
+                                    Tuple2::_2
+                            ));
+
+                    // epochNo -> Long
+                    val balancePerEpoch = balanceMap.values().stream().reduce(0L, Long::sum);
+
+                    return new AbstractMap.SimpleEntry<>(new EpochValue<>(epochNo, assetId), balancePerEpoch);
+                }).collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ));
+    }
 
 }
