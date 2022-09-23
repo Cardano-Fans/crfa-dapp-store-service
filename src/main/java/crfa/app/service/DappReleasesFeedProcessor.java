@@ -1,6 +1,5 @@
 package crfa.app.service;
 
-import crfa.app.client.metadata.ScriptItem;
 import crfa.app.domain.DAppRelease;
 import crfa.app.domain.DAppType;
 import crfa.app.domain.DappFeed;
@@ -15,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 
+import static crfa.app.service.ProcessorHelper.*;
+
 @Slf4j
 @Singleton
 // DappReleasesFeedProcessor handles medium level list-releases case
@@ -28,7 +29,6 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
         val dappReleases = new ArrayList<DAppRelease>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
-
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
                 val dappRelease = new DAppRelease();
 
@@ -47,10 +47,6 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setReleaseName(dappReleaseItem.getReleaseName());
                 dappRelease.setFullName(String.format("%s - %s", dappSearchItem.getName(), dappReleaseItem.getReleaseName()));
 
-                var totalScriptsLocked = 0L;
-                var totalInvocations = 0L;
-                var totalTransactionsCount = 0L;
-
                 Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
                     dappRelease.setContractOpenSource(contract.getOpenSource());
                     dappRelease.setContractLink(contract.getContractLink());
@@ -59,53 +55,25 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 Optional.ofNullable(dappReleaseItem.getAudit()).ifPresent(audit -> {
                     dappRelease.setAuditLink(audit.getAuditLink());
                     dappRelease.setAuditor(audit.getAuditor());
-                    // todo audit type
                 });
 
-                for (ScriptItem scriptItem : dappReleaseItem.getScripts()) {
-                    val contractAddress = scriptItem.getContractAddress();
+                var totalScriptsLocked = 0L;
+                var totalInvocations = 0L;
+                var totalTransactionsCount = 0L;
 
-                    Long invocationsPerHash = null;
+                for (val scriptItem : dappReleaseItem.getScripts()) {
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        val scriptHash = scriptItem.getScriptHash();
+                        val contractAddress = scriptItem.getContractAddress();
 
-                        invocationsPerHash = dappFeed.getInvocationsCountPerHash().get(scriptHash);
-                        if (invocationsPerHash == null) {
-                            log.warn("Unable to find total invocations for scriptHash:{}, id:{}", scriptHash, scriptItem.getId());
-                        }
+                        totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getScriptHash());
+                        totalScriptsLocked += loadAddressBalance(dappFeed, contractAddress);
+                        totalTransactionsCount += loadTransactionsCount(dappFeed, contractAddress);
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
-                        val mintPolicyID = scriptItem.getMintPolicyID();
-                        invocationsPerHash = dappFeed.getInvocationsCountPerHash().get(mintPolicyID);
+                        totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getMintPolicyID());
 
-                        if (invocationsPerHash == null) {
-                            log.warn("Unable to find total invocations for mintPolicyID:{}, id:{}", mintPolicyID, scriptItem.getId());
-                        }
-                    }
-
-                    if (invocationsPerHash != null) {
-                        totalInvocations += invocationsPerHash;
-                    }
-                    if (contractAddress != null && scriptItem.getPurpose() == Purpose.SPEND) {
-                        val scriptsLocked = dappFeed.getScriptLockedPerContractAddress().get(contractAddress);
-                        if (scriptsLocked != null) {
-                            totalScriptsLocked += scriptsLocked;
-                        } else {
-                            log.warn("Unable to find scriptsLocked for contractAddress:{}", contractAddress);
-                        }
-
-                        val transactionsCount = dappFeed.getTransactionCountsPerContractAddress().get(contractAddress);
-                        if (transactionsCount != null) {
-                            totalTransactionsCount += transactionsCount;
-                        }
-                    }
-                    if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetId().isPresent()) {
-                        val assetId = scriptItem.getAssetId().get();
-
-                        val adaBalance = dappFeed.getTokenHoldersBalance().get(assetId);
-                        if (adaBalance != null) {
-                            log.debug("Setting ada balance:{}, for mintPolicyId:{}", adaBalance, scriptItem.getMintPolicyID());
-                            totalScriptsLocked += adaBalance;
+                        if (scriptItem.getAssetId().isPresent()) {
+                            totalScriptsLocked += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
                         }
                     }
                 }

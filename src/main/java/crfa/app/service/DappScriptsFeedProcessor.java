@@ -1,6 +1,5 @@
 package crfa.app.service;
 
-import crfa.app.client.metadata.ScriptItem;
 import crfa.app.domain.DappFeed;
 import crfa.app.domain.DappScriptItem;
 import crfa.app.domain.Purpose;
@@ -13,6 +12,8 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import static crfa.app.service.ProcessorHelper.*;
 
 @Singleton
 @Slf4j
@@ -40,17 +41,13 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                         val scriptHash = scriptItem.getScriptHash();
 
                         newDappReleaseItem.setScriptType(ScriptType.SPEND);
-                        newDappReleaseItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, scriptItem, scriptHash));
+                        newDappReleaseItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, scriptHash));
                         newDappReleaseItem.setHash(scriptItem.getScriptHash());
 
                         val contractAddress = scriptItem.getContractAddress();
-                        if (contractAddress == null) {
-                            log.warn("contract addr for script type SPEND is null! scriptHash:{}", scriptHash);
-                        } else {
-                            newDappReleaseItem.setContractAddress(contractAddress);
-                            newDappReleaseItem.setScriptsLocked(loadAddressBalance(dappFeed, contractAddress));
-                            newDappReleaseItem.setTransactionsCount(loadTransactionsCount(dappFeed, contractAddress));
-                        }
+                        newDappReleaseItem.setContractAddress(contractAddress);
+                        newDappReleaseItem.setScriptsLocked(loadAddressBalance(dappFeed, contractAddress));
+                        newDappReleaseItem.setTransactionsCount(loadTransactionsCount(dappFeed, contractAddress));
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         val mintPolicyID = scriptItem.getMintPolicyID();
@@ -60,8 +57,9 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                         newDappReleaseItem.setHash(scriptItem.getMintPolicyID());
                         newDappReleaseItem.setMintPolicyID(scriptItem.getMintPolicyID());
 
-                        if (dappFeed.getTokenHoldersBalance() != null && scriptItem.getAssetId().isPresent()) {
-                            newDappReleaseItem.setScriptsLocked(loadAdaBalance(dappFeed, scriptItem.getAssetId().get()));
+                        if (scriptItem.getAssetId().isPresent()) {
+                            val assetId = scriptItem.getAssetId().get();
+                            newDappReleaseItem.setScriptsLocked(loadTokensBalance(dappFeed, assetId));
                         }
                     }
 
@@ -76,44 +74,6 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
         });
 
         dappScriptsRepository.removeAllExcept(dappScriptItems);
-    }
-
-    private static Long loadAdaBalance(DappFeed dappFeed, String assetId) {
-        return dappFeed.getTokenHoldersBalance().computeIfAbsent(assetId, aId -> {
-            log.warn("Unable to load balance for assetId:{}", assetId);
-            return 0L;
-        });
-    }
-
-    private static Long loadInvocationsPerHash(DappFeed dappFeed, ScriptItem scriptItem, String scriptHash) {
-        return dappFeed.getInvocationsCountPerHash().computeIfAbsent(scriptHash, hash -> {
-            log.warn("Unable to find total invocations for scriptHash:{}, id:{}", hash, scriptItem.getId());
-
-            return 0L;
-        });
-    }
-
-    private static Long loadInvocationsCountPerHash(DappFeed dappFeed, String mintPolicyID) {
-        return dappFeed.getInvocationsCountPerHash().computeIfAbsent(mintPolicyID, hash -> {
-            log.warn("Unable to find invocationsPerHash hash:{}", hash);
-            return 0L;
-        });
-    }
-
-    private static Long loadAddressBalance(DappFeed dappFeed, String contractAddress) {
-        return dappFeed.getScriptLockedPerContractAddress().computeIfAbsent(contractAddress, addr -> {
-            log.warn("Unable to find scriptsLocked for contractAddress:{}", addr);
-
-            return 0L;
-        });
-    }
-
-    private static Long loadTransactionsCount(DappFeed dappFeed, String contractAddress) {
-        return dappFeed.getTransactionCountsPerContractAddress().computeIfAbsent(contractAddress, addr -> {
-            log.warn("Unable to find transactionsCount for contractAddress:{}", addr);
-
-            return 0L;
-        });
     }
 
 }
