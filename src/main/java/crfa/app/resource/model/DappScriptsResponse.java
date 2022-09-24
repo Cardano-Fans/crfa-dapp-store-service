@@ -16,6 +16,6 @@ public class DappScriptsResponse {
 
     DappReleaseResult release;
 
-    List<DAppReleaseItemResult> scripts;
+    List<DAppScriptItemResult> scripts;
 
 }

@@ -32,7 +32,7 @@ public class DappScriptItemEpoch {
     String dappId; // dapp id
 
     @DatabaseField(canBeNull = false, index = true, columnName = "release_key")
-    String releaseKey; // e.g, CWpU1DBj.V1 // foreign key to dapp_release
+    String releaseKey; // e.g, CWpU1DBj.1.0 // foreign key to dapp_release
 
     @DatabaseField(canBeNull = false, columnName = "script_type")
     ScriptType scriptType;
@@ -52,9 +52,9 @@ public class DappScriptItemEpoch {
     @Nullable
     String mintPolicyID;
 
-    @DatabaseField(columnName = "scripts_locked", index = true)
+    @DatabaseField(columnName = "volume", index = true)
     @Nullable
-    Long scriptsLocked; // for mint scripts we don't have scripts locked value
+    Long volume; // for mint scripts we don't have scripts locked value
 
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "transactionsCount", index = true)
@@ -67,5 +67,8 @@ public class DappScriptItemEpoch {
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
+
+    @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
+    boolean closedEpoch;
 
 }

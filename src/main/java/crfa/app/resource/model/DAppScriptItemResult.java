@@ -6,10 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Date;
+import java.util.Map;
 
 @Builder
 @Getter
-public class DAppReleaseItemResult {
+public class DAppScriptItemResult {
 
     String hash; // either script hash or mintPolicyId
 
@@ -46,5 +47,19 @@ public class DAppReleaseItemResult {
     Long trxCount;
 
     Date updateTime;
+
+    Map<Integer, EpochStats> epochData;
+
+    @Builder
+    @Getter
+    public final static class EpochStats {
+
+        @Nullable
+        Long volume; // for mint scripts we don't have scripts locked value
+
+        // unified for transactionsCount and scriptInvocationsCount
+        Long trxCount;
+
+    }
 
 }

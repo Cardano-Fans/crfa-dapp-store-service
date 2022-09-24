@@ -16,7 +16,7 @@ import static crfa.app.service.processor.ProcessorHelper.*;
 
 @Singleton
 @Slf4j
-// DapppReleasesFeedProcessor handles low level - release items (scripts)
+// this handles low level - release items (scripts)
 public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
     @Inject
@@ -55,7 +55,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
                             val contractAddress = scriptItem.getContractAddress();
                             dappScriptItem.setContractAddress(contractAddress);
-                            dappScriptItem.setScriptsLocked(loadAddressBalance(dappFeed, contractAddress, epochNo));
+                            dappScriptItem.setVolume(Math.abs(loadVolume(dappFeed, contractAddress, epochNo)));
                             dappScriptItem.setTransactionsCount(loadTransactionsCount(dappFeed, contractAddress, epochNo));
                         }
                         if (scriptItem.getPurpose() == Purpose.MINT) {
@@ -66,11 +66,12 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
                             dappScriptItem.setScriptType(ScriptType.MINT);
                             dappScriptItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, mintPolicyID, epochNo));
                             dappScriptItem.setMintPolicyID(scriptItem.getMintPolicyID());
+                            dappScriptItem.setClosedEpoch(epochNo != currentEpochNo.intValue());
 
                             if (scriptItem.getAssetId().isPresent()) {
                                 val assetId = scriptItem.getAssetId().get();
-                                // TODO make it better code
-                                dappScriptItem.setScriptsLocked(dappScriptItem.getScriptsLocked() != null ? (dappScriptItem.getScriptsLocked() + loadTokensBalance(dappFeed, assetId, epochNo)) : loadTokensBalance(dappFeed, assetId, epochNo));
+                                // in case of purpouse = MINT there is no way we could have any script balance to add, so we only take tokens balance (ADA)
+                                dappScriptItem.setVolume(Math.abs(loadVolume(dappFeed, assetId, epochNo)));
                             }
                         }
 
@@ -79,7 +80,6 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
                 }
             });
-
         });
 
         log.info("Upserting dapp script item epochs..., itemsCount:{}", dappScriptItems.size());

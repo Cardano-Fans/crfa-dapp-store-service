@@ -3,10 +3,11 @@ package crfa.app.resource;
 import crfa.app.domain.DappAggrType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
-import crfa.app.repository.DappScriptsRepository;
 import crfa.app.repository.DappReleaseRepository;
+import crfa.app.repository.DappScriptsEpochRepository;
+import crfa.app.repository.DappScriptsRepository;
 import crfa.app.repository.DappsRepository;
-import crfa.app.resource.model.DAppReleaseItemResult;
+import crfa.app.resource.model.DAppScriptItemResult;
 import crfa.app.resource.model.DappReleaseResult;
 import crfa.app.resource.model.DappResult;
 import crfa.app.resource.model.DappScriptsResponse;
@@ -19,7 +20,9 @@ import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -39,6 +42,9 @@ public class DappsResource {
 
     @Inject
     private DappScriptsRepository dappScriptsRepository;
+
+    @Inject
+    private DappScriptsEpochRepository dappScriptsEpochRepository;
 
     @Inject
     private DappService dappService;
@@ -101,7 +107,7 @@ public class DappsResource {
 
         return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
                 .stream().map(dapp -> {
-                    val transactionsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionTransactionsCount() : dapp.getTransactionsCount();
+                    //val transactionsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionTransactionsCount() : dapp.getTransactionsCount();
                     val scriptInvocationsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount();
                     val scriptsLocked = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked();
 
@@ -114,11 +120,11 @@ public class DappsResource {
                             .link(dapp.getLink())
                             .name(dapp.getName())
                             .twitter(dapp.getTwitter())
-                            .transactionsCount(transactionsCount)
+                            //.transactionsCount(transactionsCount)
                             .scriptsLocked(scriptsLocked)
-                            .scriptInvocationsCount(scriptInvocationsCount)
-                            .lastVersionContractsOpenSourced(dapp.getLastVersionOpenSourceLink() != null)
-                            .lastVersionContractsAudited(dapp.getLastVersionAuditLink() != null)
+                            //.scriptInvocationsCount(scriptInvocationsCount)
+                            //.lastVersionContractsOpenSourced(dapp.getLastVersionOpenSourceLink() != null)
+                            //.lastVersionContractsAudited(dapp.getLastVersionAuditLink() != null)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
                             .trxCount(scriptInvocationsCount)
@@ -142,14 +148,14 @@ public class DappsResource {
         val dAppRelease = maybeDappRelease.get();
 
         val scriptInvocationsCount = dAppRelease.getScriptInvocationsCount();
-        val transactionsCount = dAppRelease.getTransactionsCount();
+        //val transactionsCount = dAppRelease.getTransactionsCount();
 
         val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getId());
 
         val isLastVersion = dAppRelease.isLatestVersion(maxReleaseVersion);
 
         val dappReleaseResult = DappReleaseResult.builder()
-                .scriptInvocationsCount(scriptInvocationsCount)
+                //.scriptInvocationsCount(scriptInvocationsCount)
                 .category(dAppRelease.getCategory())
                 .subCategory(dAppRelease.getSubCategory())
                 .dAppType(dAppRelease.getDAppType())
@@ -163,7 +169,7 @@ public class DappsResource {
                 .twitter(dAppRelease.getTwitter())
                 .updateTime(dAppRelease.getUpdateTime())
                 .releaseNumber(dAppRelease.getReleaseNumber())
-                .transactionsCount(transactionsCount)
+                //.transactionsCount(transactionsCount)
                 .scriptsLocked(dAppRelease.getScriptsLocked())
                 .trxCount(scriptInvocationsCount)
                 .latestVersion(isLastVersion)
@@ -171,31 +177,59 @@ public class DappsResource {
                 .contractsAuditedLink(dAppRelease.getAuditLink())
                 .build();
 
-        val dAppReleaseItemResults = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy, sortOrder)
+        val epochLevelData = gatherEpochLevelData(releaseKey, sortBy, sortOrder);
+
+        val dAppScriptItemResults = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy, sortOrder)
                 .stream()
-                .map(item -> DAppReleaseItemResult.builder()
+                .map(item -> DAppScriptItemResult.builder()
                 .dappId(item.getDappId())
                 .hash(item.getHash())
                 .scriptsLocked(item.getScriptsLocked())
                 .scriptType(item.getScriptType())
                 .mintPolicyID(item.getMintPolicyID())
                 .contractAddress(item.getContractAddress())
-                .transactionsCount(item.getTransactionsCount())
+                //.transactionsCount(item.getTransactionsCount())
                 .version(item.getVersion())
                 .updateTime(item.getUpdateTime())
                 .releaseKey(item.getReleaseKey())
                 .name(item.getName())
-                .scriptInvocationsCount(item.getScriptInvocationsCount())
+                //.scriptInvocationsCount(item.getScriptInvocationsCount())
                 .hash(item.getHash())
                 .dappId(item.getDappId())
                 .trxCount(item.getScriptInvocationsCount())
+                .epochData(epochLevelData)
                 .build())
                 .toList();
 
         return DappScriptsResponse.builder()
                 .release(dappReleaseResult)
-                .scripts(dAppReleaseItemResults)
+                .scripts(dAppScriptItemResults)
                 .build();
+    }
+
+    private Map<Integer, DAppScriptItemResult.EpochStats> gatherEpochLevelData(@PathVariable String releaseKey,
+                                                                               @QueryValue Optional<SortBy> sortBy,
+                                                                               @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
+        val epochLevelStats = new HashMap<Integer, DAppScriptItemResult.EpochStats>();
+
+        val epochItems = dappScriptsEpochRepository.listDappScriptItems(releaseKey, sortBy, sortOrder);
+
+        epochItems.stream()
+                .filter(item ->
+                        (item.getScriptInvocationsCount() > 0)
+                        ||
+                        (item.getVolume() != null && item.getVolume() > 0))
+                .forEach(dappScriptItemEpoch -> {
+            epochLevelStats.put(dappScriptItemEpoch.getEpochNo(), DAppScriptItemResult.EpochStats.builder()
+                            .volume(dappScriptItemEpoch.getVolume() != null ? Math.abs(dappScriptItemEpoch.getVolume()) : null)
+                            .trxCount(dappScriptItemEpoch.getScriptInvocationsCount())
+//                            .scriptInvocationsCount(dappScriptItemEpoch.getScriptInvocationsCount())
+//                            .transactionsCount(dappScriptItemEpoch.getTransactionsCount())
+                    .build()
+            );
+        });
+
+        return epochLevelStats;
     }
 
 }

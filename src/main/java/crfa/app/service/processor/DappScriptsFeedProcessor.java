@@ -59,8 +59,8 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
 
                         if (scriptItem.getAssetId().isPresent()) {
                             val assetId = scriptItem.getAssetId().get();
-                            // TODO make it better code
-                            newDappReleaseItem.setScriptsLocked(newDappReleaseItem.getScriptsLocked() != null ? (newDappReleaseItem.getScriptsLocked() + loadTokensBalance(dappFeed, assetId)) : loadTokensBalance(dappFeed, assetId));
+                            // in case of purpouse = MINT there is no way we could have any script balance to add, so we only take tokens balance (ADA)
+                            newDappReleaseItem.setScriptsLocked(loadTokensBalance(dappFeed, assetId));
                         }
                     }
 

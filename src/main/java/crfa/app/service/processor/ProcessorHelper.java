@@ -68,4 +68,21 @@ public class ProcessorHelper {
             return 0L;
         });
     }
+
+    public static long loadVolume(DappFeed dappFeed, String address) {
+        // TODO change me to volume stats from scrolls
+        return dappFeed.getScriptLockedPerContractAddress().computeIfAbsent(address, addr -> {
+            log.warn("Unable to load volume for addr:{}", addr);
+            return 0L;
+        });
+    }
+
+    public static long loadVolume(DappFeed dappFeed, String address, int epochNo) {
+        // TODO change me to volume stats from scrolls
+        return dappFeed.getScriptLockedPerContractAddressEpoch().computeIfAbsent(new EpochKey<>(epochNo, address), addrEpochKey -> {
+            log.warn("Unable to load volume for addrEpochKey:{}", addrEpochKey);
+            return 0L;
+        });
+    }
+
 }
