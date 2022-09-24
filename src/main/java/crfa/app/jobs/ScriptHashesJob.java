@@ -113,7 +113,7 @@ public class ScriptHashesJob {
 //    }
 
     private void processDbSync() {
-        val listReleaseItems = releaseItemsRepository.listReleaseItems();
+        val listReleaseItems = releaseItemsRepository.listDappScriptItems();
         val count = (long) listReleaseItems.size();
 
         if (count == 0) {

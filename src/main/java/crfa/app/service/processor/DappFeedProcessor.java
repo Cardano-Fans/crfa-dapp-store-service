@@ -123,12 +123,16 @@ public class DappFeedProcessor implements FeedProcessor {
                 dapp.setLastVersionScriptInvocationsCount(lastVersionTotalScriptInvocations);
 
                 dapps.add(dapp);
-
-                log.debug("Upserting dapp, dappname:{}", dapp.getName());
-
-                dappsRepository.upsertDApp(dapp);
             }
         });
+
+        log.info("Upserting dapps, count:{}...", dapps.size());
+
+        dapps.forEach(dapp -> {
+            dappsRepository.upsertDApp(dapp);
+        });
+
+        log.info("Upserted dapps.");
 
         dappsRepository.removeAllExcept(dapps);
     }

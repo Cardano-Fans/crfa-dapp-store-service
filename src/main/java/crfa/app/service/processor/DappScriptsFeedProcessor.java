@@ -40,9 +40,9 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
                         val scriptHash = scriptItem.getScriptHash();
 
+                        newDappReleaseItem.setHash(scriptItem.getScriptHash());
                         newDappReleaseItem.setScriptType(ScriptType.SPEND);
                         newDappReleaseItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, scriptHash));
-                        newDappReleaseItem.setHash(scriptItem.getScriptHash());
 
                         val contractAddress = scriptItem.getContractAddress();
                         newDappReleaseItem.setContractAddress(contractAddress);
@@ -52,26 +52,29 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         val mintPolicyID = scriptItem.getMintPolicyID();
 
-                        newDappReleaseItem.setScriptType(ScriptType.MINT);
-                        newDappReleaseItem.setScriptInvocationsCount(loadInvocationsCountPerHash(dappFeed, mintPolicyID));
                         newDappReleaseItem.setHash(scriptItem.getMintPolicyID());
                         newDappReleaseItem.setMintPolicyID(scriptItem.getMintPolicyID());
+                        newDappReleaseItem.setScriptType(ScriptType.MINT);
+                        newDappReleaseItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, mintPolicyID));
 
                         if (scriptItem.getAssetId().isPresent()) {
                             val assetId = scriptItem.getAssetId().get();
-                            newDappReleaseItem.setScriptsLocked(loadTokensBalance(dappFeed, assetId));
+                            // TODO make it better code
+                            newDappReleaseItem.setScriptsLocked(newDappReleaseItem.getScriptsLocked() != null ? (newDappReleaseItem.getScriptsLocked() + loadTokensBalance(dappFeed, assetId)) : loadTokensBalance(dappFeed, assetId));
                         }
                     }
 
                     dappScriptItems.add(newDappReleaseItem);
                 }
-
-                dappScriptItems.forEach(dappScriptItem -> {
-                    log.debug("Upserting, dapp item:{} - {}", dappScriptItem.getName(), dappReleaseItem.getReleaseName());
-                    dappScriptsRepository.update(dappScriptItem);
-                });
             });
         });
+
+        log.info("Upserting dapp script items..., itemsCount:{}", dappScriptItems.size());
+        dappScriptItems.forEach(dappScriptItem -> {
+            log.debug("Upserting, dapp item:{} - {}", dappScriptItem.getName(), dappScriptItem.getDappId());
+            dappScriptsRepository.update(dappScriptItem);
+        });
+        log.info("Upserted dapp script items.");
 
         dappScriptsRepository.removeAllExcept(dappScriptItems);
     }

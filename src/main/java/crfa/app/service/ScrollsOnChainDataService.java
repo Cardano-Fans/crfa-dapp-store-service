@@ -152,34 +152,34 @@ public class ScrollsOnChainDataService {
             log.debug("scriptHashesCountWithEpochs - processing epochNo:{}", epochNo);
 
             scriptHashes.forEach(k -> {
-                val key = new EpochKey<>(epochNo, k);
-                log.debug("Loading trx count for scriptHash:{}", key);
+                val epochKey = new EpochKey<>(epochNo, k);
+                log.debug("Loading trx count for scriptHash:{}", epochKey);
 
                 val firstPrefix = appendPrefix ? ".71" : "";
 
-                val c1 = redissonClient.getAtomicLong(collection + firstPrefix + key).get();
+                val c1 = redissonClient.getAtomicLong(collection + firstPrefix + epochKey.getValue() + "." + epochNo);
 
-                m.put(key, 0L);
+                m.put(epochKey, 0L);
 
-                if (c1 > 0) {
-                    log.debug("Trx(c1) count for addr:{}, scriptHash:{}", key, c1);
-                    m.put(key, c1);
+                if (c1.isExists()) {
+                    log.debug("Trx(c1) count for addr:{}, scriptHash:{}", epochKey, c1.get());
+                    m.put(epochKey, c1.get());
                 } else {
                     val secondPrefix = appendPrefix ? ".11" : "";
-                    val c2 = redissonClient.getAtomicLong(collection + secondPrefix + key).get();
+                    val c2 = redissonClient.getAtomicLong(collection + secondPrefix + epochKey.getValue() + "." + epochNo);
 
-                    log.debug("Trx(c2) count for addr:{}, scriptHash:{}", key, c2);
-                    if (c2 > 0) {
-                        m.put(key, c2);
+                    log.debug("Trx(c2) count for addr:{}, scriptHash:{}", epochKey, c2.get());
+                    if (c2.isExists()) {
+                        m.put(epochKey, c2.get());
                     } else {
                         val thirdPrefix = appendPrefix ? ".31" : "";
-                        val c3 = redissonClient.getAtomicLong(collection + thirdPrefix + key).get();
+                        val c3 = redissonClient.getAtomicLong(collection + thirdPrefix + epochKey.getValue() + "." + epochNo);
 
-                        if (c3 > 0) {
-                            log.debug("c3-31 hash:{} count:{}", key, c3);
+                        if (c3.isExists()) {
+                            log.debug("c3-31 hash:{} count:{}", epochKey, c3.get());
                         }
 
-                        m.put(key, c3);
+                        m.put(epochKey, c3.get());
                     }
                 }
             });
@@ -193,14 +193,19 @@ public class ScrollsOnChainDataService {
 
         val collection = "c2";
 
+
         addresses.forEach(addr -> {
             log.debug("Loading transactions count for addr:{}", addr);
 
-            val result = redissonClient.getAtomicLong(collection + "." + addr).get();
+            val result = redissonClient.getAtomicLong(collection + "." + addr);
 
             log.debug("Transactions count for addr:{}, transactions count:{}", addr, result);
 
-            transactionCountPerAddr.put(addr, result);
+            if (result.isExists()) {
+                transactionCountPerAddr.put(addr, result.get());
+            } else {
+                transactionCountPerAddr.put(addr, 0L);
+            }
         });
 
         return transactionCountPerAddr;
@@ -226,11 +231,15 @@ public class ScrollsOnChainDataService {
             addresses.forEach(addr -> {
                 log.debug("Loading transactions count for addr:{}", addr);
 
-                val result = redissonClient.getAtomicLong(collection + "." + addr).get();
+                val result = redissonClient.getAtomicLong(collection + "." + addr + "." + epochNo);
 
-                log.debug("transactions count for addr:{}, transactions:{}", addr, result);
+                log.debug("transactions count for addr:{}, transactions:{}", addr, result.get());
 
-                transactionCountPerAddr.put(new EpochKey<>(epochNo, addr), result);
+                if (result.isExists()) {
+                    transactionCountPerAddr.put(new EpochKey<>(epochNo, addr), result.get());
+                } else {
+                    transactionCountPerAddr.put(new EpochKey<>(epochNo, addr), 0L);
+                }
             });
         }
 
@@ -252,6 +261,7 @@ public class ScrollsOnChainDataService {
                 log.debug("Script locked for addr:{}, lockedAda:{}", addr, result);
 
                 val resultADA = result / ONE_MLN;
+
                 log.debug("Script locked for addr:{}, lockedAda:{}", addr, resultADA);
 
                 lockedPerAddress.put(addr, resultADA);

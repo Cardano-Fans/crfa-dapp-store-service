@@ -1,29 +1,39 @@
 package crfa.app.service.processor;
 
 import crfa.app.domain.DappFeed;
+import crfa.app.domain.EpochKey;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ProcessorHelper {
 
-    public static long loadInvocationsPerHash(DappFeed dappFeed, String scriptHash) {
-        return dappFeed.getInvocationsCountPerHash().computeIfAbsent(scriptHash, hash -> {
-            log.warn("Unable to find total invocations for scriptHash:{}", hash);
+    public static long loadInvocationsPerHash(DappFeed dappFeed, String hash) {
+        return dappFeed.getInvocationsCountPerHash().computeIfAbsent(hash, h -> {
+            log.warn("Unable to find total invocations for hash:{}", h);
 
             return 0L;
         });
     }
 
-    public static long loadInvocationsCountPerHash(DappFeed dappFeed, String mintPolicyID) {
-        return dappFeed.getInvocationsCountPerHash().computeIfAbsent(mintPolicyID, hash -> {
-            log.warn("Unable to find invocationsPerHash hash:{}", hash);
+    public static long loadInvocationsPerHash(DappFeed dappFeed, String hash, int epochNo) {
+        return dappFeed.getInvocationsCountPerHashEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
+            log.warn("Unable to find total invocations for hash:{}", hashEpochKey);
+
             return 0L;
         });
     }
 
     public static long loadAddressBalance(DappFeed dappFeed, String contractAddress) {
-        return dappFeed.getScriptLockedPerContractAddress().computeIfAbsent(contractAddress, addr -> {
-            log.warn("Unable to find scriptsLocked for contractAddress:{}", addr);
+        return dappFeed.getScriptLockedPerContractAddress().computeIfAbsent(contractAddress, addrEpochKey -> {
+            log.warn("Unable to find scriptsLocked for contractAddress:{}", addrEpochKey);
+
+            return 0L;
+        });
+    }
+
+    public static long loadAddressBalance(DappFeed dappFeed, String contractAddress, int epochNo) {
+        return dappFeed.getScriptLockedPerContractAddressEpoch().computeIfAbsent(new EpochKey<>(epochNo, contractAddress), addrEpochKey -> {
+            log.warn("Unable to find scriptsLocked for contractAddress:{}", addrEpochKey);
 
             return 0L;
         });
@@ -37,11 +47,25 @@ public class ProcessorHelper {
         });
     }
 
-    public static long loadTokensBalance(DappFeed dappFeed, String assetId) {
-        return dappFeed.getTokenHoldersBalance().computeIfAbsent(assetId, aId -> {
-            log.warn("Unable to load balance for assetId:{}", assetId);
+    public static long loadTransactionsCount(DappFeed dappFeed, String contractAddress, int epochNo) {
+        return dappFeed.getTransactionCountsPerContractAddressEpoch().computeIfAbsent(new EpochKey<>(epochNo, contractAddress), addrEpochKey -> {
+            log.warn("Unable to find transactionsCount for contractAddress:{}", addrEpochKey);
+
             return 0L;
         });
     }
 
+    public static long loadTokensBalance(DappFeed dappFeed, String assetId) {
+        return dappFeed.getTokenHoldersBalance().computeIfAbsent(assetId, aId -> {
+            log.warn("Unable to load balance for assetId:{}", aId);
+            return 0L;
+        });
+    }
+
+    public static long loadTokensBalance(DappFeed dappFeed, String assetId, int epochNo) {
+        return dappFeed.getTokenHoldersBalanceEpoch().computeIfAbsent(new EpochKey<>(epochNo, assetId), assetIdEpochKey -> {
+            log.warn("Unable to load balance for assetId:{}", assetIdEpochKey);
+            return 0L;
+        });
+    }
 }

@@ -18,10 +18,10 @@ public class DappIngestionService {
     public void process(DappFeed dappFeed) {
         val beans = appContext.getActiveBeanRegistrations(FeedProcessor.class);
 
-        beans.forEach(b -> {
-            log.info("Processing, dappFeed:{}", b.getName());
-            b.getBean().process(dappFeed);
-            log.info("Finished, dappFeed:{}", b.getName());
+        beans.forEach(bean -> {
+            log.info("Processing, dappFeed:{}", bean.getName());
+            bean.getBean().process(dappFeed);
+            log.info("Finished, dappFeed:{}", bean.getName());
         });
     }
 

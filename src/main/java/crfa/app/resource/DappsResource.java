@@ -171,7 +171,7 @@ public class DappsResource {
                 .contractsAuditedLink(dAppRelease.getAuditLink())
                 .build();
 
-        val dAppReleaseItemResults = dappScriptsRepository.listReleaseItemsByReleaseKey(releaseKey, sortBy, sortOrder)
+        val dAppReleaseItemResults = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy, sortOrder)
                 .stream()
                 .map(item -> DAppReleaseItemResult.builder()
                 .dappId(item.getDappId())

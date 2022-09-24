@@ -83,12 +83,14 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setTransactionsCount(totalTransactionsCount);
 
                 dappReleases.add(dappRelease);
-
-                log.debug("Upserting, dappname:{} - {}", dappRelease.getName(), dappReleaseItem.getReleaseName());
-
-                dappReleaseRepository.upsertDAppRelease(dappRelease);
             });
         });
+
+        log.info("Upserting, dapp releases, count:{}", dappReleases.size());
+        dappReleases.forEach(dappRelease -> {
+            dappReleaseRepository.upsertDAppRelease(dappRelease);
+        });
+        log.info("Upserted, dapp releases.");
 
         dappReleaseRepository.removeAllExcept(dappReleases);
     }
