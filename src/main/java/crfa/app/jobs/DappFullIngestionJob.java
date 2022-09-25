@@ -1,5 +1,6 @@
 package crfa.app.jobs;
 
+import crfa.app.domain.InjestionMode;
 import crfa.app.service.DappFeedCreator;
 import crfa.app.service.DappIngestionService;
 import io.micronaut.scheduling.annotation.Scheduled;
@@ -10,7 +11,7 @@ import lombok.val;
 
 @Singleton
 @Slf4j
-public class DappIngestionJob {
+public class DappFullIngestionJob {
 
     @Inject
     private DappIngestionService dappIngestionService;
@@ -18,17 +19,19 @@ public class DappIngestionJob {
     @Inject
     private DappFeedCreator dappFeedCreator;
 
-    @Scheduled(fixedDelay = "15m", initialDelay = "5s")
+    @Scheduled(initialDelay = "5s", cron = "0 30 4 1/1 * ?") // once per day at 4.30 AM
     public void onScheduled() {
-        log.info("Dapps update scheduled.");
+        val injestionMode = InjestionMode.FULL;
+
+        log.info("Dapps update scheduled, mode:{}", injestionMode);
 
         log.info("Gathering data feed...");
-        val dataFeed = dappFeedCreator.createFeed();
+        val dataFeed = dappFeedCreator.createFeed(injestionMode);
         log.info("Got data feed.");
 
-        dappIngestionService.process(dataFeed);
+        dappIngestionService.process(dataFeed, injestionMode);
 
-        log.info("Dapps update completed.");
+        log.info("Dapps update completed, mode:{}", injestionMode);
     }
 
 }

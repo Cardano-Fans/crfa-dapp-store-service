@@ -57,6 +57,9 @@ public class DAppScriptItemResult {
         @Nullable
         Long volume; // for mint scripts we don't have scripts locked value
 
+        @Nullable
+        Long balance;
+
         // unified for transactionsCount and scriptInvocationsCount
         Long trxCount;
 

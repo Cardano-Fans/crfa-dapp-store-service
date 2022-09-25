@@ -1,9 +1,6 @@
 package crfa.app.service.processor;
 
-import crfa.app.domain.DappFeed;
-import crfa.app.domain.DappScriptItem;
-import crfa.app.domain.Purpose;
-import crfa.app.domain.ScriptType;
+import crfa.app.domain.*;
 import crfa.app.repository.DappScriptsRepository;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -24,7 +21,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
     private DappScriptsRepository dappScriptsRepository;
 
     @Override
-    public void process(DappFeed dappFeed) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val dappScriptItems = new ArrayList<DappScriptItem>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> { // looping over dapps

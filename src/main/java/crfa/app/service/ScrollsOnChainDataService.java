@@ -14,7 +14,6 @@ import org.redisson.client.codec.StringCodec;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static crfa.app.domain.EraName.ALONZO;
 import static crfa.app.domain.EraName.MARY;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.String.format;
@@ -53,7 +52,7 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<EpochKey<String>, Long> mintScriptsCountWithEpochs(Collection<String> mintPolicyIds) {
+    public Map<EpochKey<String>, Long> mintScriptsCountWithEpochs(Collection<String> mintPolicyIds, boolean currentEpochOnly) {
         log.info("loading mint policy ids counts...");
 
         val m = new HashMap<EpochKey<String>, Long>();
@@ -67,9 +66,9 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
 
-        for(int epochNo : epochs) {
+        for(val epochNo : epochs) {
             log.debug("mintScriptsCountWithEpochs - processing epochNo:{}", epochNo);
             mintPolicyIds.forEach(key -> {
                 log.debug("Loading trx count for mintPolicyId:{}", key);
@@ -88,13 +87,14 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<String, Long> scriptHashesCount(Collection<String> scriptHashes,
-                                               boolean appendPrefix) {
+    public Map<String, Long> scriptHashesCount(Collection<String> scriptHashes) {
         log.info("loading scriptHashes counts...");
 
         val m = new HashMap<String, Long>();
 
         val collection = "c3";
+
+        val appendPrefix = true;
 
         scriptHashes.forEach(key -> {
             log.debug("Loading trx count for scriptHash:{}", key);
@@ -131,9 +131,10 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<EpochKey<String>, Long> scriptHashesCountWithEpochs(Collection<String> scriptHashes,
-                                                                   boolean appendPrefix) {
+    public Map<EpochKey<String>, Long> scriptHashesCountWithEpochs(Collection<String> scriptHashes, boolean currentEpochOnly) {
         log.info("loading scriptHashes counts...");
+
+        val appendPrefix = true;
 
         val m = new HashMap<EpochKey<String>, Long>();
 
@@ -146,9 +147,9 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = Eras.epochsBetween(ALONZO, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
 
-        for(int epochNo : epochs) {
+        for(val epochNo : epochs) {
             log.debug("scriptHashesCountWithEpochs - processing epochNo:{}", epochNo);
 
             scriptHashes.forEach(k -> {
@@ -211,7 +212,7 @@ public class ScrollsOnChainDataService {
         return transactionCountPerAddr;
     }
 
-    public Map<EpochKey<String>, Long> transactionsCountWithEpochs(Collection<String> addresses) {
+    public Map<EpochKey<String>, Long> transactionsCountWithEpochs(Collection<String> addresses, boolean currentEpochOnly) {
         val transactionCountPerAddr = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c6";
@@ -223,9 +224,9 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = Eras.epochsBetween(ALONZO, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
 
-        for(int epochNo : epochs) {
+        for(val epochNo : epochs) {
             log.debug("transactionsCountWithEpochs - processing epochNo:{}", epochNo);
 
             addresses.forEach(addr -> {
@@ -273,11 +274,39 @@ public class ScrollsOnChainDataService {
         return lockedPerAddress;
     }
 
+    public Map<String, Long> volume(Collection<String> addresses) {
+        val volumePerAddress = new HashMap<String, Long>();
+
+        val collection = "c18";
+
+        addresses.forEach(addr -> {
+            log.debug("Loading volume per addr:{}", addr);
+
+            val r = redissonClient.getAtomicLong(collection + "." + addr);
+
+            if (r.isExists()) {
+                val result = r.get();
+
+                log.debug("volume for addr:{}, ada:{}", addr, result);
+
+                val resultADA = result / ONE_MLN;
+
+                log.debug("Volume for addr:{}, ada:{}", addr, resultADA);
+
+                volumePerAddress.put(addr, resultADA);
+            } else {
+                volumePerAddress.put(addr, 0L);
+            }
+        });
+
+        return volumePerAddress;
+    }
+
     public Map<String, Long> scriptLockedAtEpoch(Collection<String> addresses, int epochNo) {
         throw new NotImplementedException();
     }
 
-    public Map<EpochKey<String>, Long> scriptLockedWithEpochs(Collection<String> addresses) {
+    public Map<EpochKey<String>, Long> scriptLockedWithEpochs(Collection<String> addresses, boolean currentEpochOnly) {
         val lockedPerAddress = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c5";
@@ -289,9 +318,9 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
 
-        for(int epochNo : epochs) {
+        for(val epochNo : epochs) {
             log.debug("scriptLockedWithEpochs - processing epochNo:{}", epochNo);
 
             addresses.forEach(addr -> {
@@ -317,6 +346,47 @@ public class ScrollsOnChainDataService {
         return lockedPerAddress;
     }
 
+    public Map<EpochKey<String>, Long> volumeEpochLevel(Collection<String> addresses, boolean currentEpochOnly) {
+        val volumePerAddress = new HashMap<EpochKey<String>, Long>();
+
+        val collection = "c19";
+
+        val maybeCurrentEpochNo = currentEpoch();
+        if (maybeCurrentEpochNo.isEmpty()) {
+            log.warn("empty maybeCurrentEpochNo, returning empty scripts locked map.");
+            return Maps.newHashMap();
+        }
+
+        val currentEpochNo = maybeCurrentEpochNo.get();
+
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
+
+        for(val epochNo : epochs) {
+            log.debug("volume - processing epochNo:{}", epochNo);
+
+            addresses.forEach(addr -> {
+                log.debug("Loading script locked addr:{} for currentEpochNo:{}", addr, epochNo);
+
+                val key = format(collection + ".%s.%d", addr, epochNo);
+
+                val r = redissonClient.getAtomicLong(key);
+
+                if (r.isExists()) {
+                    val result = r.get();
+
+                    val resultAda = result / ONE_MLN;
+                    log.debug("Volume for addr:{}, lockedAda:{}, epoch:{}", addr, resultAda, epochNo);
+
+                    volumePerAddress.put(new EpochKey<>(epochNo, addr), resultAda);
+                } else {
+                    volumePerAddress.put(new EpochKey<>(epochNo, addr), 0L);
+                }
+            });
+        }
+
+        return volumePerAddress;
+    }
+
     public Optional<Integer> currentEpoch() {
         val r = redissonClient.getAtomicLong("c13.epoch_no");
 
@@ -339,11 +409,11 @@ public class ScrollsOnChainDataService {
 
     // TODO allow to specify from which epoch / era to load data
     // ZRANGEBYSCORE "c14.026a18d04a0c642759bb3d83b12e3344894e5c1c7b2aeb1a2113a5704c".364 1 +inf
-    public Map<Integer, Set<String>> getAssetHoldersWithEpochs(String assetId) {
+    public Map<Integer, Set<String>> getAssetHoldersWithEpochs(String assetId, boolean currentEpochOnly) {
         // c15
-        val currentEpoch = currentEpoch().orElseThrow(() -> new RuntimeException("unable to read current epoch"));
+        val currentEpochNo = currentEpoch().orElseThrow(() -> new RuntimeException("unable to read current epoch"));
 
-        val epochs = Eras.epochsBetween(MARY, currentEpoch);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
 
         val tokenHoldersPerEpoch = new HashMap<Integer, Set<String>>();
 

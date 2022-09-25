@@ -1,10 +1,7 @@
 package crfa.app.service.processor;
 
 import crfa.app.client.metadata.DappReleaseItem;
-import crfa.app.domain.DApp;
-import crfa.app.domain.DAppType;
-import crfa.app.domain.DappFeed;
-import crfa.app.domain.Purpose;
+import crfa.app.domain.*;
 import crfa.app.repository.DappsRepository;
 import crfa.app.service.DappService;
 import jakarta.inject.Inject;
@@ -31,7 +28,7 @@ public class DappFeedProcessor implements FeedProcessor {
     private DappsRepository dappsRepository;
 
     @Override
-    public void process(DappFeed dappFeed) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val dapps = new ArrayList<DApp>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {

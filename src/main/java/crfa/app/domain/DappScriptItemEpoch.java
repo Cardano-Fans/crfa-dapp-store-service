@@ -54,7 +54,11 @@ public class DappScriptItemEpoch {
 
     @DatabaseField(columnName = "volume", index = true)
     @Nullable
-    Long volume; // for mint scripts we don't have scripts locked value
+    Long volume;
+
+    @DatabaseField(columnName = "balance", index = true)
+    @Nullable
+    Long balance; // for mint scripts we don't have scripts locked value
 
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "transactionsCount", index = true)

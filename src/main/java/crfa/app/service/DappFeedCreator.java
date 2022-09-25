@@ -3,6 +3,7 @@ package crfa.app.service;
 import crfa.app.client.metadata.CRFAMetaDataServiceClient;
 import crfa.app.domain.DappFeed;
 import crfa.app.domain.EpochKey;
+import crfa.app.domain.InjestionMode;
 import io.vavr.Tuple2;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -31,16 +32,16 @@ public class DappFeedCreator {
     @Inject
     private ScrollsOnChainDataService scrollsOnChainDataService;
 
-    public DappFeed createFeed() {
+    public DappFeed createFeed(InjestionMode injestionMode) {
         log.info("metadata service - fetching all dapps...");
         val dappSearchResult = Mono.from(crfaMetaDataServiceClient.fetchAllDapps()).block();
         log.info("metadata service - fetched all dapps.");
 
-        val dataPointers = dataPointsLoader.load(dappSearchResult);
+        val dataPointers = dataPointsLoader.load(dappSearchResult, injestionMode);
 
         val mintPolicyCounts = scrollsOnChainDataService.mintScriptsCount(dataPointers.mintPolicyIds);
 
-        val scriptHashesCount = scrollsOnChainDataService.scriptHashesCount(dataPointers.scriptHashes, true);
+        val scriptHashesCount = scrollsOnChainDataService.scriptHashesCount(dataPointers.scriptHashes);
 
         log.debug("Loading locked per contract address....");
         val scriptLockedPerContractAddr = scrollsOnChainDataService.scriptLocked(dataPointers.contractAddresses);
@@ -50,29 +51,48 @@ public class DappFeedCreator {
         val transactionsCountPerContractAddr = scrollsOnChainDataService.transactionsCount(dataPointers.contractAddresses);
         log.debug("Loaded transaction counts.");
 
+        val volumePerContract = scrollsOnChainDataService.volume(dataPointers.contractAddresses);
+
         val tokenHoldersAssetIdToAdaBalance = loadTokenHoldersBalance(dataPointers.assetIdToTokenHolders);
 
-        val scriptLockedPerContractWithEpoch = scrollsOnChainDataService.scriptLockedWithEpochs(dataPointers.contractAddresses);
-        val transactionsCountPerContractWithEpoch = scrollsOnChainDataService.transactionsCountWithEpochs(dataPointers.contractAddresses);
-        val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintScriptsCountWithEpochs(dataPointers.mintPolicyIds);
-        val scriptHashesCountWithEpoch = scrollsOnChainDataService.scriptHashesCountWithEpochs(dataPointers.scriptHashes, true);
-        val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch);
+        if (injestionMode == InjestionMode.WITHOUT_EPOCHS) {
+            return DappFeed.builder()
+                    .dappSearchResult(dappSearchResult)
 
-        return DappFeed.builder()
-                .dappSearchResult(dappSearchResult)
+                    // for all epochs - aggregates
+                    .scriptLockedPerContractAddress(scriptLockedPerContractAddr)
+                    .volumePerContractAddress(volumePerContract)
+                    .invocationsCountPerHash(addMaps(mintPolicyCounts, scriptHashesCount))
+                    .transactionCountsPerContractAddress(transactionsCountPerContractAddr)
+                    .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
 
-                // for all epochs
-                .scriptLockedPerContractAddress(scriptLockedPerContractAddr)
-                .invocationsCountPerHash(addMaps(mintPolicyCounts, scriptHashesCount))
-                .transactionCountsPerContractAddress(transactionsCountPerContractAddr)
-                .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
+                    .build();
+        } else {
+            val scriptLockedPerContractWithEpoch = scrollsOnChainDataService.scriptLockedWithEpochs(dataPointers.contractAddresses, injestionMode == InjestionMode.CURRENT_EPOCH);
+            val volumePerContractWithEpoch = scrollsOnChainDataService.volumeEpochLevel(dataPointers.contractAddresses, injestionMode == InjestionMode.CURRENT_EPOCH);
+            val transactionsCountPerContractWithEpoch = scrollsOnChainDataService.transactionsCountWithEpochs(dataPointers.contractAddresses, injestionMode == InjestionMode.CURRENT_EPOCH);
+            val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintScriptsCountWithEpochs(dataPointers.mintPolicyIds, injestionMode == InjestionMode.CURRENT_EPOCH);
+            val scriptHashesCountWithEpoch = scrollsOnChainDataService.scriptHashesCountWithEpochs(dataPointers.scriptHashes, injestionMode == InjestionMode.CURRENT_EPOCH);
+            val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch, injestionMode == InjestionMode.CURRENT_EPOCH);
 
-                // epoch level
-                .scriptLockedPerContractAddressEpoch(scriptLockedPerContractWithEpoch)
-                .transactionCountsPerContractAddressEpoch(transactionsCountPerContractWithEpoch)
-                .invocationsCountPerHashEpoch(addMaps(mintPolicyCountsWithEpoch, scriptHashesCountWithEpoch))
-                .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
-                .build();
+            return DappFeed.builder()
+                    .dappSearchResult(dappSearchResult)
+
+                    // for all epochs - aggregates
+                    .scriptLockedPerContractAddress(scriptLockedPerContractAddr)
+                    .volumePerContractAddress(volumePerContract)
+                    .invocationsCountPerHash(addMaps(mintPolicyCounts, scriptHashesCount))
+                    .transactionCountsPerContractAddress(transactionsCountPerContractAddr)
+                    .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
+
+                    // epoch level
+                    .scriptLockedPerContractAddressEpoch(scriptLockedPerContractWithEpoch)
+                    .transactionCountsPerContractAddressEpoch(transactionsCountPerContractWithEpoch)
+                    .invocationsCountPerHashEpoch(addMaps(mintPolicyCountsWithEpoch, scriptHashesCountWithEpoch))
+                    .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
+                    .volumePerContractAddressEpoch(volumePerContractWithEpoch)
+                    .build();
+        }
     }
 
     private Map<String, Long> loadTokenHoldersBalance(Map<String, Set<String>> assetIdToTokenHolders) {
@@ -95,7 +115,7 @@ public class DappFeedCreator {
 
     private Map<EpochKey<String>, Long> loadTokenHoldersBalanceWithEpoch(
             Map<EpochKey<String>, Set<String>> assetIdToTokenHoldersWithEpoch,
-            Map<EpochKey<String>, Long> scriptLockedPerContractWithEpoch) {
+            Map<EpochKey<String>, Long> scriptLockedPerContractWithEpoch, boolean b) {
         // handling special case for WingRiders and when asset based on MintPolicyId has token holders, see: https://github.com/Cardano-Fans/crfa-offchain-data-registry/issues/80
         return assetIdToTokenHoldersWithEpoch.entrySet().stream()
                 .map(entry -> {

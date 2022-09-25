@@ -18,6 +18,7 @@ public class DappFeed {
 
     Map<String, Long> invocationsCountPerHash;
     Map<String, Long> scriptLockedPerContractAddress;
+    Map<String, Long> volumePerContractAddress;
     Map<String, Long> transactionCountsPerContractAddress;
     Map<String, Long> tokenHoldersBalance;
 
@@ -25,5 +26,6 @@ public class DappFeed {
     Map<EpochKey<String>, Long> scriptLockedPerContractAddressEpoch;
     Map<EpochKey<String>, Long> transactionCountsPerContractAddressEpoch;
     Map<EpochKey<String>, Long> tokenHoldersBalanceEpoch;
+    Map<EpochKey<String>, Long> volumePerContractAddressEpoch;
 
 }

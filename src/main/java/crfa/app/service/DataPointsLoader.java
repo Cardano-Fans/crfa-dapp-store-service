@@ -16,7 +16,7 @@ public class DataPointsLoader {
     @Inject
     private ScrollsOnChainDataService scrollsOnChainDataService;
 
-    public DataPointers load(List<DappSearchItem> dappSearchResult) {
+    public DataPointers load(List<DappSearchItem> dappSearchResult, InjestionMode injestionMode) {
         val addressPointersList = new HashSet<AddressPointers>();
         val mintPolicyIds = new ArrayList<String>();
         val assetIdToTokenHolders = new HashMap<String, Set<String>>();
@@ -40,15 +40,16 @@ public class DataPointsLoader {
                             log.info("Fetching holders for assetId:" + assetId);
 
                             val tokenHolders = scrollsOnChainDataService.getCurrentAssetHolders(assetId);
-                            val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId);
-
                             log.info("got holders count:{}", tokenHolders.size());
                             assetIdToTokenHolders.put(assetId, tokenHolders);
 
-                            tokenHoldersWithEpochs.forEach((epochNo, tokenHoldersWith) -> {
-                                assetIdToTokenHoldersWithEpoch.put(new EpochKey<>(epochNo, assetId), tokenHoldersWith);
-                            });
+                            if (!(injestionMode == InjestionMode.WITHOUT_EPOCHS)) {
+                                val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId, injestionMode == InjestionMode.CURRENT_EPOCH);
 
+                                tokenHoldersWithEpochs.forEach((epochNo, tokenHoldersWith) -> {
+                                    assetIdToTokenHoldersWithEpoch.put(new EpochKey<>(epochNo, assetId), tokenHoldersWith);
+                                });
+                            }
                         }
                     } else if (scriptItem.getPurpose() == Purpose.SPEND) {
                         dappReleaseId.setHash(scriptItem.getScriptHash());

@@ -221,7 +221,8 @@ public class DappsResource {
                         (item.getVolume() != null && item.getVolume() > 0))
                 .forEach(dappScriptItemEpoch -> {
             epochLevelStats.put(dappScriptItemEpoch.getEpochNo(), DAppScriptItemResult.EpochStats.builder()
-                            .volume(dappScriptItemEpoch.getVolume() != null ? Math.abs(dappScriptItemEpoch.getVolume()) : null)
+                            .volume(dappScriptItemEpoch.getVolume())
+                            .balance(dappScriptItemEpoch.getBalance())
                             .trxCount(dappScriptItemEpoch.getScriptInvocationsCount())
 //                            .scriptInvocationsCount(dappScriptItemEpoch.getScriptInvocationsCount())
 //                            .transactionsCount(dappScriptItemEpoch.getTransactionsCount())
