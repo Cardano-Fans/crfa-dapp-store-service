@@ -37,11 +37,11 @@ public class DappScriptItemEpoch {
     @DatabaseField(canBeNull = false, columnName = "script_type")
     ScriptType scriptType;
 
-    @DatabaseField(columnName = "name")
+    @DatabaseField(columnName = "name", index = true)
     @Nullable
     String name;
 
-    @DatabaseField(canBeNull = false, columnName = "version")
+    @DatabaseField(canBeNull = false, columnName = "version", index = true)
     int version;
 
     @DatabaseField(columnName = "contract_address")
@@ -52,13 +52,17 @@ public class DappScriptItemEpoch {
     @Nullable
     String mintPolicyID;
 
-    @DatabaseField(columnName = "volume", index = true)
+    @DatabaseField(columnName = "volume")
     @Nullable
     Long volume;
 
-    @DatabaseField(columnName = "balance", index = true)
+    @DatabaseField(columnName = "inflows_outflows")
     @Nullable
-    Long balance; // for mint scripts we don't have scripts locked value
+    Long inflowsOutflows; // for mint scripts we don't have scripts locked value
+
+    @DatabaseField(columnName = "unique_accounts")
+    @Nullable
+    Integer uniqueAccounts;
 
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "transactionsCount", index = true)

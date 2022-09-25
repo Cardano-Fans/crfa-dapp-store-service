@@ -43,8 +43,8 @@ public class DataPointsLoader {
                             log.info("got holders count:{}", tokenHolders.size());
                             assetIdToTokenHolders.put(assetId, tokenHolders);
 
-                            if (!(injestionMode == InjestionMode.WITHOUT_EPOCHS)) {
-                                val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId, injestionMode == InjestionMode.CURRENT_EPOCH);
+                            if (!(injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES)) {
+                                val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId, injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES);
 
                                 tokenHoldersWithEpochs.forEach((epochNo, tokenHoldersWith) -> {
                                     assetIdToTokenHoldersWithEpoch.put(new EpochKey<>(epochNo, assetId), tokenHoldersWith);

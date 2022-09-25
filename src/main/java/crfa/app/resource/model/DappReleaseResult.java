@@ -53,6 +53,9 @@ public class DappReleaseResult {
     Date updateTime;
 
     @Nullable
+    Integer uniqueAccounts;
+
+    @Nullable
     String contractOpenSourcedLink;
 
     @Nullable

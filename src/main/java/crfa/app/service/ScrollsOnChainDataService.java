@@ -7,13 +7,13 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.commons.lang3.NotImplementedException;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static crfa.app.domain.EraName.ALONZO;
 import static crfa.app.domain.EraName.MARY;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.String.format;
@@ -224,7 +224,7 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
 
         for(val epochNo : epochs) {
             log.debug("transactionsCountWithEpochs - processing epochNo:{}", epochNo);
@@ -302,8 +302,26 @@ public class ScrollsOnChainDataService {
         return volumePerAddress;
     }
 
-    public Map<String, Long> scriptLockedAtEpoch(Collection<String> addresses, int epochNo) {
-        throw new NotImplementedException();
+    public Map<String, Set<String>> uniqueAccounts(Collection<String> addresses) {
+        val uniqueAccountsPerAddress = new HashMap<String, Set<String>>();
+
+        val collection = "c16";
+
+        addresses.forEach(addr -> {
+            log.debug("Loading unique accounts per addr:{}", addr);
+
+            val r = redissonClient.<String>getSet(collection + "." + addr, new StringCodec());
+
+            if (r.isExists()) {
+                log.debug("Loading unique accounts for addr:{}, size:{}", addr, r);
+
+                uniqueAccountsPerAddress.put(addr, r);
+            } else {
+                uniqueAccountsPerAddress.put(addr, Set.of());
+            }
+        });
+
+        return uniqueAccountsPerAddress;
     }
 
     public Map<EpochKey<String>, Long> scriptLockedWithEpochs(Collection<String> addresses, boolean currentEpochOnly) {
@@ -318,7 +336,7 @@ public class ScrollsOnChainDataService {
         }
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
 
         for(val epochNo : epochs) {
             log.debug("scriptLockedWithEpochs - processing epochNo:{}", epochNo);
@@ -353,13 +371,13 @@ public class ScrollsOnChainDataService {
 
         val maybeCurrentEpochNo = currentEpoch();
         if (maybeCurrentEpochNo.isEmpty()) {
-            log.warn("empty maybeCurrentEpochNo, returning empty scripts locked map.");
+            log.warn("empty maybeCurrentEpochNo, returning empty map.");
             return Maps.newHashMap();
         }
 
         val currentEpochNo = maybeCurrentEpochNo.get();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
 
         for(val epochNo : epochs) {
             log.debug("volume - processing epochNo:{}", epochNo);
@@ -385,6 +403,42 @@ public class ScrollsOnChainDataService {
         }
 
         return volumePerAddress;
+    }
+
+    public Map<EpochKey<String>, Set<String>> uniqueAccountsEpoch(Collection<String> addresses, boolean currentEpochOnly) {
+        val uniqueAccountsPerAddress = new HashMap<EpochKey<String>, Set<String>>();
+
+        val collection = "c17";
+
+        val maybeCurrentEpochNo = currentEpoch();
+        if (maybeCurrentEpochNo.isEmpty()) {
+            log.warn("empty maybeCurrentEpochNo, returning empty map.");
+            return Maps.newHashMap();
+        }
+
+        val currentEpochNo = maybeCurrentEpochNo.get();
+
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+
+        for (val epochNo : epochs) {
+            log.debug("Unique addresses - processing epochNo:{}", epochNo);
+
+            addresses.forEach(addr -> {
+                log.debug("Loading unique addresses, addr:{} for currentEpochNo:{}", addr, epochNo);
+
+                val key = format(collection + ".%s.%d", addr, epochNo);
+
+                val r = redissonClient.<String>getSet(collection + "." + addr, new StringCodec());
+
+                if (r.isExists()) {
+                    uniqueAccountsPerAddress.put(new EpochKey<>(epochNo, addr), r);
+                } else {
+                    uniqueAccountsPerAddress.put(new EpochKey<>(epochNo, addr), Set.of());
+                }
+            });
+        }
+
+        return uniqueAccountsPerAddress;
     }
 
     public Optional<Integer> currentEpoch() {

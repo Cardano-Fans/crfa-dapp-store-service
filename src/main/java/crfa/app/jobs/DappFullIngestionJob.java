@@ -19,7 +19,8 @@ public class DappFullIngestionJob {
     @Inject
     private DappFeedCreator dappFeedCreator;
 
-    @Scheduled(initialDelay = "5s", cron = "0 30 4 1/1 * ?") // once per day at 4.30 AM
+    @Scheduled(initialDelay = "5s")
+    // cron = "0 30 4 1/1 * ?"  // once per day at 4.30 AM
     public void onScheduled() {
         val injestionMode = InjestionMode.FULL;
 
@@ -31,7 +32,7 @@ public class DappFullIngestionJob {
 
         dappIngestionService.process(dataFeed, injestionMode);
 
-        log.info("Dapps update completed, mode:{}", injestionMode);
+        log.info("dapps update completed, mode:{}", injestionMode);
     }
 
 }

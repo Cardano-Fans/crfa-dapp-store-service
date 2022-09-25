@@ -13,6 +13,7 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 import static crfa.app.domain.EraName.ALONZO;
 import static crfa.app.service.processor.ProcessorHelper.*;
@@ -31,7 +32,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
     @Override
     public void process(DappFeed dappFeed, InjestionMode injestionMode) {
-        if (injestionMode == InjestionMode.WITHOUT_EPOCHS) {
+        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
             log.info("epoch level ingestion disabled.");
             return;
         }
@@ -50,7 +51,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> { // looping over dapps
             dappSearchItem.getReleases().forEach(dappReleaseItem -> { // looping over dapp releases
                 for (val scriptItem : dappReleaseItem.getScripts()) { // looping over dapp scripts on release level
-                    val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH;
+                    val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
                     if (injestCurrentEpochOnly) {
                             dappScriptItems.add(createDappItemEpoch(dappFeed, currentEpochNo, dappSearchItem, dappReleaseItem, scriptItem, currentEpochNo));
@@ -97,8 +98,9 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
             val contractAddress = scriptItem.getContractAddress();
             dappScriptItem.setContractAddress(contractAddress);
             dappScriptItem.setVolume(loadVolume(dappFeed, contractAddress, epochNo));
-            dappScriptItem.setBalance(loadAddressBalance(dappFeed, contractAddress, epochNo));
+            dappScriptItem.setInflowsOutflows(loadAddressBalance(dappFeed, contractAddress, epochNo));
             dappScriptItem.setTransactionsCount(loadTransactionsCount(dappFeed, contractAddress, epochNo));
+            dappScriptItem.setUniqueAccounts(loadUniqueAccounts(dappFeed, contractAddress, epochNo).size());
         }
         if (scriptItem.getPurpose() == Purpose.MINT) {
             val mintPolicyID = scriptItem.getMintPolicyID();
@@ -112,7 +114,18 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
             if (scriptItem.getAssetId().isPresent()) {
                 val assetId = scriptItem.getAssetId().get();
                 // in case of purpouse = MINT there is no way we could have any script balance to add, so we only take tokens balance (ADA)
-                dappScriptItem.setBalance(loadTokensBalance(dappFeed, assetId, epochNo));
+                dappScriptItem.setInflowsOutflows(loadTokensBalance(dappFeed, assetId, epochNo));
+
+                val holders = dappFeed.getTokenHoldersAddresses().get(assetId);
+
+                val allUniqueAccounts = new HashSet<>();
+
+                holders.forEach(holder -> {
+                    val uniqueAccounts = loadUniqueAccounts(dappFeed, holder, epochNo);
+                    allUniqueAccounts.addAll(uniqueAccounts);
+                });
+
+                dappScriptItem.setUniqueAccounts(allUniqueAccounts.size());
             }
         }
 

@@ -9,6 +9,7 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.service.processor.ProcessorHelper.*;
@@ -57,6 +58,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 var totalScriptsLocked = 0L;
                 var totalInvocations = 0L;
                 var totalTransactionsCount = 0L;
+                var uniqueAccounts = new HashSet<String>();
 
                 for (val scriptItem : dappReleaseItem.getScripts()) {
                     if (scriptItem.getPurpose() == Purpose.SPEND) {
@@ -65,6 +67,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                         totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getScriptHash());
                         totalScriptsLocked += loadAddressBalance(dappFeed, contractAddress);
                         totalTransactionsCount += loadTransactionsCount(dappFeed, contractAddress);
+                        uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, contractAddress));
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getMintPolicyID());
@@ -78,6 +81,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setScriptInvocationsCount(totalInvocations);
                 dappRelease.setScriptsLocked(totalScriptsLocked);
                 dappRelease.setTransactionsCount(totalTransactionsCount);
+                dappRelease.setUniqueAccounts(uniqueAccounts.size());
 
                 dappReleases.add(dappRelease);
             });

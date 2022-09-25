@@ -80,6 +80,7 @@ public class DappsResource {
                             .scriptsLocked(dAppRelease.getScriptsLocked())
                             .trxCount(dAppRelease.getScriptInvocationsCount())
                             .latestVersion(isLastVersion)
+                            .uniqueAccounts(dAppRelease.getUniqueAccounts())
                             .contractOpenSourcedLink(dAppRelease.getContractLink())
                             .contractsAuditedLink(dAppRelease.getAuditLink())
                             .build();
@@ -218,11 +219,16 @@ public class DappsResource {
                 .filter(item ->
                         (item.getScriptInvocationsCount() > 0)
                         ||
-                        (item.getVolume() != null && item.getVolume() > 0))
+                        (item.getVolume() != null && item.getVolume() > 0)
+                        ||
+                        (item.getInflowsOutflows() != null && item.getInflowsOutflows() > 0)
+                        ||
+                        (item.getUniqueAccounts() != null && item.getUniqueAccounts() > 0))
                 .forEach(dappScriptItemEpoch -> {
             epochLevelStats.put(dappScriptItemEpoch.getEpochNo(), DAppScriptItemResult.EpochStats.builder()
                             .volume(dappScriptItemEpoch.getVolume())
-                            .balance(dappScriptItemEpoch.getBalance())
+                            .inflowsOutflows(dappScriptItemEpoch.getInflowsOutflows())
+                            .uniqueAccounts(dappScriptItemEpoch.getUniqueAccounts())
                             .trxCount(dappScriptItemEpoch.getScriptInvocationsCount())
 //                            .scriptInvocationsCount(dappScriptItemEpoch.getScriptInvocationsCount())
 //                            .transactionsCount(dappScriptItemEpoch.getTransactionsCount())

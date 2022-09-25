@@ -21,7 +21,7 @@ public class DappCurrentEpochIngestionJob {
 
     @Scheduled(fixedDelay = "5m", initialDelay = "10m")
     public void onScheduled() {
-        val injestionMode = InjestionMode.CURRENT_EPOCH;
+        val injestionMode = InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
         log.info("Dapps update scheduled, mode:{}", injestionMode);
 

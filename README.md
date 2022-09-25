@@ -4,3 +4,10 @@
 
 ## Requirements
 - JDK17
+
+## TODO
+- unique addresses on aggregates level
+- unique addresses per month on script level
+- volume per script per epoch
+- volume total per dapp release and dapp
+- fees genereted by script address, dapp release and of course dapp root level

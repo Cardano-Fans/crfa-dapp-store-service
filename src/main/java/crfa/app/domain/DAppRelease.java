@@ -64,6 +64,10 @@ public class DAppRelease {
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long transactionsCount; // value across all scripts per dApp
 
+    @DatabaseField(columnName = "unique_accounts")
+    @Nullable
+    Integer uniqueAccounts;
+
     // total number of all script innovations belonging to this dApp
     @DatabaseField(canBeNull = false, columnName = "script_invocations", index = true)
     Long scriptInvocationsCount;

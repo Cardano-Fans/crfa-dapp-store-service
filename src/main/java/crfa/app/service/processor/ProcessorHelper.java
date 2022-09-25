@@ -4,6 +4,8 @@ import crfa.app.domain.DappFeed;
 import crfa.app.domain.EpochKey;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Set;
+
 @Slf4j
 public class ProcessorHelper {
 
@@ -52,6 +54,22 @@ public class ProcessorHelper {
             log.warn("Unable to find transactionsCount for contractAddress:{}", addrEpochKey);
 
             return 0L;
+        });
+    }
+
+    public static Set<String> loadUniqueAccounts(DappFeed dappFeed, String contractAddress) {
+        return dappFeed.getUniqueAccounts().computeIfAbsent(contractAddress, addr -> {
+            log.warn("Unable to find unique addresses for contractAddress:{}", addr);
+
+            return Set.of();
+        });
+    }
+
+    public static Set<String> loadUniqueAccounts(DappFeed dappFeed, String contractAddress, int epochNo) {
+        return dappFeed.getUniqueAccountsEpoch().computeIfAbsent(new EpochKey<>(epochNo, contractAddress), addrEpochKey -> {
+            log.warn("Unable to find unique addresses for contractAddress:{}", addrEpochKey);
+
+            return Set.of();
         });
     }
 
