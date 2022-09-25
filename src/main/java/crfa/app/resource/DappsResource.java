@@ -225,6 +225,7 @@ public class DappsResource {
                         ||
                         (item.getUniqueAccounts() != null && item.getUniqueAccounts() > 0))
                 .forEach(dappScriptItemEpoch -> {
+
             epochLevelStats.put(dappScriptItemEpoch.getEpochNo(), DAppScriptItemResult.EpochStats.builder()
                             .volume(dappScriptItemEpoch.getVolume())
                             .inflowsOutflows(dappScriptItemEpoch.getInflowsOutflows())

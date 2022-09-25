@@ -1,6 +1,5 @@
 package crfa.app.service;
 
-import com.google.common.collect.Sets;
 import crfa.app.client.metadata.CRFAMetaDataServiceClient;
 import crfa.app.domain.DappFeed;
 import crfa.app.domain.EpochKey;
@@ -13,6 +12,7 @@ import lombok.val;
 import reactor.core.publisher.Mono;
 
 import java.util.AbstractMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,6 +58,7 @@ public class DappFeedCreator {
         val volumePerContract = scrollsOnChainDataService.volume(dataPointers.contractAddresses);
         val tokenHoldersAssetIdToAdaBalance = loadTokenHoldersBalance(dataPointers.assetIdToTokenHolders);
         val uniqueAccounts = scrollsOnChainDataService.uniqueAccounts(dataPointers.contractAddresses);
+        val uniqueAccountsMerge = uniqueAccountsUnion(uniqueAccounts, dataPointers.assetIdToTokenHolders);
 
         if (injestionMode == WITHOUT_EPOCHS_ONLY_AGGREGATES) {
             return DappFeed.builder()
@@ -69,7 +70,7 @@ public class DappFeedCreator {
                     .invocationsCountPerHash(addMaps(mintPolicyCounts, scriptHashesCount))
                     .transactionCountsPerContractAddress(transactionsCountPerContractAddr)
                     .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
-                    .uniqueAccounts(uniqueAccounts)
+                    .uniqueAccounts(uniqueAccountsMerge)
                     .tokenHoldersAddresses(dataPointers.assetIdToTokenHolders)
                     .build();
         } else {
@@ -82,6 +83,7 @@ public class DappFeedCreator {
             val scriptHashesCountWithEpoch = scrollsOnChainDataService.scriptHashesCountWithEpochs(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
             val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch, isCurrentEpochAndAggregates);
             val uniqueAccountsWithEpoch = scrollsOnChainDataService.uniqueAccountsEpoch(dataPointers.contractAddresses, isCurrentEpochAndAggregates);
+            val uniqueAccountsMergeEpoch = uniqueAccountsUnionEpoch(uniqueAccountsWithEpoch, dataPointers.assetIdToTokenHoldersWithEpoch);
 
             return DappFeed.builder()
                     .dappSearchResult(dappSearchResult)
@@ -91,7 +93,7 @@ public class DappFeedCreator {
                     .volumePerContractAddress(volumePerContract)
                     .invocationsCountPerHash(addMaps(mintPolicyCounts, scriptHashesCount))
                     .transactionCountsPerContractAddress(transactionsCountPerContractAddr)
-                    .uniqueAccounts(uniqueAccountsUnion(uniqueAccounts, dataPointers.assetIdToTokenHolders))
+                    .uniqueAccounts(uniqueAccountsMerge)
                     .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
                     .tokenHoldersAddresses(dataPointers.assetIdToTokenHolders)
 
@@ -101,7 +103,7 @@ public class DappFeedCreator {
                     .invocationsCountPerHashEpoch(addMaps(mintPolicyCountsWithEpoch, scriptHashesCountWithEpoch))
                     .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
                     .volumePerContractAddressEpoch(volumePerContractWithEpoch)
-                    .uniqueAccountsEpoch(uniqueAccountsUnionEpoch(uniqueAccountsWithEpoch, dataPointers.assetIdToTokenHoldersWithEpoch))
+                    .uniqueAccountsEpoch(uniqueAccountsMergeEpoch)
                     .tokenHoldersAddressesEpoch(dataPointers.assetIdToTokenHoldersWithEpoch)
                     .build();
         }
@@ -170,15 +172,28 @@ public class DappFeedCreator {
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        Sets::union));
+                        (accs1, accs2) -> {
+                            val s = new HashSet<String>();
+                            s.addAll(accs1);
+                            s.addAll(accs2);
+
+                            return s;
+                        }));
     }
 
     private Map<EpochKey<String>, Set<String>> uniqueAccountsUnionEpoch(Map<EpochKey<String>, Set<String>> a, Map<EpochKey<String>, Set<String>> b) {
+
         return Stream.concat(a.entrySet().stream(), b.entrySet().stream())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        Sets::union));
+                        (accs1, accs2) -> {
+                            val s = new HashSet<String>();
+                            s.addAll(accs1);
+                            s.addAll(accs2);
+
+                            return s;
+                        }));
     }
 
 }

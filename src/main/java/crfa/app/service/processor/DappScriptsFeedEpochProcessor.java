@@ -76,7 +76,12 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
         dappScriptsRepository.removeAllExcept(dappScriptItems);
     }
 
-    private static DappScriptItemEpoch createDappItemEpoch(DappFeed dappFeed, Integer currentEpochNo, DappSearchItem dappSearchItem, DappReleaseItem dappReleaseItem, ScriptItem scriptItem, Integer epochNo) {
+    private static DappScriptItemEpoch createDappItemEpoch(DappFeed dappFeed,
+                                                           Integer currentEpochNo,
+                                                           DappSearchItem dappSearchItem,
+                                                           DappReleaseItem dappReleaseItem,
+                                                           ScriptItem scriptItem,
+                                                           Integer epochNo) {
         val dappScriptItem = new DappScriptItemEpoch();
 
         dappScriptItem.setName(scriptItem.getName());
@@ -120,10 +125,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
                 val allUniqueAccounts = new HashSet<>();
 
-                holders.forEach(holder -> {
-                    val uniqueAccounts = loadUniqueAccounts(dappFeed, holder, epochNo);
-                    allUniqueAccounts.addAll(uniqueAccounts);
-                });
+                holders.forEach(holder -> allUniqueAccounts.addAll(holders));
 
                 dappScriptItem.setUniqueAccounts(allUniqueAccounts.size());
             }
