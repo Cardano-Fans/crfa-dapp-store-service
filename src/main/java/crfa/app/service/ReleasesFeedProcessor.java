@@ -117,7 +117,6 @@ public class ReleasesFeedProcessor implements FeedProcessor {
 
                 if (!dryRunMode) {
                     log.debug("Upserting, dappname:{} - {}", dappRelease.getName(), dappReleaseItem.getReleaseName());
-
                     dappReleasesRepository.upsertDAppRelease(dappRelease);
                 }
             });

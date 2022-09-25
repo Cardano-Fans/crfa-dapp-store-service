@@ -96,14 +96,14 @@ public class ReleaseItemsFeedProcessor implements FeedProcessor {
                     items.add(newDappReleaseItem);
                 }
 
-                if (!dryRunMode) {
-                    items.forEach(dAppReleaseItem -> {
-                        log.debug("Upserting, dapp item:{} - {}", dAppReleaseItem.getName(), dappReleaseItem.getReleaseName());
-                        dappReleaseItemRepository.updatedAppReleaseItem(dAppReleaseItem);
-                    });
-                }
             });
         });
+        if (!dryRunMode) {
+            items.forEach(dAppReleaseItem -> {
+                log.debug("Upserting, dapp item:{} - {}", dAppReleaseItem.getName(), dAppReleaseItem.getDappId());
+                dappReleaseItemRepository.updatedAppReleaseItem(dAppReleaseItem);
+            });
+        }
     }
 
 }
