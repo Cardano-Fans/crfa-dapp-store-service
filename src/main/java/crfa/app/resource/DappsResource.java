@@ -229,17 +229,7 @@ public class DappsResource {
 
         val epochItems = dappScriptsEpochRepository.listDappScriptItems(releaseKey, Optional.empty(), Optional.empty());
 
-        epochItems.stream()
-                .filter(item ->
-                        (item.getScriptInvocationsCount() > 0)
-                        ||
-                        (item.getVolume() != null && item.getVolume() > 0)
-                        ||
-                        (item.getInflowsOutflows() != null && item.getInflowsOutflows() > 0)
-                        ||
-                        (item.getUniqueAccounts() != null && item.getUniqueAccounts() > 0))
-                .forEach(dappScriptItemEpoch -> {
-
+        epochItems.forEach(dappScriptItemEpoch -> {
                     val epochNo = dappScriptItemEpoch.getEpochNo();
 
                     epochLevelStats.put(new EpochKey<>(epochNo, dappScriptItemEpoch.getContractAddress()), DAppScriptItemResult.EpochStats.builder()
