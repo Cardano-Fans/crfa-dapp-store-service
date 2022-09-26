@@ -20,6 +20,7 @@ public class DappFullIngestionJob {
     private DappFeedCreator dappFeedCreator;
 
     @Scheduled(initialDelay = "5s")
+    //@Scheduled(initialDelay = "5s" cron = "0 30 4 1/1 * ?")
     // cron = "0 30 4 1/1 * ?"  // once per day at 4.30 AM
     public void onScheduled() {
         val injestionMode = InjestionMode.FULL;
