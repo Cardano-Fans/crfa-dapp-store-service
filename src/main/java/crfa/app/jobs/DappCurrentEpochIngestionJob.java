@@ -19,7 +19,7 @@ public class DappCurrentEpochIngestionJob {
     @Inject
     private DappFeedCreator dappFeedCreator;
 
-    @Scheduled(fixedDelay = "5m", initialDelay = "10m")
+    @Scheduled(fixedDelay = "15m", initialDelay = "10m")
     public void onScheduled() {
         val injestionMode = InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 

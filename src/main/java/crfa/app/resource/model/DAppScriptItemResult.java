@@ -48,6 +48,9 @@ public class DAppScriptItemResult {
 
     Date updateTime;
 
+    @Nullable
+    Integer uniqueAccounts;
+
     Map<Integer, EpochStats> epochData;
 
     @Builder

@@ -45,6 +45,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                         newDappReleaseItem.setContractAddress(contractAddress);
                         newDappReleaseItem.setScriptsLocked(loadAddressBalance(dappFeed, contractAddress));
                         newDappReleaseItem.setTransactionsCount(loadTransactionsCount(dappFeed, contractAddress));
+                        newDappReleaseItem.setUniqueAccounts(loadUniqueAccounts(dappFeed, contractAddress).size());
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         val mintPolicyID = scriptItem.getMintPolicyID();

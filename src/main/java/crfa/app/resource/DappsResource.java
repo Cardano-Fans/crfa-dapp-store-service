@@ -176,6 +176,7 @@ public class DappsResource {
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
                 .contractsAuditedLink(dAppRelease.getAuditLink())
+
                 .build();
 
         val epochLevelData = gatherEpochLevelData(releaseKey);
@@ -209,6 +210,7 @@ public class DappsResource {
                             .hash(dappScriptItem.getHash())
                             .dappId(dappScriptItem.getDappId())
                             .trxCount(dappScriptItem.getScriptInvocationsCount())
+                            .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                             .epochData(scriptEpochLevelData)
                             .build();
                 })

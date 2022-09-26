@@ -43,17 +43,17 @@ public class DApp {
     @DatabaseField(columnName = "sub_category")
     String subCategory; // e.g. LENDING_DAPP
 
-    @DatabaseField(columnName = "scripts_locked", index = true)
+    @DatabaseField(columnName = "scripts_locked")
     @Nullable
     Long scriptsLocked;
 
     // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "transactions_count", index = true)
+    @DatabaseField(columnName = "transactions_count")
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long transactionsCount; // value across all scripts per dApp
 
     // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "script_invocations", index = true)
+    @DatabaseField(canBeNull = false, columnName = "script_invocations")
     Long scriptInvocationsCount;
 
     @Nullable
