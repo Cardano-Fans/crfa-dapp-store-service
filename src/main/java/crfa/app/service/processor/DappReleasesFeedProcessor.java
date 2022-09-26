@@ -58,6 +58,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 var totalScriptsLocked = 0L;
                 var totalInvocations = 0L;
                 var totalTransactionsCount = 0L;
+                var volume = 0L;
                 var uniqueAccounts = new HashSet<String>();
 
                 for (val scriptItem : dappReleaseItem.getScripts()) {
@@ -67,6 +68,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                         totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getScriptHash());
                         totalScriptsLocked += loadAddressBalance(dappFeed, contractAddress);
                         totalTransactionsCount += loadTransactionsCount(dappFeed, contractAddress);
+                        volume += loadVolume(dappFeed, contractAddress);
                         uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, contractAddress));
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
@@ -82,6 +84,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setScriptsLocked(totalScriptsLocked);
                 dappRelease.setTransactionsCount(totalTransactionsCount);
                 dappRelease.setUniqueAccounts(uniqueAccounts.size());
+                dappRelease.setVolume(volume);
 
                 dappReleases.add(dappRelease);
             });

@@ -172,6 +172,7 @@ public class DappsResource {
                 //.transactionsCount(transactionsCount)
                 .scriptsLocked(dAppRelease.getScriptsLocked())
                 .trxCount(scriptInvocationsCount)
+                .volume(dAppRelease.getVolume())
                 .uniqueAccounts(uniqueAccounts)
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
@@ -211,6 +212,7 @@ public class DappsResource {
                             .dappId(dappScriptItem.getDappId())
                             .trxCount(dappScriptItem.getScriptInvocationsCount())
                             .uniqueAccounts(dappScriptItem.getUniqueAccounts())
+                            .volume(dappScriptItem.getVolume())
                             .epochData(scriptEpochLevelData)
                             .build();
                 })
@@ -241,7 +243,7 @@ public class DappsResource {
                     val epochNo = dappScriptItemEpoch.getEpochNo();
 
                     epochLevelStats.put(new EpochKey<>(epochNo, dappScriptItemEpoch.getContractAddress()), DAppScriptItemResult.EpochStats.builder()
-                            //.volume(dappScriptItemEpoch.getVolume())
+                            .volume(dappScriptItemEpoch.getVolume())
                             .inflowsOutflows(dappScriptItemEpoch.getInflowsOutflows())
                             .uniqueAccounts(dappScriptItemEpoch.getUniqueAccounts())
                             .trxCount(dappScriptItemEpoch.getScriptInvocationsCount())

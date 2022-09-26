@@ -50,6 +50,9 @@ public class DappReleaseResult {
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
+    @Nullable
+    Long volume;
+
     Date updateTime;
 
     @Nullable

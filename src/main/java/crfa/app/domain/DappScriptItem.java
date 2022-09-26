@@ -59,8 +59,13 @@ public class DappScriptItem {
     @DatabaseField(canBeNull = false, columnName = "script_invocations")
     Long scriptInvocationsCount;
 
-    @DatabaseField(canBeNull = false, columnName = "unique_accounts")
+    @DatabaseField(columnName = "unique_accounts")
+    @Nullable
     Integer uniqueAccounts;
+
+    @DatabaseField(columnName = "volume")
+    @Nullable
+    Long volume;
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;

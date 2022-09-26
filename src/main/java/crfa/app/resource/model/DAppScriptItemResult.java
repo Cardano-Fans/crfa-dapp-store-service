@@ -51,6 +51,9 @@ public class DAppScriptItemResult {
     @Nullable
     Integer uniqueAccounts;
 
+    @Nullable
+    Long volume;
+
     Map<Integer, EpochStats> epochData;
 
     @Builder

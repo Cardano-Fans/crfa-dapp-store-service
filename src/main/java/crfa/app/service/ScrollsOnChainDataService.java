@@ -302,6 +302,47 @@ public class ScrollsOnChainDataService {
         return volumePerAddress;
     }
 
+    public Map<EpochKey<String>, Long> volumeEpochLevel(Collection<String> addresses, boolean currentEpochOnly) {
+        val volumePerAddress = new HashMap<EpochKey<String>, Long>();
+
+        val collection = "c19";
+
+        val maybeCurrentEpochNo = currentEpoch();
+        if (maybeCurrentEpochNo.isEmpty()) {
+            log.warn("empty maybeCurrentEpochNo, returning empty map.");
+            return Maps.newHashMap();
+        }
+
+        val currentEpochNo = maybeCurrentEpochNo.get();
+
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+
+        for(val epochNo : epochs) {
+            log.debug("volume - processing epochNo:{}", epochNo);
+
+            addresses.forEach(addr -> {
+                log.debug("Loading script locked addr:{} for currentEpochNo:{}", addr, epochNo);
+
+                val key = format(collection + ".%s.%d", addr, epochNo);
+
+                val r = redissonClient.getAtomicLong(key);
+
+                if (r.isExists()) {
+                    val result = r.get();
+
+                    val resultAda = result / ONE_MLN;
+                    log.debug("Volume for addr:{}, lockedAda:{}, epoch:{}", addr, resultAda, epochNo);
+
+                    volumePerAddress.put(new EpochKey<>(epochNo, addr), resultAda);
+                } else {
+                    volumePerAddress.put(new EpochKey<>(epochNo, addr), 0L);
+                }
+            });
+        }
+
+        return volumePerAddress;
+    }
+
     public Map<String, Set<String>> uniqueAccounts(Collection<String> addresses) {
         val uniqueAccountsPerAddress = new HashMap<String, Set<String>>();
 
@@ -362,47 +403,6 @@ public class ScrollsOnChainDataService {
         }
 
         return lockedPerAddress;
-    }
-
-    public Map<EpochKey<String>, Long> volumeEpochLevel(Collection<String> addresses, boolean currentEpochOnly) {
-        val volumePerAddress = new HashMap<EpochKey<String>, Long>();
-
-        val collection = "c19";
-
-        val maybeCurrentEpochNo = currentEpoch();
-        if (maybeCurrentEpochNo.isEmpty()) {
-            log.warn("empty maybeCurrentEpochNo, returning empty map.");
-            return Maps.newHashMap();
-        }
-
-        val currentEpochNo = maybeCurrentEpochNo.get();
-
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
-
-        for(val epochNo : epochs) {
-            log.debug("volume - processing epochNo:{}", epochNo);
-
-            addresses.forEach(addr -> {
-                log.debug("Loading script locked addr:{} for currentEpochNo:{}", addr, epochNo);
-
-                val key = format(collection + ".%s.%d", addr, epochNo);
-
-                val r = redissonClient.getAtomicLong(key);
-
-                if (r.isExists()) {
-                    val result = r.get();
-
-                    val resultAda = result / ONE_MLN;
-                    log.debug("Volume for addr:{}, lockedAda:{}, epoch:{}", addr, resultAda, epochNo);
-
-                    volumePerAddress.put(new EpochKey<>(epochNo, addr), resultAda);
-                } else {
-                    volumePerAddress.put(new EpochKey<>(epochNo, addr), 0L);
-                }
-            });
-        }
-
-        return volumePerAddress;
     }
 
     public Map<EpochKey<String>, Set<String>> uniqueAccountsEpoch(Collection<String> addresses, boolean currentEpochOnly) {
