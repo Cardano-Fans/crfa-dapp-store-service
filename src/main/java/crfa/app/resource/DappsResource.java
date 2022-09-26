@@ -1,6 +1,7 @@
 package crfa.app.resource;
 
 import crfa.app.domain.DappAggrType;
+import crfa.app.domain.EpochKey;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DappReleaseRepository;
@@ -20,10 +21,7 @@ import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static crfa.app.domain.DappAggrType.LAST;
@@ -149,6 +147,7 @@ public class DappsResource {
         val dAppRelease = maybeDappRelease.get();
 
         val scriptInvocationsCount = dAppRelease.getScriptInvocationsCount();
+        val uniqueAccounts = dAppRelease.getUniqueAccounts();
         //val transactionsCount = dAppRelease.getTransactionsCount();
 
         val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getId());
@@ -173,33 +172,46 @@ public class DappsResource {
                 //.transactionsCount(transactionsCount)
                 .scriptsLocked(dAppRelease.getScriptsLocked())
                 .trxCount(scriptInvocationsCount)
+                .uniqueAccounts(uniqueAccounts)
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
                 .contractsAuditedLink(dAppRelease.getAuditLink())
                 .build();
 
-        val epochLevelData = gatherEpochLevelData(releaseKey, sortBy, sortOrder);
+        val epochLevelData = gatherEpochLevelData(releaseKey);
 
         val dAppScriptItemResults = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy, sortOrder)
                 .stream()
-                .map(item -> DAppScriptItemResult.builder()
-                .dappId(item.getDappId())
-                .hash(item.getHash())
-                .scriptsLocked(item.getScriptsLocked())
-                .scriptType(item.getScriptType())
-                .mintPolicyID(item.getMintPolicyID())
-                .contractAddress(item.getContractAddress())
-                //.transactionsCount(item.getTransactionsCount())
-                .version(item.getVersion())
-                .updateTime(item.getUpdateTime())
-                .releaseKey(item.getReleaseKey())
-                .name(item.getName())
-                //.scriptInvocationsCount(item.getScriptInvocationsCount())
-                .hash(item.getHash())
-                .dappId(item.getDappId())
-                .trxCount(item.getScriptInvocationsCount())
-                .epochData(epochLevelData)
-                .build())
+                .map(dappScriptItem -> {
+                    val contractAddress = dappScriptItem.getContractAddress();
+                    val scriptEpochLevelData = epochLevelData.entrySet()
+                            .stream()
+                            .filter(entry -> contractAddress != null && contractAddress.equals(entry.getKey().getValue()))
+                            .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey().getEpochNo(), entry.getValue()))
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue
+                            ));
+
+                    return DAppScriptItemResult.builder()
+                            .dappId(dappScriptItem.getDappId())
+                            .hash(dappScriptItem.getHash())
+                            .scriptsLocked(dappScriptItem.getScriptsLocked())
+                            .scriptType(dappScriptItem.getScriptType())
+                            .mintPolicyID(dappScriptItem.getMintPolicyID())
+                            .contractAddress(dappScriptItem.getContractAddress())
+                            //.transactionsCount(item.getTransactionsCount())
+                            .version(dappScriptItem.getVersion())
+                            .updateTime(dappScriptItem.getUpdateTime())
+                            .releaseKey(dappScriptItem.getReleaseKey())
+                            .name(dappScriptItem.getName())
+                            //.scriptInvocationsCount(item.getScriptInvocationsCount())
+                            .hash(dappScriptItem.getHash())
+                            .dappId(dappScriptItem.getDappId())
+                            .trxCount(dappScriptItem.getScriptInvocationsCount())
+                            .epochData(scriptEpochLevelData)
+                            .build();
+                })
                 .toList();
 
         return DappScriptsResponse.builder()
@@ -208,12 +220,10 @@ public class DappsResource {
                 .build();
     }
 
-    private Map<Integer, DAppScriptItemResult.EpochStats> gatherEpochLevelData(@PathVariable String releaseKey,
-                                                                               @QueryValue Optional<SortBy> sortBy,
-                                                                               @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
-        val epochLevelStats = new HashMap<Integer, DAppScriptItemResult.EpochStats>();
+    private Map<EpochKey<String>, DAppScriptItemResult.EpochStats> gatherEpochLevelData(@PathVariable String releaseKey) throws InvalidParameterException {
+        val epochLevelStats = new HashMap<EpochKey<String>, DAppScriptItemResult.EpochStats>();
 
-        val epochItems = dappScriptsEpochRepository.listDappScriptItems(releaseKey, sortBy, sortOrder);
+        val epochItems = dappScriptsEpochRepository.listDappScriptItems(releaseKey, Optional.empty(), Optional.empty());
 
         epochItems.stream()
                 .filter(item ->
@@ -226,8 +236,10 @@ public class DappsResource {
                         (item.getUniqueAccounts() != null && item.getUniqueAccounts() > 0))
                 .forEach(dappScriptItemEpoch -> {
 
-            epochLevelStats.put(dappScriptItemEpoch.getEpochNo(), DAppScriptItemResult.EpochStats.builder()
-                            .volume(dappScriptItemEpoch.getVolume())
+                    val epochNo = dappScriptItemEpoch.getEpochNo();
+
+                    epochLevelStats.put(new EpochKey<>(epochNo, dappScriptItemEpoch.getContractAddress()), DAppScriptItemResult.EpochStats.builder()
+                            //.volume(dappScriptItemEpoch.getVolume())
                             .inflowsOutflows(dappScriptItemEpoch.getInflowsOutflows())
                             .uniqueAccounts(dappScriptItemEpoch.getUniqueAccounts())
                             .trxCount(dappScriptItemEpoch.getScriptInvocationsCount())

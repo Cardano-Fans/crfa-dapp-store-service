@@ -73,7 +73,7 @@ public class ScrollsOnChainDataService {
             mintPolicyIds.forEach(key -> {
                 log.debug("Loading trx count for mintPolicyId:{}", key);
 
-                val c = redissonClient.getAtomicLong(collection + "." + key);
+                val c = redissonClient.getAtomicLong(collection + "." + key + "." + epochNo);
                 if (c.isExists()) {
                     log.debug("Trx count for addr:{}, mintPolicyId:{}", key, c.get());
 
@@ -428,7 +428,7 @@ public class ScrollsOnChainDataService {
 
                 val key = format(collection + ".%s.%d", addr, epochNo);
 
-                val r = redissonClient.<String>getSet(collection + "." + addr, new StringCodec());
+                val r = redissonClient.<String>getSet(collection + "." + addr + "." + epochNo, new StringCodec());
 
                 if (r.isExists()) {
                     uniqueAccountsPerAddress.put(new EpochKey<>(epochNo, addr), r);
