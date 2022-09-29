@@ -3,8 +3,8 @@ package crfa.app.jobs;
 import crfa.app.client.crfa_db_sync_api.CRFADbSyncApi;
 import crfa.app.domain.ScriptStats;
 import crfa.app.domain.ScriptStatsType;
-import crfa.app.repository.DappScriptsRepository;
-import crfa.app.repository.ScriptHashesStatsRepository;
+import crfa.app.repository.total.DappScriptsRepository;
+import crfa.app.repository.total.ScriptHashesStatsRepository;
 import crfa.app.service.ScrollsOnChainDataService;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
@@ -33,7 +33,7 @@ public class ScriptHashesJob {
     @Inject
     private CRFADbSyncApi crfaDbSyncApi;
 
-    @Scheduled(fixedDelay = "1h", initialDelay = "5m")
+    @Scheduled(fixedDelay = "1h", initialDelay = "25m")
     public void scriptStatsJob() {
         log.info("Clearing db...");
         scriptHashesStatsRepository.clearDB();

@@ -1,9 +1,10 @@
-package crfa.app.service.processor;
+package crfa.app.service.processor.total;
 
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.domain.*;
-import crfa.app.repository.DappsRepository;
+import crfa.app.repository.total.DappsRepository;
 import crfa.app.service.DappService;
+import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +12,10 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 
-import static crfa.app.service.processor.ProcessorHelper.*;
+import static crfa.app.service.processor.total.ProcessorHelper.*;
 
 @Singleton
 @Slf4j
@@ -49,10 +51,14 @@ public class DappFeedProcessor implements FeedProcessor {
             var totalScriptsLocked = 0L;
             var totalScriptInvocations = 0L;
             var totalTransactionsCount = 0L;
+            var totalVolume = 0L;
+            var totalUniqueAccounts = new HashSet<String>();
 
             var lastVersionTotalScriptsLocked = 0L;
             var lastVersionTotalScriptInvocations = 0L;
             var lastVersionTotalTransactionsCount = 0L;
+            var lastVersionTotalVolume = 0L;
+            var lastVersionTotalUniqueAccounts = new HashSet<String>();
 
             for (val dappReleaseItem : dappSearchItem.getReleases()) {
                 val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
@@ -92,6 +98,18 @@ public class DappFeedProcessor implements FeedProcessor {
                         if (isLastVersion) {
                             lastVersionTotalTransactionsCount += transactionsCount;
                         }
+
+                        val volume = loadVolume(dappFeed, contractAddress);
+                        totalVolume += volume;
+                        if (isLastVersion) {
+                            lastVersionTotalVolume += volume;
+                        }
+
+                        val uniqueAccounts = loadUniqueAccounts(dappFeed, contractAddress);
+                        totalUniqueAccounts.addAll(uniqueAccounts);
+                        if (isLastVersion) {
+                            lastVersionTotalUniqueAccounts.addAll(uniqueAccounts);
+                        }
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         val invocationsPerHash = loadInvocationsPerHash(dappFeed, scriptItem.getMintPolicyID());
@@ -114,10 +132,14 @@ public class DappFeedProcessor implements FeedProcessor {
                 dapp.setScriptInvocationsCount(totalScriptInvocations);
                 dapp.setScriptsLocked(totalScriptsLocked);
                 dapp.setTransactionsCount(totalTransactionsCount);
+                dapp.setVolume(totalVolume);
+                dapp.setUniqueAccounts(totalUniqueAccounts.size());
 
                 dapp.setLastVersionScriptsLocked(lastVersionTotalScriptsLocked);
                 dapp.setLastVersionTransactionsCount(lastVersionTotalTransactionsCount);
                 dapp.setLastVersionScriptInvocationsCount(lastVersionTotalScriptInvocations);
+                dapp.setLastVersionVolume(lastVersionTotalVolume);
+                dapp.setLastVersionUniqueAccounts(lastVersionTotalUniqueAccounts.size());
 
                 dapps.add(dapp);
             }

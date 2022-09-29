@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
 import java.util.Date;
+import java.util.Map;
 
 @Builder
 @Getter
@@ -40,13 +41,6 @@ public class DappReleaseResult {
     @Nullable
     Long scriptsLocked;
 
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
-    @Deprecated
-    Long transactionsCount; // value across all scripts per dApp
-
-    @Deprecated
-    Long scriptInvocationsCount;
-
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
@@ -63,6 +57,8 @@ public class DappReleaseResult {
 
     @Nullable
     String contractsAuditedLink;
+
+    Map<Integer, EpochLevelStats> epochData;
 
     boolean latestVersion;
 

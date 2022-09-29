@@ -34,15 +34,6 @@ public class DAppScriptItemResult {
     @Nullable
     Long scriptsLocked; // for mint scripts we don't have scripts locked value
 
-    // total number of transactions for dApp since beginning
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
-    @Deprecated
-    Long transactionsCount; // value across all scripts per dApp
-
-    // total number of all script innovations belonging to this dApp
-    @Deprecated
-    Long scriptInvocationsCount;
-
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
@@ -54,24 +45,6 @@ public class DAppScriptItemResult {
     @Nullable
     Long volume;
 
-    Map<Integer, EpochStats> epochData;
-
-    @Builder
-    @Getter
-    public final static class EpochStats {
-
-        @Nullable
-        Long volume; // for mint scripts we don't have scripts locked value
-
-        @Nullable
-        Long inflowsOutflows;
-
-        @Nullable // - null for script based only dapps
-        Integer uniqueAccounts;
-
-        // unified for transactionsCount and scriptInvocationsCount
-        Long trxCount;
-
-    }
+    Map<Integer, EpochLevelStats> epochData;
 
 }

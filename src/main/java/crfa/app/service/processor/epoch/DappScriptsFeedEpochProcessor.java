@@ -1,11 +1,12 @@
-package crfa.app.service.processor;
+package crfa.app.service.processor.epoch;
 
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.client.metadata.DappSearchItem;
 import crfa.app.client.metadata.ScriptItem;
 import crfa.app.domain.*;
-import crfa.app.repository.DappScriptsEpochRepository;
+import crfa.app.repository.epoch.DappScriptsEpochRepository;
 import crfa.app.service.ScrollsOnChainDataService;
+import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import java.util.Date;
 import java.util.HashSet;
 
 import static crfa.app.domain.EraName.ALONZO;
-import static crfa.app.service.processor.ProcessorHelper.*;
+import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 import static java.lang.String.format;
 
 @Singleton
@@ -37,15 +38,6 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
             return;
         }
 
-        val maybeCurrentEpochNo = scrollsOnChainDataService.currentEpoch();
-
-        if (maybeCurrentEpochNo.isEmpty()) {
-            log.warn("Unable to proceed, epoch level data won't be ingested.");
-            return;
-        }
-
-        val currentEpochNo = maybeCurrentEpochNo.get();
-
         val dappScriptItems = new ArrayList<DappScriptItemEpoch>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> { // looping over dapps
@@ -53,13 +45,16 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
                 for (val scriptItem : dappReleaseItem.getScripts()) { // looping over dapp scripts on release level
                     val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
+                    val currentEpochNo = getCurrentEpoch();
+
                     if (injestCurrentEpochOnly) {
-                            dappScriptItems.add(createDappItemEpoch(dappFeed, currentEpochNo, dappSearchItem, dappReleaseItem, scriptItem, currentEpochNo));
-                        } else {
-                            for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
-                                dappScriptItems.add(createDappItemEpoch(dappFeed, currentEpochNo, dappSearchItem, dappReleaseItem, scriptItem, epochNo));
-                            }
+                        dappScriptItems.add(createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, scriptItem, currentEpochNo));
+                    } else {
+                        for (val epochNo : Eras.epochsBetween(ALONZO, getCurrentEpoch())) {
+                            val isClosedEpoch = epochNo < currentEpochNo;
+                            dappScriptItems.add(createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, scriptItem, epochNo));
                         }
+                    }
                 }
             });
         });
@@ -77,7 +72,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
     }
 
     private static DappScriptItemEpoch createDappItemEpoch(DappFeed dappFeed,
-                                                           Integer currentEpochNo,
+                                                           boolean isClosedEpoch,
                                                            DappSearchItem dappSearchItem,
                                                            DappReleaseItem dappReleaseItem,
                                                            ScriptItem scriptItem,
@@ -90,7 +85,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
         dappScriptItem.setVersion(scriptItem.getVersion());
         dappScriptItem.setUpdateTime(new Date());
         dappScriptItem.setEpochNo(epochNo);
-        dappScriptItem.setClosedEpoch(epochNo < currentEpochNo);
+        dappScriptItem.setClosedEpoch(isClosedEpoch);
 
         if (scriptItem.getPurpose() == Purpose.SPEND) {
             val scriptHash = scriptItem.getScriptHash();
@@ -136,6 +131,10 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
     private static String generateKey(Integer epochNo, String scriptHash) {
         return format("%s.%d", scriptHash, epochNo);
+    }
+
+    private int getCurrentEpoch() {
+        return scrollsOnChainDataService.currentEpoch().orElseThrow();
     }
 
 }

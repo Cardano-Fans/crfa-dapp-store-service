@@ -1,11 +1,13 @@
-package crfa.app.repository;
+package crfa.app.repository.total;
 
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
-import crfa.app.domain.*;
+import crfa.app.domain.DApp;
+import crfa.app.domain.DappAggrType;
+import crfa.app.domain.SortBy;
+import crfa.app.domain.SortOrder;
+import crfa.app.repository.DbManager;
+import crfa.app.repository.RepositoryColumnConverter;
 import crfa.app.resource.InvalidParameterException;
-import io.micronaut.runtime.event.annotation.EventListener;
-import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +60,20 @@ public class DappsRepository {
         try {
             return statementBuilder.query()
                     .stream().map(DApp::getScriptInvocationsCount).reduce(0L, Long::sum);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Long volume() {
+        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+
+        try {
+            return statementBuilder.query()
+                    .stream()
+                    .filter(dApp -> dApp.getVolume() != null)
+                    .map(DApp::getVolume).reduce(0L, Long::sum);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);

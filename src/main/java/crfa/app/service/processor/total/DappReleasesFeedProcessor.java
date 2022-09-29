@@ -1,7 +1,8 @@
-package crfa.app.service.processor;
+package crfa.app.service.processor.total;
 
 import crfa.app.domain.*;
-import crfa.app.repository.DappReleaseRepository;
+import crfa.app.repository.total.DappReleaseRepository;
+import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static crfa.app.service.processor.ProcessorHelper.*;
+import static crfa.app.service.processor.total.ProcessorHelper.*;
 
 @Slf4j
 @Singleton
@@ -30,7 +31,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
                 val dappRelease = new DAppRelease();
 
-                dappRelease.setId(dappSearchItem.getId());
+                dappRelease.setDappId(dappSearchItem.getId());
                 dappRelease.setName(dappSearchItem.getName());
                 dappRelease.setLink(dappSearchItem.getUrl());
                 dappRelease.setIcon(dappSearchItem.getIcon());
@@ -40,7 +41,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
                 dappRelease.setTwitter(dappSearchItem.getTwitter());
 
-                dappRelease.setKey(String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
+                dappRelease.setId(String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
                 dappRelease.setReleaseNumber(dappReleaseItem.getReleaseNumber());
                 dappRelease.setReleaseName(dappReleaseItem.getReleaseName());
                 dappRelease.setFullName(String.format("%s - %s", dappSearchItem.getName(), dappReleaseItem.getReleaseName()));

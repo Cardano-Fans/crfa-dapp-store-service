@@ -1,9 +1,11 @@
-package crfa.app.repository;
+package crfa.app.repository.total;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.DAppRelease;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
+import crfa.app.repository.DbManager;
+import crfa.app.repository.RepositoryColumnConverter;
 import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -44,12 +46,12 @@ public class DappReleaseRepository {
         }
     }
 
-    public Optional<DAppRelease> findByReleaseKey(String releaseKey) {
+    public Optional<DAppRelease> findById(String id) {
         try {
             QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
 
             statementBuilder
-                    .where().eq("key", releaseKey);
+                    .where().eq("id", id);
 
             return dbManager.getdAppReleasesDao().query(statementBuilder.prepare()).stream().findFirst();
         } catch (SQLException e) {

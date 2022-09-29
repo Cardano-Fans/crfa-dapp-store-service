@@ -26,7 +26,10 @@ public class DbManager {
     @Value("${dbPath-dapps:crfa-dapps.db}")
     private String dbPath;
 
-    private Dao<DAppRelease, String> dAppResultItemDao;
+    private Dao<DAppRelease, String> dAppReleaseDao;
+
+    private Dao<DAppReleaseEpoch, String> dAppReleaseEpochDao;
+
     private Dao<DApp, String> dAppDao;
     private Dao<ScriptStats, String> scriptsDao;
     private Dao<DappScriptItem, String> dappScriptItems;
@@ -45,16 +48,24 @@ public class DbManager {
 
         this.dAppDao = DaoManager.createDao(connectionSource, DApp.class);
         this.scriptsDao = DaoManager.createDao(connectionSource, ScriptStats.class);
+
         this.dappScriptItems = DaoManager.createDao(connectionSource, DappScriptItem.class);
         this.dappScriptItemEpochs = DaoManager.createDao(connectionSource, DappScriptItemEpoch.class);
-        this.dAppResultItemDao = DaoManager.createDao(connectionSource, DAppRelease.class);
+
+        this.dAppReleaseDao = DaoManager.createDao(connectionSource, DAppRelease.class);
+        this.dAppReleaseEpochDao = DaoManager.createDao(connectionSource, DAppReleaseEpoch.class);
+
         this.adaPricePerDayDao = DaoManager.createDao(connectionSource, AdaPricePerDay.class);
 
         createDbsIfNecessary();
     }
 
     public Dao<DAppRelease, String> getdAppReleasesDao() {
-        return dAppResultItemDao;
+        return dAppReleaseDao;
+    }
+
+    public Dao<DAppReleaseEpoch, String> getdAppReleaseEpochDao() {
+        return dAppReleaseEpochDao;
     }
 
     public Dao<DApp, String> getdAppDao() {
@@ -77,6 +88,10 @@ public class DbManager {
         return adaPricePerDayDao;
     }
 
+    public Dao<DAppRelease, String> getdAppReleaseDao() {
+        return dAppReleaseDao;
+    }
+
     public <T> void clearDB(Class<T> clazz) {
         try {
             TableUtils.clearTable(connectionSource,  clazz);
@@ -89,7 +104,10 @@ public class DbManager {
         TableUtils.createTableIfNotExists(this.connectionSource, AdaPricePerDay.class);
         TableUtils.createTableIfNotExists(this.connectionSource, ScriptStats.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DApp.class);
+
         TableUtils.createTableIfNotExists(this.connectionSource, DAppRelease.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, DAppReleaseEpoch.class);
+
         TableUtils.createTableIfNotExists(this.connectionSource, DappScriptItem.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DappScriptItemEpoch.class);
     }

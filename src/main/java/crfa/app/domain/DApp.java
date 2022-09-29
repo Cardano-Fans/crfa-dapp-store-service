@@ -52,6 +52,14 @@ public class DApp {
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long transactionsCount; // value across all scripts per dApp
 
+    @DatabaseField(columnName = "volume")
+    @Nullable
+    Long volume;
+
+    @DatabaseField(columnName = "unique_accounts")
+    @Nullable
+    Integer uniqueAccounts;
+
     // total number of all script innovations belonging to this dApp
     @DatabaseField(canBeNull = false, columnName = "script_invocations")
     Long scriptInvocationsCount;
@@ -64,18 +72,26 @@ public class DApp {
     @DatabaseField(columnName = "last_version_open_source_link")
     String lastVersionOpenSourceLink;
 
-    @DatabaseField(columnName = "last_version_scripts_locked", index = true)
+    @DatabaseField(columnName = "last_version_scripts_locked")
     @Nullable
     Long lastVersionScriptsLocked;
 
     // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "last_version_transactions_count", index = true)
+    @DatabaseField(columnName = "last_version_transactions_count")
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long lastVersionTransactionsCount;
 
     // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "last_version_script_invocations", index = true)
+    @DatabaseField(canBeNull = false, columnName = "last_version_script_invocations")
     Long lastVersionScriptInvocationsCount;
+
+    @DatabaseField(columnName = "last_version_volume")
+    @Nullable // we don't always have contract calls, for instance for MINT scripts
+    Long lastVersionVolume;
+
+    // total number of all script innovations belonging to this dApp
+    @DatabaseField(canBeNull = false, columnName = "last_version_unique_accounts")
+    Integer lastVersionUniqueAccounts;
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;

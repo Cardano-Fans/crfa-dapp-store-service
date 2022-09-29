@@ -1,7 +1,8 @@
-package crfa.app.service.processor;
+package crfa.app.service.processor.total;
 
 import crfa.app.domain.*;
-import crfa.app.repository.DappScriptsRepository;
+import crfa.app.repository.total.DappScriptsRepository;
+import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,7 @@ import lombok.val;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static crfa.app.service.processor.ProcessorHelper.*;
+import static crfa.app.service.processor.total.ProcessorHelper.*;
 
 @Singleton
 @Slf4j

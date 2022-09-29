@@ -1,7 +1,7 @@
 package crfa.app.resource;
 
 import crfa.app.domain.ScriptStats;
-import crfa.app.repository.ScriptHashesStatsRepository;
+import crfa.app.repository.total.ScriptHashesStatsRepository;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;

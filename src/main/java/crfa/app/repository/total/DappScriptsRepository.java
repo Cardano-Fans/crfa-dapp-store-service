@@ -1,9 +1,11 @@
-package crfa.app.repository;
+package crfa.app.repository.total;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.DappScriptItem;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
+import crfa.app.repository.DbManager;
+import crfa.app.repository.RepositoryColumnConverter;
 import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
