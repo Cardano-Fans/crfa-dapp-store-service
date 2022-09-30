@@ -25,14 +25,14 @@ public class DappScriptItemEpoch {
     @DatabaseField(id = false, canBeNull = false, index = true, columnName = "hash")
     String hash; // either script hash or mintPolicyId
 
-    @DatabaseField(canBeNull = false, index = true, columnName = "epoch_no")
-    int epochNo;
-
     @DatabaseField(canBeNull = false, index = true, columnName = "dapp_id")
     String dappId; // dapp id
 
     @DatabaseField(canBeNull = false, index = true, columnName = "release_key")
     String releaseKey; // e.g, CWpU1DBj.1.0 // foreign key to dapp_release
+
+    @DatabaseField(canBeNull = false, index = true, columnName = "epoch_no")
+    int epochNo;
 
     @DatabaseField(canBeNull = false, columnName = "script_type")
     ScriptType scriptType;

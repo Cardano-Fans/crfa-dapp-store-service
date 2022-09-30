@@ -33,6 +33,8 @@ public class DappFeedProcessor implements FeedProcessor {
     public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val dapps = new ArrayList<DApp>();
 
+        val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
+
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
             val dapp = new DApp();
 
@@ -46,7 +48,6 @@ public class DappFeedProcessor implements FeedProcessor {
             dapp.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
             dapp.setTwitter(dappSearchItem.getTwitter());
 
-            val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
 
             var totalScriptsLocked = 0L;
             var totalScriptInvocations = 0L;

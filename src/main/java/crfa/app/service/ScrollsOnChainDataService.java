@@ -53,7 +53,7 @@ public class ScrollsOnChainDataService {
     }
 
     public Map<EpochKey<String>, Long> mintScriptsCountWithEpochs(Collection<String> mintPolicyIds, boolean currentEpochOnly) {
-        log.info("loading mint policy ids counts...");
+        log.info("loading mint policy ids counts on epoch level...");
 
         val m = new HashMap<EpochKey<String>, Long>();
 
@@ -132,7 +132,7 @@ public class ScrollsOnChainDataService {
     }
 
     public Map<EpochKey<String>, Long> scriptHashesCountWithEpochs(Collection<String> scriptHashes, boolean currentEpochOnly) {
-        log.info("loading scriptHashes counts...");
+        log.info("loading scriptHashes counts on epoch level...");
 
         val appendPrefix = true;
 
@@ -190,6 +190,8 @@ public class ScrollsOnChainDataService {
     }
 
     public Map<String, Long> transactionsCount(Collection<String> addresses) {
+        log.info("loading transaction counts on epoch level...");
+
         val transactionCountPerAddr = new HashMap<String, Long>();
 
         val collection = "c2";
@@ -212,7 +214,10 @@ public class ScrollsOnChainDataService {
         return transactionCountPerAddr;
     }
 
-    public Map<EpochKey<String>, Long> transactionsCountWithEpochs(Collection<String> addresses, boolean currentEpochOnly) {
+    public Map<EpochKey<String>, Long> transactionsCountWithEpochs(Collection<String> addresses,
+                                                                   boolean currentEpochOnly) {
+        log.info("loading transaction counts on epoch level...");
+
         val transactionCountPerAddr = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c6";
@@ -247,6 +252,8 @@ public class ScrollsOnChainDataService {
         return transactionCountPerAddr;
     }
     public Map<String, Long> scriptLocked(Collection<String> addresses) {
+        log.info("loading scripts locked...");
+
         val lockedPerAddress = new HashMap<String, Long>();
 
         val collection = "c1";
@@ -274,7 +281,52 @@ public class ScrollsOnChainDataService {
         return lockedPerAddress;
     }
 
+    public Map<EpochKey<String>, Long> scriptLockedWithEpochs(Collection<String> addresses,
+                                                              boolean currentEpochOnly) {
+        log.info("loading script locked on epoch level...");
+
+        val lockedPerAddress = new HashMap<EpochKey<String>, Long>();
+
+        val collection = "c5";
+
+        val maybeCurrentEpochNo = currentEpoch();
+        if (maybeCurrentEpochNo.isEmpty()) {
+            log.warn("empty maybeCurrentEpochNo, returning empty scripts locked map.");
+            return Maps.newHashMap();
+        }
+        val currentEpochNo = maybeCurrentEpochNo.get();
+
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+
+        for(val epochNo : epochs) {
+            log.debug("scriptLockedWithEpochs - processing epochNo:{}", epochNo);
+
+            addresses.forEach(addr -> {
+                log.debug("Loading script locked addr:{} for maybeCurrentEpochNo:{}", addr, epochNo);
+
+                val key = format(collection + ".%s.%d", addr, epochNo);
+
+                val r = redissonClient.getAtomicLong(key);
+
+                if (r.isExists()) {
+                    val result = r.get();
+
+                    val resultAda = result / ONE_MLN;
+                    log.debug("Script locked for addr:{}, lockedAda:{}, epoch:{}", addr, resultAda, epochNo);
+
+                    lockedPerAddress.put(new EpochKey<>(epochNo, addr), resultAda);
+                } else {
+                    lockedPerAddress.put(new EpochKey<>(epochNo, addr), 0L);
+                }
+            });
+        }
+
+        return lockedPerAddress;
+    }
+
     public Map<String, Long> volume(Collection<String> addresses) {
+        log.info("loading volume data...");
+
         val volumePerAddress = new HashMap<String, Long>();
 
         val collection = "c18";
@@ -302,7 +354,10 @@ public class ScrollsOnChainDataService {
         return volumePerAddress;
     }
 
-    public Map<EpochKey<String>, Long> volumeEpochLevel(Collection<String> addresses, boolean currentEpochOnly) {
+    public Map<EpochKey<String>, Long> volumeEpochLevel(Collection<String> addresses,
+                                                        boolean currentEpochOnly) {
+        log.info("loading volume data on epoch level...");
+
         val volumePerAddress = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c19";
@@ -344,6 +399,8 @@ public class ScrollsOnChainDataService {
     }
 
     public Map<String, Set<String>> uniqueAccounts(Collection<String> addresses) {
+        log.info("loading uniqueAccounts...");
+
         val uniqueAccountsPerAddress = new HashMap<String, Set<String>>();
 
         val collection = "c16";
@@ -365,47 +422,10 @@ public class ScrollsOnChainDataService {
         return uniqueAccountsPerAddress;
     }
 
-    public Map<EpochKey<String>, Long> scriptLockedWithEpochs(Collection<String> addresses, boolean currentEpochOnly) {
-        val lockedPerAddress = new HashMap<EpochKey<String>, Long>();
+    public Map<EpochKey<String>, Set<String>> uniqueAccountsEpoch(Collection<String> addresses,
+                                                                  boolean currentEpochOnly) {
+        log.info("loading uniqueAccounts on epoch level...");
 
-        val collection = "c5";
-
-        val maybeCurrentEpochNo = currentEpoch();
-        if (maybeCurrentEpochNo.isEmpty()) {
-            log.warn("empty maybeCurrentEpochNo, returning empty scripts locked map.");
-            return Maps.newHashMap();
-        }
-        val currentEpochNo = maybeCurrentEpochNo.get();
-
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
-
-        for(val epochNo : epochs) {
-            log.debug("scriptLockedWithEpochs - processing epochNo:{}", epochNo);
-
-            addresses.forEach(addr -> {
-                log.debug("Loading script locked addr:{} for maybeCurrentEpochNo:{}", addr, epochNo);
-
-                val key = format(collection + ".%s.%d", addr, epochNo);
-
-                val r = redissonClient.getAtomicLong(key);
-
-                if (r.isExists()) {
-                    val result = r.get();
-
-                    val resultAda = result / ONE_MLN;
-                    log.debug("Script locked for addr:{}, lockedAda:{}, epoch:{}", addr, resultAda, epochNo);
-
-                    lockedPerAddress.put(new EpochKey<>(epochNo, addr), resultAda);
-                } else {
-                    lockedPerAddress.put(new EpochKey<>(epochNo, addr), 0L);
-                }
-            });
-        }
-
-        return lockedPerAddress;
-    }
-
-    public Map<EpochKey<String>, Set<String>> uniqueAccountsEpoch(Collection<String> addresses, boolean currentEpochOnly) {
         val uniqueAccountsPerAddress = new HashMap<EpochKey<String>, Set<String>>();
 
         val collection = "c17";
@@ -455,6 +475,8 @@ public class ScrollsOnChainDataService {
 
     // ZRANGEBYSCORE "c14.026a18d04a0c642759bb3d83b12e3344894e5c1c7b2aeb1a2113a5704c" 1 +inf
     public Set<String> getCurrentAssetHolders(String assetId) {
+        log.info("gettiing current asset holders, assetId:{}", assetId);
+
         val assetMembersRScored = redissonClient.<String>getScoredSortedSet(format("%s.%s", "c14", assetId), new StringCodec());
         val tokenHolders= assetMembersRScored.valueRangeReversed(1, MAX_VALUE);
 
@@ -464,6 +486,8 @@ public class ScrollsOnChainDataService {
     // TODO allow to specify from which epoch / era to load data
     // ZRANGEBYSCORE "c14.026a18d04a0c642759bb3d83b12e3344894e5c1c7b2aeb1a2113a5704c".364 1 +inf
     public Map<Integer, Set<String>> getAssetHoldersWithEpochs(String assetId, boolean currentEpochOnly) {
+        log.info("gettiing current asset holders on epoch level, assetId:{}", assetId);
+
         // c15
         val currentEpochNo = currentEpoch().orElseThrow(() -> new RuntimeException("unable to read current epoch"));
 
@@ -481,35 +505,5 @@ public class ScrollsOnChainDataService {
 
         return tokenHoldersPerEpoch;
     }
-
-//    public Set<String> listScriptHashes() {
-//        val collection = "c3";
-//
-//        val scriptHashesIterable = redissonClient.getKeys().getKeysByPattern(collection + ".*");
-//
-//        val result = new HashSet<String>();
-//        for (val hash : scriptHashesIterable) {
-//            val curratedHash = hash.replaceAll(collection + ".71", "").
-//                    replaceAll(collection + ".11", "")
-//                    .replaceAll(collection + ".31", "");
-//
-//            result.add(curratedHash);
-//        }
-//
-//        return result;
-//    }
-//
-//    public Set<String> listMintHashes() {
-//        val collection = "c4";
-//
-//        val mintPolicyIdsIteable = redissonClient.getKeys().getKeysByPattern(collection + ".*");
-//
-//        val result = new HashSet<String>();
-//        for (val hash : mintPolicyIdsIteable) {
-//            result.add(hash.replace(collection + ".", ""));
-//        }
-//
-//        return result;
-//    }
 
 }

@@ -2,7 +2,6 @@ package crfa.app.service.processor.epoch;
 
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.client.metadata.DappSearchItem;
-import crfa.app.client.metadata.ScriptItem;
 import crfa.app.domain.*;
 import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.service.ScrollsOnChainDataService;
@@ -12,7 +11,10 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
 
 import static crfa.app.domain.EraName.ALONZO;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
@@ -44,11 +46,11 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
                 val currentEpochNo = getCurrentEpoch();
 
                 if (injestCurrentEpochOnly) {
-                    dappReleases.add(createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, dappReleaseItem.getScripts(), currentEpochNo));
+                    dappReleases.add(createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, currentEpochNo));
                 } else {
                     for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
                         val isClosedEpoch = epochNo < currentEpochNo;
-                        dappReleases.add(createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, dappReleaseItem.getScripts(), epochNo));
+                        dappReleases.add(createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, epochNo));
                     }
                 }
             });
@@ -67,7 +69,6 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
                                             boolean isClosedEpoch,
                                             DappSearchItem dappSearchItem,
                                             DappReleaseItem dappReleaseItem,
-                                            List<ScriptItem> scriptItems,
                                             Integer epochNo) {
 
         val dappReleaseEpoch = new DAppReleaseEpoch();
@@ -109,7 +110,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         var volume = 0L;
         var uniqueAccounts = new HashSet<String>();
 
-        for (val scriptItem : scriptItems) {
+        for (val scriptItem : dappReleaseItem.getScripts()) {
             if (scriptItem.getPurpose() == Purpose.SPEND) {
                 val contractAddress = scriptItem.getContractAddress();
 

@@ -31,12 +31,13 @@ public class DbManager {
     private Dao<DAppReleaseEpoch, String> dAppReleaseEpochDao;
 
     private Dao<DApp, String> dAppDao;
-    private Dao<ScriptStats, String> scriptsDao;
-    private Dao<DappScriptItem, String> dappScriptItems;
+    private Dao<DAppEpoch, String> dAppEpochDao;
 
+    private Dao<DappScriptItem, String> dappScriptItems;
     private Dao<DappScriptItemEpoch, String> dappScriptItemEpochs;
 
     private Dao<AdaPricePerDay, String> adaPricePerDayDao;
+    private Dao<ScriptStats, String> scriptsDao;
 
     @EventListener
     public void onStartup(ServerStartupEvent event) throws SQLException {
@@ -47,7 +48,7 @@ public class DbManager {
         this.connectionSource = new JdbcConnectionSource(databaseUrl);
 
         this.dAppDao = DaoManager.createDao(connectionSource, DApp.class);
-        this.scriptsDao = DaoManager.createDao(connectionSource, ScriptStats.class);
+        this.dAppEpochDao = DaoManager.createDao(connectionSource, DAppEpoch.class);
 
         this.dappScriptItems = DaoManager.createDao(connectionSource, DappScriptItem.class);
         this.dappScriptItemEpochs = DaoManager.createDao(connectionSource, DappScriptItemEpoch.class);
@@ -56,6 +57,7 @@ public class DbManager {
         this.dAppReleaseEpochDao = DaoManager.createDao(connectionSource, DAppReleaseEpoch.class);
 
         this.adaPricePerDayDao = DaoManager.createDao(connectionSource, AdaPricePerDay.class);
+        this.scriptsDao = DaoManager.createDao(connectionSource, ScriptStats.class);
 
         createDbsIfNecessary();
     }
@@ -70,6 +72,10 @@ public class DbManager {
 
     public Dao<DApp, String> getdAppDao() {
         return dAppDao;
+    }
+
+    public Dao<DAppEpoch, String> getdAppEpochDao() {
+        return dAppEpochDao;
     }
 
     public Dao<ScriptStats, String> getScriptsStatsDao() {
@@ -101,15 +107,17 @@ public class DbManager {
     }
 
     private void createDbsIfNecessary() throws SQLException {
-        TableUtils.createTableIfNotExists(this.connectionSource, AdaPricePerDay.class);
-        TableUtils.createTableIfNotExists(this.connectionSource, ScriptStats.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DApp.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, DAppEpoch.class);
 
         TableUtils.createTableIfNotExists(this.connectionSource, DAppRelease.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DAppReleaseEpoch.class);
 
         TableUtils.createTableIfNotExists(this.connectionSource, DappScriptItem.class);
         TableUtils.createTableIfNotExists(this.connectionSource, DappScriptItemEpoch.class);
+
+        TableUtils.createTableIfNotExists(this.connectionSource, AdaPricePerDay.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, ScriptStats.class);
     }
 
     // TODO optimise this by moving responsibility to db engine via SQL delete statement
