@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
 import java.util.Date;
+import java.util.Map;
 
 @Builder
 @Getter
@@ -43,12 +44,15 @@ public class DappResult {
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
-    Date updateTime;
+    @Nullable // not always we want to return epoch level data
+    Map<Integer, EpochLevelStats> epochData;
 
     @Nullable
     String lastVersionContractsOpenSourcedLink;
 
     @Nullable
     String lastVersionContractsAuditedLink;
+
+    Date updateTime;
 
 }
