@@ -75,6 +75,7 @@ public class DappsResource {
                             .updateTime(dAppRelease.getUpdateTime())
                             .releaseNumber(dAppRelease.getReleaseNumber())
                             .scriptsLocked(dAppRelease.getScriptsLocked())
+                            .transactionsCount(dAppRelease.getTransactionsCount())
                             .trxCount(dAppRelease.getScriptInvocationsCount())
                             .latestVersion(isLastVersion)
                             .uniqueAccounts(dAppRelease.getUniqueAccounts())
@@ -105,7 +106,6 @@ public class DappsResource {
 
         return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
                 .stream().map(dapp -> {
-                    //val transactionsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionTransactionsCount() : dapp.getTransactionsCount();
                     val scriptInvocationsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount();
                     val scriptsLocked = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked();
                     val volume = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionVolume() : dapp.getVolume();
@@ -147,7 +147,7 @@ public class DappsResource {
 
         val scriptInvocationsCount = dAppRelease.getScriptInvocationsCount();
         val uniqueAccounts = dAppRelease.getUniqueAccounts();
-        //val transactionsCount = dAppRelease.getTransactionsCount();
+        val transactionsCount = dAppRelease.getTransactionsCount();
 
         val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getDappId());
 
@@ -168,7 +168,7 @@ public class DappsResource {
                 .twitter(dAppRelease.getTwitter())
                 .updateTime(dAppRelease.getUpdateTime())
                 .releaseNumber(dAppRelease.getReleaseNumber())
-                //.transactionsCount(transactionsCount)
+                .transactionsCount(transactionsCount)
                 .scriptsLocked(dAppRelease.getScriptsLocked())
                 .trxCount(scriptInvocationsCount)
                 .volume(dAppRelease.getVolume())

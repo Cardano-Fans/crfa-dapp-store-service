@@ -20,8 +20,7 @@ public class DappService {
     private DappReleaseRepository dappReleaseRepository;
 
     public Cache<String, Float> buildMaxReleaseVersionCache() {
-        Cache<String, Float> releaseVersionsCache = CacheBuilder.newBuilder()
-                .build();
+        val releaseVersionsCache = CacheBuilder.newBuilder().<String, Float>build();
 
         try {
             dappReleaseRepository.listDappReleases(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC)).forEach(dAppRelease -> {

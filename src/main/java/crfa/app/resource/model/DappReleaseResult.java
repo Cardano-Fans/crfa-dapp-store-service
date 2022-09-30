@@ -41,6 +41,10 @@ public class DappReleaseResult {
     @Nullable
     Long scriptsLocked;
 
+    @Nullable
+    @Deprecated
+    Long transactionsCount;
+
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 

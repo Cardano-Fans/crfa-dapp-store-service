@@ -36,7 +36,7 @@ public class DappReleaseRepository {
                     .selectColumns("release_number")
                     .orderBy("release_number", false)
                     .limit(1L)
-                    .where().eq("id", id)
+                    .where().eq("dapp_id", id)
                     .queryForFirst())
                     .map(DAppRelease::getReleaseNumber)
                     .orElse(-1.0f);
