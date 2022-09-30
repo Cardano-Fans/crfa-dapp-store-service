@@ -79,6 +79,7 @@ public class DappsResource {
                             .trxCount(dAppRelease.getScriptInvocationsCount())
                             .latestVersion(isLastVersion)
                             .uniqueAccounts(dAppRelease.getUniqueAccounts())
+                            .volume(dAppRelease.getVolume())
                             .contractOpenSourcedLink(dAppRelease.getContractLink())
                             .contractsAuditedLink(dAppRelease.getAuditLink())
                             .build();
