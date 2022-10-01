@@ -28,6 +28,10 @@ public class DappScriptsEpochRepository {
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
 
+    public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey) throws InvalidParameterException {
+        return listDappScriptItems(releaseKey, Optional.empty(), Optional.empty());
+    }
+
     public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         try {
             val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);

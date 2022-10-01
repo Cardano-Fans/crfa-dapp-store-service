@@ -17,7 +17,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DAppReleaseEpoch {
+public class DAppReleaseEpoch implements EpochGatherable {
 
     // primary id
     @DatabaseField(id = true, canBeNull = false, index = true, columnName = "id")

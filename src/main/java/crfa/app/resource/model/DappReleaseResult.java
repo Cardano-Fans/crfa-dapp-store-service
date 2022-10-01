@@ -62,8 +62,8 @@ public class DappReleaseResult {
     @Nullable
     String contractsAuditedLink;
 
-    Map<Integer, EpochLevelStats> epochData;
-
     boolean latestVersion;
+
+    Map<Integer, EpochLevelStats> epochData;
 
 }

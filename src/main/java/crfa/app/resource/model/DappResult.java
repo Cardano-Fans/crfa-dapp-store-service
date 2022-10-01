@@ -44,9 +44,6 @@ public class DappResult {
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
-    @Nullable // not always we want to return epoch level data
-    Map<Integer, EpochLevelStats> epochData;
-
     @Nullable
     String lastVersionContractsOpenSourcedLink;
 
@@ -54,5 +51,7 @@ public class DappResult {
     String lastVersionContractsAuditedLink;
 
     Date updateTime;
+
+    Map<Integer, EpochLevelStats> epochData;
 
 }

@@ -17,7 +17,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DappScriptItemEpoch {
+public class DappScriptItemEpoch implements EpochGatherable {
 
     @DatabaseField(id = true, canBeNull = false)
     String id; // either script hash or mintPolicyId
