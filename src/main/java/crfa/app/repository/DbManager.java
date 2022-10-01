@@ -44,6 +44,7 @@ public class DbManager {
         log.info("Starting DbManager..., dbPath:{}", dbPath);
 
         String databaseUrl = String.format("jdbc:sqlite:%s", dbPath);
+        //String databaseUrl = String.format("jdbc:h2:mem:");
         // create a connection source to our database
         this.connectionSource = new JdbcConnectionSource(databaseUrl);
 

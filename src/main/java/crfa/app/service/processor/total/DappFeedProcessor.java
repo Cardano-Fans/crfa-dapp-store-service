@@ -1,5 +1,6 @@
 package crfa.app.service.processor.total;
 
+import com.google.common.collect.HashMultiset;
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.domain.*;
 import crfa.app.repository.total.DappsRepository;
@@ -12,7 +13,6 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.service.processor.total.ProcessorHelper.*;
@@ -48,18 +48,18 @@ public class DappFeedProcessor implements FeedProcessor {
             dapp.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
             dapp.setTwitter(dappSearchItem.getTwitter());
 
-
             var totalScriptsLocked = 0L;
             var totalScriptInvocations = 0L;
             var totalTransactionsCount = 0L;
             var totalVolume = 0L;
-            var totalUniqueAccounts = new HashSet<String>();
+
+            var totalUniqueAccounts= HashMultiset.create();
 
             var lastVersionTotalScriptsLocked = 0L;
             var lastVersionTotalScriptInvocations = 0L;
             var lastVersionTotalTransactionsCount = 0L;
             var lastVersionTotalVolume = 0L;
-            var lastVersionTotalUniqueAccounts = new HashSet<String>();
+            val lastVersionTotalUniqueAccounts = HashMultiset.create();
 
             for (val dappReleaseItem : dappSearchItem.getReleases()) {
                 val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
@@ -129,29 +129,27 @@ public class DappFeedProcessor implements FeedProcessor {
                         }
                     }
                 }
-
-                dapp.setScriptInvocationsCount(totalScriptInvocations);
-                dapp.setScriptsLocked(totalScriptsLocked);
-                dapp.setTransactionsCount(totalTransactionsCount);
-                dapp.setVolume(totalVolume);
-                dapp.setUniqueAccounts(totalUniqueAccounts.size());
-
-                dapp.setLastVersionScriptsLocked(lastVersionTotalScriptsLocked);
-                dapp.setLastVersionTransactionsCount(lastVersionTotalTransactionsCount);
-                dapp.setLastVersionScriptInvocationsCount(lastVersionTotalScriptInvocations);
-                dapp.setLastVersionVolume(lastVersionTotalVolume);
-                dapp.setLastVersionUniqueAccounts(lastVersionTotalUniqueAccounts.size());
-
-                dapps.add(dapp);
             }
+
+            dapp.setScriptInvocationsCount(totalScriptInvocations);
+            dapp.setScriptsLocked(totalScriptsLocked);
+            dapp.setTransactionsCount(totalTransactionsCount);
+            dapp.setVolume(totalVolume);
+            dapp.setUniqueAccounts(totalUniqueAccounts.size());
+
+            dapp.setLastVersionScriptsLocked(lastVersionTotalScriptsLocked);
+            dapp.setLastVersionTransactionsCount(lastVersionTotalTransactionsCount);
+            dapp.setLastVersionScriptInvocationsCount(lastVersionTotalScriptInvocations);
+            dapp.setLastVersionVolume(lastVersionTotalVolume);
+            dapp.setLastVersionUniqueAccounts(lastVersionTotalUniqueAccounts.size());
+
+            dapps.add(dapp);
         });
 
         log.info("Upserting dapps, count:{}...", dapps.size());
-
         dapps.forEach(dapp -> {
             dappsRepository.upsertDApp(dapp);
         });
-
         log.info("Upserted dapps.");
 
         dappsRepository.removeAllExcept(dapps);

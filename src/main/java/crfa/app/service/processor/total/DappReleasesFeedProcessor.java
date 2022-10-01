@@ -1,5 +1,6 @@
 package crfa.app.service.processor.total;
 
+import com.google.common.collect.HashMultiset;
 import crfa.app.domain.*;
 import crfa.app.repository.total.DappReleaseRepository;
 import crfa.app.service.processor.FeedProcessor;
@@ -60,7 +61,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 var totalInvocations = 0L;
                 var totalTransactionsCount = 0L;
                 var volume = 0L;
-                var uniqueAccounts = new HashSet<String>();
+                var uniqueAccounts = HashMultiset.<String>create();
 
                 for (val scriptItem : dappReleaseItem.getScripts()) {
                     if (scriptItem.getPurpose() == Purpose.SPEND) {

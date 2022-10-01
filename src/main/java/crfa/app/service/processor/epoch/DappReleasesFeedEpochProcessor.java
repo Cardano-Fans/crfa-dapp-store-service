@@ -1,5 +1,6 @@
 package crfa.app.service.processor.epoch;
 
+import com.google.common.collect.HashMultiset;
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.client.metadata.DappSearchItem;
 import crfa.app.domain.*;
@@ -108,7 +109,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         var totalInvocations = 0L;
         var totalTransactionsCount = 0L;
         var volume = 0L;
-        var uniqueAccounts = new HashSet<String>();
+        var uniqueAccounts = HashMultiset.<String>create();
 
         for (val scriptItem : dappReleaseItem.getScripts()) {
             if (scriptItem.getPurpose() == Purpose.SPEND) {
