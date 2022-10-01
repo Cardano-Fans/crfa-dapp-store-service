@@ -37,7 +37,7 @@ public class ScriptItem {
     @Nullable
     String includeScriptBalanceFromAsset;
 
-    public Optional<String> getAssetNameAsHex() {
+    public Optional<String> getAssetId() {
         return Optional.ofNullable(includeScriptBalanceFromAsset)
                 .map(asset -> String.format("%s%s", mintPolicyID, toHex(asset)));
     }

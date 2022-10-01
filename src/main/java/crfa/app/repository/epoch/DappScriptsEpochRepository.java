@@ -1,17 +1,12 @@
-package crfa.app.repository;
+package crfa.app.repository.epoch;
 
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.table.TableUtils;
-import crfa.app.domain.DAppReleaseItem;
+import crfa.app.domain.DappScriptItemEpoch;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
+import crfa.app.repository.DbManager;
+import crfa.app.repository.RepositoryColumnConverter;
 import crfa.app.resource.InvalidParameterException;
-import io.micronaut.context.annotation.Value;
-import io.micronaut.runtime.event.annotation.EventListener;
-import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -19,37 +14,25 @@ import lombok.val;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @Singleton
 @Slf4j
-public class DappReleaseItemRepository {
+public class DappScriptsEpochRepository {
 
-    private JdbcConnectionSource connectionSource;
-
-    @Value("${dbPath-dapps-release-items:crfa-cardano-dapp-store-dapps-release-items.db}")
-    private String dbPath;
-
-    private Dao<DAppReleaseItem, String> dappReleaseItemDao;
+    @Inject
+    private DbManager dbManager;
 
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
 
-    @EventListener
-    public void onStartup(ServerStartupEvent event) throws SQLException {
-        log.info("Starting DappReleaseItemRepository..., dbPath:{}", dbPath);
-
-        String databaseUrl = String.format("jdbc:sqlite:%s", dbPath);
-        // create a connection source to our database
-        this.connectionSource = new JdbcConnectionSource(databaseUrl);
-
-        this.dappReleaseItemDao = DaoManager.createDao(connectionSource, DAppReleaseItem.class);
-
-        createDbsIfNecessary();
+    public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey) throws InvalidParameterException {
+        return listDappScriptItems(releaseKey, Optional.empty(), Optional.empty());
     }
 
-    public List<DAppReleaseItem> listReleaseItemsByReleaseKey(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         try {
             val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
             val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
@@ -61,7 +44,7 @@ public class DappReleaseItemRepository {
                 throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
             }
 
-            QueryBuilder<DAppReleaseItem, String> statementBuilder = dappReleaseItemDao.queryBuilder();
+            QueryBuilder<DappScriptItemEpoch, String> statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
 
             return statementBuilder
                     .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
@@ -73,7 +56,7 @@ public class DappReleaseItemRepository {
         }
     }
 
-    public List<DAppReleaseItem> listReleaseItems(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DappScriptItemEpoch> listDappScriptItems(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         try {
             val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
             val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
@@ -85,7 +68,7 @@ public class DappReleaseItemRepository {
                 throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
             }
 
-            QueryBuilder<DAppReleaseItem, String> statementBuilder = dappReleaseItemDao.queryBuilder();
+            QueryBuilder<DappScriptItemEpoch, String> statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
 
             return statementBuilder
                     .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
@@ -96,25 +79,25 @@ public class DappReleaseItemRepository {
         }
     }
 
-    public List<DAppReleaseItem> listReleaseItems() {
+    public List<DappScriptItemEpoch> listDappScriptItems() {
         try {
-            return listReleaseItems(Optional.empty(), Optional.empty());
+            return listDappScriptItems(Optional.empty(), Optional.empty());
         } catch (InvalidParameterException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void updatedAppReleaseItem(DAppReleaseItem dAppReleaseItem) {
+    public void update(DappScriptItemEpoch dappScriptItem) {
         try {
-            dappReleaseItemDao.createOrUpdate(dAppReleaseItem);
+            dbManager.getDappScriptItemEpochs().createOrUpdate(dappScriptItem);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
     }
 
-    public void createDbsIfNecessary() throws SQLException {
-        TableUtils.createTableIfNotExists(this.connectionSource, DAppReleaseItem.class);
+    public void removeAllExcept(Collection<DappScriptItemEpoch> dappScriptItems) {
+        dbManager.removeAllExcept(dappScriptItems, () -> dbManager.getDappScriptItemEpochs());
     }
 
 }

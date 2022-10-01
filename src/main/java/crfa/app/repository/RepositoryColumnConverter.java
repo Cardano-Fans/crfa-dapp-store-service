@@ -36,7 +36,7 @@ public class RepositoryColumnConverter {
                 columnName = "scripts_locked";
             }
             if (sby == TRANSACTIONS_COUNT) {
-                columnName = "trx_count";
+                columnName = "transactions_count";
             }
             if (sby == FULL_NAME) {
                 columnName = "full_name";

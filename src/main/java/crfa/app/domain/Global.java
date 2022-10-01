@@ -14,14 +14,10 @@ public class Global {
 
     long totalScriptsLocked;
 
-    @Deprecated
-    long totalScriptInvocationsCount;
-
-    @Deprecated
-    long totalSmartContractsTransactionCount;
-
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
+
+    Long volume;
 
     long totalDappsCount; // regardless if this is mint or spend; all dapp types
 

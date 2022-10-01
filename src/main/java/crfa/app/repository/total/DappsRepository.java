@@ -1,18 +1,13 @@
-package crfa.app.repository;
+package crfa.app.repository.total;
 
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.table.TableUtils;
 import crfa.app.domain.DApp;
 import crfa.app.domain.DappAggrType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
+import crfa.app.repository.DbManager;
+import crfa.app.repository.RepositoryColumnConverter;
 import crfa.app.resource.InvalidParameterException;
-import io.micronaut.context.annotation.Value;
-import io.micronaut.runtime.event.annotation.EventListener;
-import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +15,7 @@ import lombok.val;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,31 +23,14 @@ import java.util.Optional;
 @Slf4j
 public class DappsRepository {
 
-    private JdbcConnectionSource connectionSource;
-
-    @Value("${dbPath-dapps:crfa-cardano-dapp-store-dapps.db}")
-    private String dbPath;
-
-    private Dao<DApp, String> dAppDao;
+    @Inject
+    private DbManager dbManager;
 
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
 
-    @EventListener
-    public void onStartup(ServerStartupEvent event) throws SQLException {
-        log.info("Starting DappsRepository..., dbPath:{}", dbPath);
-
-        String databaseUrl = String.format("jdbc:sqlite:%s", dbPath);
-        // create a connection source to our database
-        this.connectionSource = new JdbcConnectionSource(databaseUrl);
-
-        this.dAppDao = DaoManager.createDao(connectionSource, DApp.class);
-
-        createDbsIfNecessary();
-    }
-
     public Long totalScriptsLocked() {
-        QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
+        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
@@ -63,7 +42,7 @@ public class DappsRepository {
     }
 
     public Long totalContractTransactionsCount() {
-        QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
+        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder
@@ -76,7 +55,7 @@ public class DappsRepository {
     }
 
     public Long totalScriptInvocations() {
-        QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
+        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
@@ -87,14 +66,28 @@ public class DappsRepository {
         }
     }
 
+    public Long volume() {
+        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+
+        try {
+            return statementBuilder.query()
+                    .stream()
+                    .filter(dApp -> dApp.getVolume() != null)
+                    .map(DApp::getVolume).reduce(0L, Long::sum);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public Optional<DApp> findById(String id) {
         try {
-            QueryBuilder<DApp, String> statementBuilder = dAppDao.queryBuilder();
+            QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
 
             statementBuilder
                     .where().eq("id", id);
 
-            return dAppDao.query(statementBuilder.prepare()).stream().findFirst();
+            return dbManager.getdAppDao().query(statementBuilder.prepare()).stream().findFirst();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -113,10 +106,10 @@ public class DappsRepository {
         }
 
         try {
-            val statementBuilder = dAppDao.queryBuilder();
+            val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
-            final var columnName = decomposedSortBy.get();
-            final var ascending = decomposedSortOrder.get();
+            val columnName = decomposedSortBy.get();
+            val ascending = decomposedSortOrder.get();
 
             return statementBuilder
                     .orderBy(columnName, ascending)
@@ -129,15 +122,15 @@ public class DappsRepository {
 
     public void upsertDApp(DApp dapp) {
         try {
-            dAppDao.createOrUpdate(dapp);
+            dbManager.getdAppDao().createOrUpdate(dapp);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
     }
 
-    public void createDbsIfNecessary() throws SQLException {
-        TableUtils.createTableIfNotExists(this.connectionSource, DApp.class);
+    public void removeAllExcept(Collection<DApp> items) {
+        dbManager.removeAllExcept(items, () -> dbManager.getdAppDao());
     }
 
 }

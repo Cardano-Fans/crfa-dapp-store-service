@@ -2,8 +2,8 @@ package crfa.app.resource;
 
 import crfa.app.domain.AdaPricePerDay;
 import crfa.app.domain.Global;
-import crfa.app.repository.AdaPriceRepository;
-import crfa.app.repository.DappsRepository;
+import crfa.app.repository.total.AdaPriceRepository;
+import crfa.app.repository.total.DappsRepository;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;
@@ -42,9 +42,8 @@ public class GlobalResource {
                 .orElse(null));
 
         builder.totalScriptsLocked(dappsRepository.totalScriptsLocked());
-        builder.totalSmartContractsTransactionCount(dappsRepository.totalContractTransactionsCount());
-        builder.totalScriptInvocationsCount(dappsRepository.totalScriptInvocations());
         builder.trxCount(dappsRepository.totalScriptInvocations());
+        builder.volume(dappsRepository.volume());
 
         try {
             val dappUniqueReleases = dappsRepository.listDapps(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC), ALL).stream().count();

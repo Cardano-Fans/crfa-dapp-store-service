@@ -1,0 +1,146 @@
+package crfa.app.service.processor.epoch;
+
+import com.google.common.collect.HashMultiset;
+import crfa.app.client.metadata.DappReleaseItem;
+import crfa.app.client.metadata.DappSearchItem;
+import crfa.app.domain.*;
+import crfa.app.repository.epoch.DappReleaseEpochRepository;
+import crfa.app.service.ScrollsOnChainDataService;
+import crfa.app.service.processor.FeedProcessor;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+
+import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.service.processor.epoch.ProcessorHelper.*;
+
+@Slf4j
+@Singleton
+// DappReleasesFeedEpochProcessor handles medium level list-releases case
+public class DappReleasesFeedEpochProcessor implements FeedProcessor {
+
+    @Inject
+    private DappReleaseEpochRepository dappScriptsEpochRepository;
+
+    @Inject
+    private ScrollsOnChainDataService scrollsOnChainDataService;
+
+    @Override
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
+            log.info("epoch level ingestion disabled.");
+            return;
+        }
+
+        val dappReleases = new ArrayList<DAppReleaseEpoch>();
+
+        dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
+            dappSearchItem.getReleases().forEach(dappReleaseItem -> {
+                val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
+
+                val currentEpochNo = getCurrentEpoch();
+
+                if (injestCurrentEpochOnly) {
+                    dappReleases.add(createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, currentEpochNo));
+                } else {
+                    for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+                        val isClosedEpoch = epochNo < currentEpochNo;
+                        dappReleases.add(createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, epochNo));
+                    }
+                }
+            });
+        });
+
+        log.info("Upserting, dapp releases epoch, count:{}", dappReleases.size());
+        dappReleases.forEach(dappRelease -> {
+            dappScriptsEpochRepository.upsertDAppRelease(dappRelease);
+        });
+        log.info("Upserted, dapp releases.");
+
+        dappScriptsEpochRepository.removeAllExcept(dappReleases);
+    }
+
+    private DAppReleaseEpoch createDappItemEpoch(DappFeed dappFeed,
+                                            boolean isClosedEpoch,
+                                            DappSearchItem dappSearchItem,
+                                            DappReleaseItem dappReleaseItem,
+                                            Integer epochNo) {
+
+        val dappReleaseEpoch = new DAppReleaseEpoch();
+
+        val key = String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber());
+
+        dappReleaseEpoch.setId(String.format("%s.%d", key, epochNo));
+        dappReleaseEpoch.setKey(key);
+
+        dappReleaseEpoch.setDappId(dappSearchItem.getId());
+        dappReleaseEpoch.setEpochNo(epochNo);
+        dappReleaseEpoch.setName(dappSearchItem.getName());
+        dappReleaseEpoch.setLink(dappSearchItem.getUrl());
+        dappReleaseEpoch.setIcon(dappSearchItem.getIcon());
+        dappReleaseEpoch.setCategory(dappSearchItem.getCategory());
+        dappReleaseEpoch.setSubCategory(dappSearchItem.getSubCategory());
+        dappReleaseEpoch.setUpdateTime(new Date());
+        dappReleaseEpoch.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
+        dappReleaseEpoch.setTwitter(dappSearchItem.getTwitter());
+        dappReleaseEpoch.setClosedEpoch(isClosedEpoch);
+
+        dappReleaseEpoch.setReleaseNumber(dappReleaseItem.getReleaseNumber());
+        dappReleaseEpoch.setReleaseName(dappReleaseItem.getReleaseName());
+        dappReleaseEpoch.setFullName(String.format("%s - %s", dappSearchItem.getName(), dappReleaseItem.getReleaseName()));
+
+        Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
+            dappReleaseEpoch.setContractOpenSource(contract.getOpenSource());
+            dappReleaseEpoch.setContractLink(contract.getContractLink());
+        });
+
+        Optional.ofNullable(dappReleaseItem.getAudit()).ifPresent(audit -> {
+            dappReleaseEpoch.setAuditLink(audit.getAuditLink());
+            dappReleaseEpoch.setAuditor(audit.getAuditor());
+        });
+
+        var inflowsOutflows = 0L;
+        var totalInvocations = 0L;
+        var totalTransactionsCount = 0L;
+        var volume = 0L;
+        var uniqueAccounts = HashMultiset.<String>create();
+
+        for (val scriptItem : dappReleaseItem.getScripts()) {
+            if (scriptItem.getPurpose() == Purpose.SPEND) {
+                val contractAddress = scriptItem.getContractAddress();
+
+                totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getScriptHash(), epochNo);
+                inflowsOutflows += loadAddressBalance(dappFeed, contractAddress, epochNo);
+                totalTransactionsCount += loadTransactionsCount(dappFeed, contractAddress, epochNo);
+                volume += loadVolume(dappFeed, contractAddress, epochNo);
+                uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, contractAddress, epochNo));
+            }
+            if (scriptItem.getPurpose() == Purpose.MINT) {
+                totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getMintPolicyID(), epochNo);
+
+                if (scriptItem.getAssetId().isPresent()) {
+                    inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().get(), epochNo);
+                }
+            }
+        }
+
+        dappReleaseEpoch.setScriptInvocationsCount(totalInvocations);
+        dappReleaseEpoch.setInflowsOutflows(inflowsOutflows);
+        dappReleaseEpoch.setTransactionsCount(totalTransactionsCount);
+        dappReleaseEpoch.setUniqueAccounts(uniqueAccounts.size());
+        dappReleaseEpoch.setVolume(volume);
+
+        return dappReleaseEpoch;
+    }
+
+    private int getCurrentEpoch() {
+        return scrollsOnChainDataService.currentEpoch().orElseThrow();
+    }
+
+}

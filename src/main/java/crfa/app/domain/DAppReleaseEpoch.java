@@ -11,19 +11,27 @@ import java.util.Date;
 // table to represent dApp release
 
 @Builder
-@DatabaseTable(tableName = "dapp_release")
+@DatabaseTable(tableName = "dapp_release_epoch")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DAppRelease {
+public class DAppReleaseEpoch implements EpochGatherable {
 
+    // primary id
     @DatabaseField(id = true, canBeNull = false, index = true, columnName = "id")
-    String id; // e.g, CWpU1DBj.V1
+    String id; // e.g, CWpU1DBj.V1.365
 
+    @DatabaseField(canBeNull = false, index = true, columnName = "key")
+    String key; // e.g, CWpU1DBj.V1
+
+    // foreign id
     @DatabaseField(canBeNull = false, index = true, columnName = "dapp_id")
     String dappId; // e.g, CWpU1DBj
+
+    @DatabaseField(canBeNull = false, index = true, columnName = "epoch_no")
+    int epochNo; // e.g, 365
 
     @DatabaseField(canBeNull = false, index = true)
     String name; // e.g, Meld
@@ -55,9 +63,9 @@ public class DAppRelease {
     @DatabaseField(columnName = "sub_category")
     String subCategory; // e.g. LENDING_DAPP
 
-    @DatabaseField(columnName = "scripts_locked")
+    @DatabaseField(columnName = "inflows_outflows")
     @Nullable
-    Long scriptsLocked;
+    Long inflowsOutflows;
 
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "transactions_count")
@@ -94,6 +102,9 @@ public class DAppRelease {
     @DatabaseField(columnName = "contract_link")
     @Nullable
     String contractLink;
+
+    @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
+    boolean closedEpoch;
 
     public boolean isLatestVersion(float maxReleaseVersion) {
         return Float.compare(maxReleaseVersion, releaseNumber) == 0;

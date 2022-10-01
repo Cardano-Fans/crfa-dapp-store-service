@@ -26,7 +26,7 @@ public class AppFactory {
     public RedissonClient redisClient() {
         Config config = new Config();
 
-        config.useSingleServer()
+                config.useSingleServer()
                 .setAddress(String.format("redis://%s:%d", redisHost, redisPort));
 
         return Redisson.create(config);

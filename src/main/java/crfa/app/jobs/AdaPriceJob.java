@@ -3,7 +3,7 @@ package crfa.app.jobs;
 
 import crfa.app.client.ada_price.AdaPriceClient;
 import crfa.app.domain.AdaPricePerDay;
-import crfa.app.repository.AdaPriceRepository;
+import crfa.app.repository.total.AdaPriceRepository;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;

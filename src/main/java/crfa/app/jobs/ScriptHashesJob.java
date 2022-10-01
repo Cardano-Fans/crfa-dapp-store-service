@@ -3,8 +3,8 @@ package crfa.app.jobs;
 import crfa.app.client.crfa_db_sync_api.CRFADbSyncApi;
 import crfa.app.domain.ScriptStats;
 import crfa.app.domain.ScriptStatsType;
-import crfa.app.repository.DappReleaseItemRepository;
-import crfa.app.repository.ScriptHashesStatsRepository;
+import crfa.app.repository.total.DappScriptsRepository;
+import crfa.app.repository.total.ScriptHashesStatsRepository;
 import crfa.app.service.ScrollsOnChainDataService;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
@@ -12,6 +12,8 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
 
 import static crfa.app.domain.ScriptType.SPEND;
 
@@ -26,12 +28,12 @@ public class ScriptHashesJob {
     private ScriptHashesStatsRepository scriptHashesStatsRepository;
 
     @Inject
-    private DappReleaseItemRepository releaseItemsRepository;
+    private DappScriptsRepository releaseItemsRepository;
 
     @Inject
     private CRFADbSyncApi crfaDbSyncApi;
 
-    @Scheduled(fixedDelay = "1h", initialDelay = "5m")
+    @Scheduled(fixedDelay = "1h", initialDelay = "25m")
     public void scriptStatsJob() {
         log.info("Clearing db...");
         scriptHashesStatsRepository.clearDB();
@@ -111,7 +113,7 @@ public class ScriptHashesJob {
 //    }
 
     private void processDbSync() {
-        val listReleaseItems = releaseItemsRepository.listReleaseItems();
+        val listReleaseItems = releaseItemsRepository.listDappScriptItems();
         val count = (long) listReleaseItems.size();
 
         if (count == 0) {
@@ -120,6 +122,8 @@ public class ScriptHashesJob {
         }
 
         val topScriptsMap = Mono.from(crfaDbSyncApi.topScripts(5000)).block();
+
+        val scriptStatsList = new ArrayList<ScriptStats>();
 
         topScriptsMap.forEach((key, scriptInvocations) -> {
             val foundIt = listReleaseItems.stream().filter(dAppReleaseItem -> dAppReleaseItem.getHash().contains(key)).findAny();
@@ -132,9 +136,13 @@ public class ScriptHashesJob {
                         .type(ScriptStatsType.DB_SYNC)
                         .build();
 
+                scriptStatsList.add(scriptStats);
+
                 scriptHashesStatsRepository.upsert(scriptStats);
             }
         });
+
+        scriptHashesStatsRepository.removeAllExcept(scriptStatsList);
     }
 
 }

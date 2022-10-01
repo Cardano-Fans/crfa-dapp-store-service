@@ -11,16 +11,22 @@ import java.util.Date;
 // table to represent dapp, either last version or all versions
 
 @Builder
-@DatabaseTable(tableName = "dapp")
+@DatabaseTable(tableName = "dapp_epoch")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DApp {
+public class DAppEpoch implements EpochGatherable {
 
     @DatabaseField(canBeNull = false, index = true, id = true)
-    String id; // e.g, CWpU1DBj
+    String id; // e.g, CWpU1DBj.365
+
+    @DatabaseField(canBeNull = false, index = true, columnName = "dapp_id")
+    String dappId;  // e.g, CWpU1DBj
+
+    @DatabaseField(canBeNull = false, index = true, columnName = "epochNo")
+    int epochNo;
 
     @DatabaseField(canBeNull = false, index = true)
     String name; // e.g, Meld
@@ -43,10 +49,6 @@ public class DApp {
     @DatabaseField(columnName = "sub_category")
     String subCategory; // e.g. LENDING_DAPP
 
-    @DatabaseField(columnName = "scripts_locked")
-    @Nullable
-    Long scriptsLocked;
-
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "transactions_count")
     @Nullable // we don't always have contract calls, for instance for MINT scripts
@@ -64,6 +66,10 @@ public class DApp {
     @DatabaseField(canBeNull = false, columnName = "script_invocations")
     Long scriptInvocationsCount;
 
+    @DatabaseField(columnName = "inflows_outflows")
+    @Nullable
+    Long inflowsOutflows;
+
     @Nullable
     @DatabaseField(columnName = "last_version_audit_link")
     String lastVersionAuditLink;
@@ -71,10 +77,6 @@ public class DApp {
     @Nullable
     @DatabaseField(columnName = "last_version_open_source_link")
     String lastVersionOpenSourceLink;
-
-    @DatabaseField(columnName = "last_version_scripts_locked")
-    @Nullable
-    Long lastVersionScriptsLocked;
 
     // total number of transactions for dApp since beginning
     @DatabaseField(columnName = "last_version_transactions_count")
@@ -85,6 +87,10 @@ public class DApp {
     @DatabaseField(canBeNull = false, columnName = "last_version_script_invocations")
     Long lastVersionScriptInvocationsCount;
 
+    @DatabaseField(canBeNull = false, columnName = "last_version_inflows_outflows")
+    @Nullable
+    Long lastVersionInflowsOutflows;
+
     @DatabaseField(columnName = "last_version_volume")
     @Nullable // we don't always have contract calls, for instance for MINT scripts
     Long lastVersionVolume;
@@ -92,6 +98,9 @@ public class DApp {
     // total number of all script innovations belonging to this dApp
     @DatabaseField(canBeNull = false, columnName = "last_version_unique_accounts")
     Integer lastVersionUniqueAccounts;
+
+    @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
+    boolean closedEpoch;
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;

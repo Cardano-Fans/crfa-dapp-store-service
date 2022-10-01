@@ -1,10 +1,11 @@
-package crfa.app.resource;
+package crfa.app.resource.model;
 
 import crfa.app.domain.DAppType;
 import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
 import java.util.Date;
+import java.util.Map;
 
 @Builder
 @Getter
@@ -40,17 +41,20 @@ public class DappReleaseResult {
     @Nullable
     Long scriptsLocked;
 
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
+    @Nullable
     @Deprecated
-    Long transactionsCount; // value across all scripts per dApp
-
-    @Deprecated
-    Long scriptInvocationsCount;
+    Long transactionsCount;
 
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
+    @Nullable
+    Long volume;
+
     Date updateTime;
+
+    @Nullable
+    Integer uniqueAccounts;
 
     @Nullable
     String contractOpenSourcedLink;
@@ -59,5 +63,7 @@ public class DappReleaseResult {
     String contractsAuditedLink;
 
     boolean latestVersion;
+
+    Map<Integer, EpochLevelStats> epochData;
 
 }
