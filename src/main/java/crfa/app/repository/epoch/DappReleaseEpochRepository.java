@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Singleton
 @Slf4j
@@ -22,24 +21,6 @@ public class DappReleaseEpochRepository {
 
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
-
-    public float getMaxReleaseVersion(String id) {
-        QueryBuilder<DAppReleaseEpoch, String> statementBuilder = dbManager.getdAppReleaseEpochDao().queryBuilder();
-
-        try {
-            return Optional.ofNullable(statementBuilder
-                    .selectColumns("release_number")
-                    .orderBy("release_number", false)
-                    .limit(1L)
-                    .where().eq("id", id)
-                    .queryForFirst())
-                    .map(DAppReleaseEpoch::getReleaseNumber)
-                    .orElse(-1.0f);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
 
     public List<DAppReleaseEpoch> findByReleaseKey(String releaseKey) {
         try {

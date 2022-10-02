@@ -20,4 +20,6 @@ public final class EpochLevelStats {
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
+    boolean closed;
+
 }

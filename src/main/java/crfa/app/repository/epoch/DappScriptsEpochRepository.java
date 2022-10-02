@@ -2,6 +2,7 @@ package crfa.app.repository.epoch;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.DappScriptItemEpoch;
+import crfa.app.domain.EpochDelta;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DbManager;
@@ -79,12 +80,8 @@ public class DappScriptsEpochRepository {
         }
     }
 
-    public List<DappScriptItemEpoch> listDappScriptItems() {
-        try {
-            return listDappScriptItems(Optional.empty(), Optional.empty());
-        } catch (InvalidParameterException e) {
-            throw new RuntimeException(e);
-        }
+    public List<DappScriptItemEpoch> listDappScriptItems() throws InvalidParameterException {
+        return listDappScriptItems(Optional.empty(), Optional.empty());
     }
 
     public void update(DappScriptItemEpoch dappScriptItem) {

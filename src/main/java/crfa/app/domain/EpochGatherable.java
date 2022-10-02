@@ -18,4 +18,6 @@ public interface EpochGatherable {
    @Nullable
    Long getScriptInvocationsCount();
 
+   boolean isClosedEpoch();
+
 }
