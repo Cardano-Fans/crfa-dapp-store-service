@@ -11,8 +11,8 @@ public class MoreOptionals {
         left.ifPresent(l -> right.ifPresent(r -> consumer.accept(l, r)));
     }
 
-    public static <T> Optional<T> allOf(Optional<T> o1, Optional<T> o2,
-                                       BiFunction<T, T, T> fun) {
+    public static <T, E> Optional<E> allOf(Optional<T> o1, Optional<T> o2,
+                                       BiFunction<T, T, E> fun) {
         return o1.flatMap(t -> o2.map(u -> fun.apply(t, u)));
     }
 

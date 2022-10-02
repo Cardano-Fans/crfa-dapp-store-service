@@ -43,6 +43,8 @@ public class DappsResource {
                     val volume = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionVolume() : dapp.getVolume();
                     val uniqueAccounts = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionUniqueAccounts() : dapp.getUniqueAccounts();
 
+                    val dappLevelEpochData = dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(id));
+
                     return DappResult.builder()
                             .category(dapp.getCategory())
                             .subCategory(dapp.getSubCategory())
@@ -59,7 +61,8 @@ public class DappsResource {
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
                             .trxCount(scriptInvocationsCount)
                             .updateTime(dapp.getUpdateTime())
-                            .epochData(dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(id)))
+                            .epochData(dappLevelEpochData)
+                            .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(dappLevelEpochData).orElse(null))
                             .build();
                 });
     }

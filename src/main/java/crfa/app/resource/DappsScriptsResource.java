@@ -60,6 +60,8 @@ public class DappsScriptsResource {
 
                     val isLastVersion = dAppRelease.isLatestVersion(maxReleaseVersion);
 
+                    val releaseLevelEpochData = dappService.gatherEpochLevelData(dappReleaseEpochRepository.findByReleaseKey(releaseKey));
+
                     val dappReleaseResult = DappReleaseResult.builder()
                             .category(dAppRelease.getCategory())
                             .subCategory(dAppRelease.getSubCategory())
@@ -82,7 +84,8 @@ public class DappsScriptsResource {
                             .latestVersion(isLastVersion)
                             .contractOpenSourcedLink(dAppRelease.getContractLink())
                             .contractsAuditedLink(dAppRelease.getAuditLink())
-                            .epochData(dappService.gatherEpochLevelData(dappReleaseEpochRepository.findByReleaseKey(releaseKey)))
+                            .epochData(releaseLevelEpochData)
+                            .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(releaseLevelEpochData).orElse(null))
                             .build();
 
                     val dAppScriptItemResults = dappScriptItems
@@ -105,6 +108,7 @@ public class DappsScriptsResource {
                                         .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                                         .volume(dappScriptItem.getVolume())
                                         .epochData(epochLevelData)
+                                        .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(epochLevelData).orElse(null))
                                         .build();
                             })
                             .toList();

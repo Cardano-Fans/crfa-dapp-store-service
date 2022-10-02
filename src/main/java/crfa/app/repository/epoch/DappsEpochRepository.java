@@ -26,43 +26,6 @@ public class DappsEpochRepository {
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
 
-    public Long totalScriptsLocked() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
-
-        try {
-            return statementBuilder.query()
-                    .stream().map(DApp::getScriptsLocked).reduce(0L, Long::sum);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Long totalContractTransactionsCount() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
-
-        try {
-            return statementBuilder
-                    .query()
-                    .stream().map(DApp::getTransactionsCount).reduce(0L, Long::sum);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Long totalScriptInvocations() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
-
-        try {
-            return statementBuilder.query()
-                    .stream().map(DApp::getScriptInvocationsCount).reduce(0L, Long::sum);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
     public Long volume() {
         QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
 

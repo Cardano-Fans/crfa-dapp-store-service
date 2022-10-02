@@ -1,6 +1,7 @@
 package crfa.app.resource.model;
 
 import crfa.app.domain.DAppType;
+import crfa.app.domain.EpochDelta;
 import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
@@ -65,5 +66,8 @@ public class DappReleaseResult {
     boolean latestVersion;
 
     Map<Integer, EpochLevelStats> epochData;
+
+    @Nullable
+    EpochDelta lastClosedEpochsDelta;
 
 }
