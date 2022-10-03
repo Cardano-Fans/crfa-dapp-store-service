@@ -23,6 +23,7 @@ public class DappReleaseEpochRepository {
     private RepositoryColumnConverter repositoryColumnConverter;
 
     public List<DAppReleaseEpoch> findByReleaseKey(String releaseKey) {
+
         try {
             QueryBuilder<DAppReleaseEpoch, String> statementBuilder = dbManager.getdAppReleaseEpochDao().queryBuilder();
 
@@ -48,6 +49,14 @@ public class DappReleaseEpochRepository {
 
     public void removeAllExcept(Collection<DAppReleaseEpoch> items) {
         dbManager.removeAllExcept(items, () -> dbManager.getdAppReleaseEpochDao());
+    }
+
+    public void closeEpochs(int currentEpochNo) {
+        try {
+            dbManager.getdAppReleaseEpochDao().executeRaw("UPDATE dapp_release_epoch SET closed_epoch = true WHERE epoch_no < :currentEpochNo", String.valueOf(currentEpochNo));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

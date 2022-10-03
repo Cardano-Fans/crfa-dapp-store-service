@@ -93,4 +93,12 @@ public class DappsEpochRepository {
         dbManager.removeAllExcept(items, () -> dbManager.getdAppEpochDao());
     }
 
+    public void closeEpochs(int currentEpochNo) {
+        try {
+            dbManager.getdAppEpochDao().executeRaw("UPDATE dapp_epoch SET closed_epoch = true WHERE epoch_no < :currentEpochNo", String.valueOf(currentEpochNo));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

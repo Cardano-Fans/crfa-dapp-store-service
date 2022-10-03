@@ -25,7 +25,7 @@ public class DAppEpoch implements EpochGatherable {
     @DatabaseField(canBeNull = false, index = true, columnName = "dapp_id")
     String dappId;  // e.g, CWpU1DBj
 
-    @DatabaseField(canBeNull = false, index = true, columnName = "epochNo")
+    @DatabaseField(canBeNull = false, index = true, columnName = "epoch_no")
     int epochNo;
 
     @DatabaseField(canBeNull = false, index = true)
