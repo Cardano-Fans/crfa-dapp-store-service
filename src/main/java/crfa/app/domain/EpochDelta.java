@@ -9,7 +9,8 @@ public record EpochDelta(int fromEpoch,
                          int uniqueAccountsDiff,
                          float uniqueAccountsDiffPerc,
                          long trxCountDiff,
-                         float trxCountDiffPerc
+                         float trxCountDiffPerc,
+                         double activityDiffPerc
 ) {
 
 }

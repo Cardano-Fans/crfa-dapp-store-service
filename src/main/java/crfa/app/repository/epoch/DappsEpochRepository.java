@@ -45,7 +45,24 @@ public class DappsEpochRepository {
             QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
 
             statementBuilder
-                    .where().eq("dapp_id", dappId);
+                    .where().eq("dapp_id", dappId)
+            ;
+
+            return dbManager.getdAppEpochDao().query(statementBuilder.prepare());
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+    public List<DAppEpoch> findByDappId(String dappId, int fromEpoch) {
+        try {
+            QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+
+            statementBuilder
+                    .where()
+                    .eq("dapp_id", dappId)
+                    .and()
+                    .ge("epoch_no", fromEpoch);
 
             return dbManager.getdAppEpochDao().query(statementBuilder.prepare());
         } catch (SQLException e) {

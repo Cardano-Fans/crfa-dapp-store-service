@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 
 @Builder
 @Getter
@@ -55,7 +56,6 @@ public class DappResult {
 
     Map<Integer, EpochLevelStats> epochData;
 
-    @Nullable
-    EpochDelta lastClosedEpochsDelta;
+    Optional<EpochDelta> lastClosedEpochsDelta;
 
 }

@@ -1,11 +1,13 @@
 package crfa.app.resource;
 
 import crfa.app.domain.DappAggrType;
+import crfa.app.domain.EpochDelta;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappsRepository;
 import crfa.app.resource.model.DappResult;
+import crfa.app.resource.model.EpochLevelStats;
 import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static crfa.app.domain.DappAggrType.LAST;
@@ -43,12 +46,15 @@ public class DappsResource {
                     val volume = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionVolume() : dapp.getVolume();
                     val uniqueAccounts = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionUniqueAccounts() : dapp.getUniqueAccounts();
 
-                    val dappLevelEpochData = dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(id));
+                    val dAppType = dapp.getDAppType();
+
+                    val dappLevelEpochData = dAppType.hasSpend() ? dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(id)) : Map.<Integer, EpochLevelStats>of();
+                    val lastEpochDelta = dAppType.hasSpend() ? dappService.getLastClosedEpochsDelta(dappLevelEpochData) : Optional.<EpochDelta>empty();
 
                     return DappResult.builder()
                             .category(dapp.getCategory())
                             .subCategory(dapp.getSubCategory())
-                            .dAppType(dapp.getDAppType())
+                            .dAppType(dAppType)
                             .id(dapp.getId())
                             .icon(dapp.getIcon())
                             .link(dapp.getLink())
@@ -62,7 +68,7 @@ public class DappsResource {
                             .trxCount(scriptInvocationsCount)
                             .updateTime(dapp.getUpdateTime())
                             .epochData(dappLevelEpochData)
-                            .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(dappLevelEpochData).orElse(null))
+                            .lastClosedEpochsDelta(lastEpochDelta)
                             .build();
                 });
     }
@@ -80,11 +86,21 @@ public class DappsResource {
                     val volume = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionVolume() : dapp.getVolume();
                     val uniqueAccounts = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionUniqueAccounts() : dapp.getUniqueAccounts();
 
+                    val currentEpoch = dappService.currentEpoch();
+
+                    val dAppType = dapp.getDAppType();
+                    val dappId = dapp.getId();
+
+                    val fromEpoch = currentEpoch - 6;
+
+                    val dappLevelEpochData = dAppType.hasSpend() ? dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(dappId, fromEpoch)) : Map.<Integer, EpochLevelStats>of();
+                    val lastEpochDelta = dAppType.hasSpend() ? dappService.getLastClosedEpochsDelta(dappLevelEpochData) : Optional.<EpochDelta>empty();
+
                     return DappResult.builder()
                             .category(dapp.getCategory())
                             .subCategory(dapp.getSubCategory())
                             .dAppType(dapp.getDAppType())
-                            .id(dapp.getId())
+                            .id(dappId)
                             .icon(dapp.getIcon())
                             .link(dapp.getLink())
                             .name(dapp.getName())
@@ -96,6 +112,7 @@ public class DappsResource {
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
                             .trxCount(scriptInvocationsCount)
                             .updateTime(dapp.getUpdateTime())
+                            .lastClosedEpochsDelta(lastEpochDelta)
                             .build();
                 }).toList();
     }

@@ -85,7 +85,7 @@ public class DappsScriptsResource {
                             .contractOpenSourcedLink(dAppRelease.getContractLink())
                             .contractsAuditedLink(dAppRelease.getAuditLink())
                             .epochData(releaseLevelEpochData)
-                            .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(releaseLevelEpochData).orElse(null))
+                            .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(releaseLevelEpochData))
                             .build();
 
                     val dAppScriptItemResults = dappScriptItems
@@ -108,7 +108,7 @@ public class DappsScriptsResource {
                                         .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                                         .volume(dappScriptItem.getVolume())
                                         .epochData(epochLevelData)
-                                        .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(epochLevelData).orElse(null))
+                                        .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(epochLevelData))
                                         .build();
                             })
                             .toList();

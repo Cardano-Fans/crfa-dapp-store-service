@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
 import static crfa.app.domain.SortOrder.ASC;
@@ -27,6 +28,9 @@ public class DappService {
 
     @Inject
     private DappReleaseRepository dappReleaseRepository;
+
+    @Inject
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     public Cache<String, Float> buildMaxReleaseVersionCache() {
         val releaseVersionsCache = CacheBuilder.newBuilder().<String, Float>build();
@@ -80,24 +84,31 @@ public class DappService {
             val uniqueAccountsDiff = nullSafe(nextStats.getUniqueAccounts()) - nullSafe(prevStats.getUniqueAccounts());
             val trxCountDiff = nullSafe(nextStats.getTrxCount()) - nullSafe(prevStats.getTrxCount());
 
-            var volumeDiffPerc = (float) volumeDiff / nullSafe(prevStats.getVolume());
-            var inflowsOutflowsDiffPerc = (float) inflowsOutflowsDiff / nullSafe(prevStats.getInflowsOutflows());
-            var uniqueAccountsDiffPerc = (float) uniqueAccountsDiff / nullSafe(prevStats.getUniqueAccounts());
-            var trxCountDiffPerc = (float) trxCountDiff / nullSafe(prevStats.getTrxCount());
+            val volumeDiffPerc = (float) volumeDiff / nullSafe(prevStats.getVolume()) * 100;
+            val inflowsOutflowsDiffPerc = (float) inflowsOutflowsDiff / nullSafe(prevStats.getInflowsOutflows()) * 100;
+            val uniqueAccountsDiffPerc = (float) uniqueAccountsDiff / nullSafe(prevStats.getUniqueAccounts()) * 100;
+            val trxCountDiffPerc = (float) trxCountDiff / nullSafe(prevStats.getTrxCount()) * 100;
+
+            val activityDiffPerc = Stream.of(volumeDiffPerc, uniqueAccountsDiffPerc, trxCountDiffPerc).mapToDouble(Float::doubleValue).average().getAsDouble();
 
             return new EpochDelta(
                     prevEpoch,
                     nextEpoch,
                     volumeDiff,
-                    volumeDiffPerc,
+                    Double.isNaN(volumeDiffPerc) | Double.isInfinite(volumeDiffPerc)  ? 0 : volumeDiffPerc,
                     inflowsOutflowsDiff,
-                    inflowsOutflowsDiffPerc,
+                    Double.isNaN(inflowsOutflowsDiffPerc) || Double.isInfinite(inflowsOutflowsDiffPerc) ? 0 : inflowsOutflowsDiffPerc,
                     uniqueAccountsDiff,
-                    uniqueAccountsDiffPerc,
+                    Double.isNaN(uniqueAccountsDiffPerc) || Double.isInfinite(uniqueAccountsDiffPerc) ? 0 : uniqueAccountsDiffPerc,
                     trxCountDiff,
-                    trxCountDiffPerc
+                    Double.isNaN(trxCountDiffPerc) || Double.isInfinite(trxCountDiffPerc) ? 0 : trxCountDiffPerc,
+                    Double.isNaN(activityDiffPerc) || Double.isInfinite(activityDiffPerc) ? 0 : activityDiffPerc
             );
         });
+    }
+
+    public int currentEpoch() {
+        return scrollsOnChainDataService.currentEpoch().orElseThrow().intValue();
     }
 
 }
