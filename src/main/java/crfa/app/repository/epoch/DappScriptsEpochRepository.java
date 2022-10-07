@@ -2,7 +2,6 @@ package crfa.app.repository.epoch;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.DappScriptItemEpoch;
-import crfa.app.domain.EpochDelta;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DbManager;
@@ -49,8 +48,23 @@ public class DappScriptsEpochRepository {
 
             return statementBuilder
                     .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
-                    .where().eq("release_key", releaseKey)
+                    .where()
+                    .eq("release_key", releaseKey)
                     .query();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long dappScriptsEpochsCount(String releaseKey) {
+        try {
+            QueryBuilder<DappScriptItemEpoch, String> statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("release_key", releaseKey)
+                    .countOf();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);

@@ -71,6 +71,20 @@ public class DappsEpochRepository {
         }
     }
 
+    public long dappEpochsCount(String dappId) {
+        try {
+            QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("dapp_id", dappId)
+                    .countOf();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<DAppEpoch> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder, DappAggrType dappAggrType) throws InvalidParameterException {
         val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy, dappAggrType);
         val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);

@@ -1,9 +1,6 @@
 package crfa.app.resource;
 
-import crfa.app.domain.DappAggrType;
-import crfa.app.domain.EpochDelta;
-import crfa.app.domain.SortBy;
-import crfa.app.domain.SortOrder;
+import crfa.app.domain.*;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappsRepository;
 import crfa.app.resource.model.DappResult;
@@ -12,6 +9,7 @@ import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
+import io.vavr.Tuple2;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -36,10 +34,17 @@ public class DappsResource {
     private DappService dappService;
 
     @Get(uri = "/find-dapp/{id}", produces = "application/json")
-    public Optional<DappResult> findDappById(String id, @QueryValue Optional<DappAggrType> dappAggrType) {
+    public Optional<DappResult> findDappById(String id,
+                                             @QueryValue Optional<DappAggrType> dappAggrType,
+                                             @QueryValue Optional<Integer> epochGap) {
+        val eGap = epochGap.orElse(1);
         val dappAggrTypeWithFallback = dappAggrType.orElse(DappAggrType.def());
 
+        val currentEpoch = dappService.currentEpoch();
+        val fromEpoch = currentEpoch - (eGap + 1);
+
         return dappsRepository.findById(id)
+                .filter(dApp ->  canGoBackThatFar(dApp.getId(), eGap))
                 .map(dapp -> {
                     val scriptInvocationsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount();
                     val scriptsLocked = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked();
@@ -48,8 +53,7 @@ public class DappsResource {
 
                     val dAppType = dapp.getDAppType();
 
-                    val dappLevelEpochData = dAppType.hasSpend() ? dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(id)) : Map.<Integer, EpochLevelStats>of();
-                    val lastEpochDelta = dAppType.hasSpend() ? dappService.getLastClosedEpochsDelta(dappLevelEpochData) : Optional.<EpochDelta>empty();
+                    val tuple = getEpochData(dapp, fromEpoch, eGap);
 
                     return DappResult.builder()
                             .category(dapp.getCategory())
@@ -67,8 +71,8 @@ public class DappsResource {
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
                             .trxCount(scriptInvocationsCount)
                             .updateTime(dapp.getUpdateTime())
-                            .epochData(dappLevelEpochData)
-                            .lastClosedEpochsDelta(lastEpochDelta)
+                            .epochData(tuple.map(t -> t._2).orElse(Map.of()))
+                            .lastClosedEpochsDelta(tuple.map(t -> t._1))
                             .build();
                 });
     }
@@ -76,31 +80,29 @@ public class DappsResource {
                                       @Get(uri = "/list-dapps", produces = "application/json")
     public List<DappResult> listDapps(@QueryValue Optional<SortBy> sortBy,
                                       @QueryValue Optional<SortOrder> sortOrder,
-                                      @QueryValue Optional<DappAggrType> dappAggrType) throws InvalidParameterException {
+                                      @QueryValue Optional<DappAggrType> dappAggrType,
+                                      @QueryValue Optional<Integer> epochGap) throws InvalidParameterException {
+
+        val eGap = epochGap.orElse(1);
         val dappAggrTypeWithFallback = dappAggrType.orElse(DappAggrType.def());
 
-        return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
-                .stream().map(dapp -> {
+        val currentEpoch = dappService.currentEpoch();
+        val fromEpoch = currentEpoch - (eGap + 1);
+
+         return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
+                .stream()
+                 .filter(dApp -> canGoBackThatFar(dApp.getId(), eGap))
+                 .map(dapp -> {
                     val scriptInvocationsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount();
                     val scriptsLocked = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked();
                     val volume = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionVolume() : dapp.getVolume();
                     val uniqueAccounts = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionUniqueAccounts() : dapp.getUniqueAccounts();
 
-                    val currentEpoch = dappService.currentEpoch();
-
-                    val dAppType = dapp.getDAppType();
-                    val dappId = dapp.getId();
-
-                    val fromEpoch = currentEpoch - 6;
-
-                    val dappLevelEpochData = dAppType.hasSpend() ? dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(dappId, fromEpoch)) : Map.<Integer, EpochLevelStats>of();
-                    val lastEpochDelta = dAppType.hasSpend() ? dappService.getLastClosedEpochsDelta(dappLevelEpochData) : Optional.<EpochDelta>empty();
-
                     return DappResult.builder()
+                            .id(dapp.getId())
                             .category(dapp.getCategory())
                             .subCategory(dapp.getSubCategory())
                             .dAppType(dapp.getDAppType())
-                            .id(dappId)
                             .icon(dapp.getIcon())
                             .link(dapp.getLink())
                             .name(dapp.getName())
@@ -112,9 +114,24 @@ public class DappsResource {
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
                             .trxCount(scriptInvocationsCount)
                             .updateTime(dapp.getUpdateTime())
-                            .lastClosedEpochsDelta(lastEpochDelta)
+                            .lastClosedEpochsDelta(getEpochData(dapp, fromEpoch, eGap).map(t -> t._1))
                             .build();
                 }).toList();
+    }
+
+    private Optional<Tuple2<EpochDelta, Map<Integer, EpochLevelStats>>> getEpochData(DApp dapp, int fromEpoch, int eGap) {
+        if (dapp.getDAppType().hasSpend()) {
+            val dappLevelEpochData = dappService.gatherEpochLevelData(dappsEpochRepository.findByDappId(dapp.getId(), fromEpoch));
+
+            return dappService.getLastClosedEpochsDelta(dappLevelEpochData, eGap).map(delta -> new Tuple2<>(delta, dappLevelEpochData));
+        }
+
+        return Optional.empty();
+    }
+
+    // we may not have so many epochs to show such a large epoch gap
+    private boolean canGoBackThatFar(String dappId, int eGap) {
+        return dappsEpochRepository.dappEpochsCount(dappId) > (eGap + 1);
     }
 
 }

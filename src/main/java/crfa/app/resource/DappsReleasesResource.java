@@ -1,7 +1,7 @@
 package crfa.app.resource;
 
-import crfa.app.domain.SortBy;
-import crfa.app.domain.SortOrder;
+import crfa.app.domain.*;
+import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.repository.total.DappReleaseRepository;
 import crfa.app.resource.model.DappReleaseResult;
 import crfa.app.service.DappService;
@@ -14,7 +14,6 @@ import lombok.val;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static crfa.app.domain.SortBy.RELEASE_NUMBER;
 import static crfa.app.domain.SortOrder.ASC;
@@ -27,26 +26,37 @@ public class DappsReleasesResource {
     private DappReleaseRepository dappReleaseRepository;
 
     @Inject
+    private DappReleaseEpochRepository dappReleaseEpochRepository;
+
+    @Inject
     private DappService dappService;
 
     @Get(uri = "/list-releases", produces = "application/json")
     public List<DappReleaseResult> listDappReleases(@QueryValue Optional<SortBy> sortBy,
-                                                    @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
-
+                                                    @QueryValue Optional<SortOrder> sortOrder,
+                                                    @QueryValue Optional<Integer> epochGap) throws InvalidParameterException {
+        val eGap = epochGap.orElse(1);
         val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
 
+        val currentEpoch = dappService.currentEpoch();
+        val fromEpoch = currentEpoch - (eGap + 1);
+
         return dappReleaseRepository.listDappReleases(sortBy, sortOrder)
-                .stream().map(dAppRelease -> {
+                .stream()
+                .filter(dapp -> canGoBackThatFar(dapp.getId(), eGap))
+                .map(dAppRelease -> {
                     val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getDappId());
 
                     val isLastVersion = dAppRelease.isLatestVersion(maxReleaseVersion);
 
-                    return  DappReleaseResult.builder()
+                    val dappType = dAppRelease.getDAppType();
+
+                    return DappReleaseResult.builder()
+                            .id(dAppRelease.getDappId())
                             .category(dAppRelease.getCategory())
                             .subCategory(dAppRelease.getSubCategory())
-                            .dAppType(dAppRelease.getDAppType())
+                            .dAppType(dappType)
                             .fullName(dAppRelease.getFullName())
-                            .id(dAppRelease.getDappId())
                             .icon(dAppRelease.getIcon())
                             .key(dAppRelease.getId())
                             .link(dAppRelease.getLink())
@@ -63,16 +73,36 @@ public class DappsReleasesResource {
                             .volume(dAppRelease.getVolume())
                             .contractOpenSourcedLink(dAppRelease.getContractLink())
                             .contractsAuditedLink(dAppRelease.getAuditLink())
+                            .lastClosedEpochsDelta(getEpochDelta(fromEpoch, dAppRelease, dappType, eGap))
                             .build();
                 }).toList();
     }
 
     @Get(uri = "/find-release/{id}", produces = "application/json")
-    public List<DappReleaseResult> findDappRelease(String id) throws InvalidParameterException {
-        return listDappReleases(Optional.of(RELEASE_NUMBER), Optional.of(ASC))
+    public List<DappReleaseResult> findDappRelease(String id, @QueryValue Optional<Integer> epochGap) throws InvalidParameterException {
+        return listDappReleases(Optional.of(RELEASE_NUMBER), Optional.of(ASC), epochGap)
                 .stream()
                 .filter(dappReleaseResult -> dappReleaseResult.getId().equalsIgnoreCase(id))
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    private Optional<EpochDelta> getEpochDelta(int fromEpoch, DAppRelease dAppRelease, DAppType dappType, int eGap) {
+        if (dappType.hasSpend()) {
+            val id = dAppRelease.getId();
+
+            val epochGatherableCol = dappReleaseEpochRepository.findByReleaseKey(id, fromEpoch);
+
+            val dappLevelEpochData = dappService.gatherEpochLevelData(epochGatherableCol);
+
+            return dappService.getLastClosedEpochsDelta(dappLevelEpochData, eGap);
+        }
+
+        return Optional.empty();
+    }
+
+    // we may not have so many epochs to show such a large epoch gap
+    private boolean canGoBackThatFar(String releaseKey, int eGap) {
+        return dappReleaseEpochRepository.dappScriptsEpochsCount(releaseKey) > (eGap + 1);
     }
 
 }

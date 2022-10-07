@@ -1,5 +1,7 @@
 package crfa.app.resource;
 
+import crfa.app.domain.DAppRelease;
+import crfa.app.domain.DappScriptItem;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.epoch.DappReleaseEpochRepository;
@@ -39,16 +41,21 @@ public class DappsScriptsResource {
     @Inject
     private DappService dappService;
 
-
     @Get(uri = "/by-release-key/{releaseKey}", produces = "application/json")
     public Optional<DappScriptsResponse> listScriptsResponse(@PathVariable String releaseKey,
                                                    @QueryValue Optional<SortBy> sortBy,
-                                                   @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
-        val dappScriptItems = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy, sortOrder);
+                                                   @QueryValue Optional<SortOrder> sortOrder,
+                                                   @QueryValue Optional<Integer> epochGap) throws InvalidParameterException {
+        val eGap = epochGap.orElse(1);
+
+        val dappScriptItems = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy, sortOrder)
+                .stream()
+                .filter(dappScriptItem -> canGoBackThatFar(dappScriptItem, eGap)).toList();
 
         val epochLevelData = dappService.gatherEpochLevelData(dappScriptsEpochRepository.listDappScriptItems(releaseKey));
 
         return dappReleaseRepository.findById(releaseKey)
+                .filter(dAppRelease -> canGoBackThatFar(dAppRelease, eGap))
                 .map(dAppRelease -> {
                     val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
 
@@ -85,7 +92,7 @@ public class DappsScriptsResource {
                             .contractOpenSourcedLink(dAppRelease.getContractLink())
                             .contractsAuditedLink(dAppRelease.getAuditLink())
                             .epochData(releaseLevelEpochData)
-                            .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(releaseLevelEpochData))
+                            .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(releaseLevelEpochData, eGap))
                             .build();
 
                     val dAppScriptItemResults = dappScriptItems
@@ -108,7 +115,7 @@ public class DappsScriptsResource {
                                         .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                                         .volume(dappScriptItem.getVolume())
                                         .epochData(epochLevelData)
-                                        .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(epochLevelData))
+                                        .lastClosedEpochsDelta(dappService.getLastClosedEpochsDelta(epochLevelData, eGap))
                                         .build();
                             })
                             .toList();
@@ -118,6 +125,15 @@ public class DappsScriptsResource {
                             .scripts(dAppScriptItemResults)
                             .build();
                 });
+    }
+
+    // we may not have so many epochs to show such a large epoch gap
+    private boolean canGoBackThatFar(DAppRelease dAppRelease, int eGap) {
+        return dappReleaseEpochRepository.dappScriptsEpochsCount(dAppRelease.getId()) > (eGap + 1);
+    }
+
+    private boolean canGoBackThatFar(DappScriptItem dappScriptItem, int eGap) {
+        return dappScriptsEpochRepository.dappScriptsEpochsCount(dappScriptItem.getReleaseKey()) > (eGap + 1);
     }
 
 }

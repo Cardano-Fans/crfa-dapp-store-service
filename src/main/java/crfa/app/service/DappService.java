@@ -66,14 +66,14 @@ public class DappService {
         return epochLevelStats;
     }
 
-    public Optional<EpochDelta> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats) {
+    public Optional<EpochDelta> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats, int epochGap) {
         val closedEpochsMap = stats.entrySet().stream().filter(entry -> entry.getValue().isClosed()).collect(Collectors.toMap(
                 Map.Entry::getKey,
                 Map.Entry::getValue
         ));
 
         val nextEpochM = closedEpochsMap.keySet().stream().max(Integer::compare);
-        val prevEpochM = nextEpochM.map(lastEpochNo -> lastEpochNo - 1);
+        val prevEpochM = nextEpochM.map(lastEpochNo -> lastEpochNo - epochGap);
 
         return MoreOptionals.allOf(prevEpochM, nextEpochM, (prevEpoch, nextEpoch) -> {
             val prevStats = closedEpochsMap.get(prevEpoch); // prev

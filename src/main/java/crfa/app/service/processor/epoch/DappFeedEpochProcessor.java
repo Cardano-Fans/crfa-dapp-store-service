@@ -7,7 +7,6 @@ import crfa.app.client.metadata.DappSearchItem;
 import crfa.app.domain.*;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.service.DappService;
-import crfa.app.service.ScrollsOnChainDataService;
 import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -33,9 +32,6 @@ public class DappFeedEpochProcessor implements FeedProcessor {
     @Inject
     private DappsEpochRepository dappsEpochRepository;
 
-    @Inject
-    private ScrollsOnChainDataService scrollsOnChainDataService;
-
     @Override
     public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
@@ -43,7 +39,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             return;
         }
 
-        val currentEpochNo = getCurrentEpoch();
+        val currentEpochNo = dappService.currentEpoch();
 
         val dapps = new ArrayList<DAppEpoch>();
 
@@ -201,10 +197,6 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         return Optional.ofNullable(maxVersion)
                 .map(v -> Float.compare(dappReleaseItem.getReleaseNumber(), v) == 0)
                 .orElse(true);
-    }
-
-    private int getCurrentEpoch() {
-        return scrollsOnChainDataService.currentEpoch().orElseThrow();
     }
 
 }

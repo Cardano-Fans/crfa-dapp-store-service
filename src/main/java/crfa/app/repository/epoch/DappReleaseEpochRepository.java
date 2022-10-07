@@ -38,6 +38,39 @@ public class DappReleaseEpochRepository {
         }
     }
 
+    public long dappScriptsEpochsCount(String releaseKey) {
+        try {
+            QueryBuilder<DAppReleaseEpoch, String> statementBuilder = dbManager.getdAppReleaseEpochDao().queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("key", releaseKey)
+                    .countOf();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<DAppReleaseEpoch> findByReleaseKey(String releaseKey, int fromEpochNo) {
+
+        try {
+            QueryBuilder<DAppReleaseEpoch, String> statementBuilder = dbManager.getdAppReleaseEpochDao().queryBuilder();
+
+            statementBuilder
+                    .orderBy("epoch_no", false)
+                    .where()
+                    .eq("key", releaseKey)
+                    .and()
+                    .ge("epoch_no", fromEpochNo);
+
+            return dbManager.getdAppReleaseEpochDao().query(statementBuilder.prepare()).stream().toList();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public void upsertDAppRelease(DAppReleaseEpoch dAppRelease) {
         try {
             dbManager.getdAppReleaseEpochDao().createOrUpdate(dAppRelease);
