@@ -14,7 +14,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.val;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -183,6 +186,11 @@ public class DappService {
 
                 val activityDiffPerc = Stream.of(volumeDiffPerc, uniqueAccountsDiffPerc, trxCountDiffPerc).mapToDouble(Float::doubleValue).average().getAsDouble();
 
+                // TODO controversial but how to solve it better?
+                if (Double.isInfinite(activityDiffPerc) || Double.isNaN(activityDiffPerc)) {
+                    return null;
+                }
+
                 return new EpochDelta(
                         prevEpoch,
                         nextEpoch,
@@ -205,7 +213,7 @@ public class DappService {
 
                 return EpochDelta.builder()
                         .trxCountDiff(trxCountDiff)
-                        .trxCountDiffPerc(Double.isNaN(trxCountDiffPerc) || Double.isInfinite(trxCountDiffPerc) ? null : trxCountDiffPerc)
+                        .trxCountDiffPerc(Double.isNaN(trxCountDiffPerc) || Double.isInfinite(trxCountDiffPerc) ? 0 : trxCountDiffPerc)
                         .activityDiffPerc(Double.isNaN(activityDiffPerc) || Double.isInfinite(activityDiffPerc) ? 0 : activityDiffPerc)
                         .build();
             }
