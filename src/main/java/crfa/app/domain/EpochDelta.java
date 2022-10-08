@@ -1,16 +1,24 @@
 package crfa.app.domain;
 
-public record EpochDelta(int fromEpoch,
-                         int toEpoch,
-                         long volumeDiff,
-                         float volumeDiffPerc,
-                         long inflowsOutflowsDiff,
-                         float inflowsOutflowsDiffPerc,
-                         int uniqueAccountsDiff,
-                         float uniqueAccountsDiffPerc,
-                         long trxCountDiff,
-                         float trxCountDiffPerc,
-                         double activityDiffPerc
-) {
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
+@Builder
+@Getter
+@AllArgsConstructor
+public class EpochDelta {
+
+    int fromEpoch;
+    int toEpoch;
+    Long volumeDiff;
+    Float volumeDiffPerc;
+    Long inflowsOutflowsDiff;
+    Float inflowsOutflowsDiffPerc;
+    Integer uniqueAccountsDiff;
+    Float uniqueAccountsDiffPerc;
+    Long trxCountDiff;
+    Float trxCountDiffPerc;
+    Double activityDiffPerc;
 }
