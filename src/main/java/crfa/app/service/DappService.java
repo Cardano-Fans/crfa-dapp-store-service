@@ -14,10 +14,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.val;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -88,7 +85,8 @@ public class DappService {
 
     public Optional<EpochLevelData> getAllEpochLevelData(DApp dapp, boolean includeEpochDetails) {
         val id = dapp.getId();
-        val epochData = gatherEpochLevelData(dappsEpochRepository.findByDappId(id), dapp.getDAppType().hasSpend());
+        var dappEpochList = dappsEpochRepository.findByDappId(id);
+        val epochData = gatherEpochLevelData(dappEpochList, dapp.getDAppType().hasSpend());
 
         val hasSpend = dapp.getDAppType().hasSpend();
         val one = getLastClosedEpochsDelta(epochData, 1, hasSpend); // 1 epoch

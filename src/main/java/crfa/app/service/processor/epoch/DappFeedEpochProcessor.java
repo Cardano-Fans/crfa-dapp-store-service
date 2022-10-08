@@ -46,18 +46,16 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
-            dappSearchItem.getReleases().forEach(dappReleaseItem -> {
-                val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
+            val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
-                if (injestCurrentEpochOnly) {
-                    dapps.add(createDappEpoch(dappFeed, false, maxReleaseCache, dappSearchItem, dappReleaseItem, currentEpochNo));
-                } else {
-                    for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
-                        val isClosedEpoch = epochNo < currentEpochNo;
-                        dapps.add(createDappEpoch(dappFeed, isClosedEpoch, maxReleaseCache, dappSearchItem, dappReleaseItem, epochNo));
-                    }
+            if (injestCurrentEpochOnly) {
+                dapps.add(createDappEpoch(dappFeed, false, maxReleaseCache, dappSearchItem, currentEpochNo));
+            } else {
+                for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+                    val isClosedEpoch = epochNo < currentEpochNo;
+                    dapps.add(createDappEpoch(dappFeed, isClosedEpoch, maxReleaseCache, dappSearchItem, epochNo));
                 }
-            });
+            }
         });
 
         log.info("Upserting dapps, count:{}...", dapps.size());
@@ -71,12 +69,11 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         dappsEpochRepository.removeAllExcept(dapps);
     }
 
-    private DAppEpoch createDappEpoch(DappFeed dappFeed,
-                                          boolean isClosedEpoch,
-                                          Cache<String, Float> maxReleaseCache,
-                                          DappSearchItem dappSearchItem,
-                                          DappReleaseItem dappReleaseItem,
-                                          int epochNo) {
+    private static DAppEpoch createDappEpoch(DappFeed dappFeed,
+                                             boolean isClosedEpoch,
+                                             Cache<String, Float> maxReleaseCache,
+                                             DappSearchItem dappSearchItem,
+                                             int epochNo) {
         val dapp = new DAppEpoch();
 
         val dappId = dappSearchItem.getId();
@@ -106,76 +103,79 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         var lastVersionTotalVolume = 0L;
         var lastVersionTotalUniqueAccounts = HashMultiset.<String>create();
 
-        val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
+        val maxVersion = maxReleaseCache.getIfPresent(dappId);
 
-        boolean isLastVersion = isLastVersion(dappReleaseItem, maxVersion);
+        for (val dappReleaseItem : dappSearchItem.getReleases()) {
+            boolean isLastVersion = isLastVersion(dappReleaseItem, maxVersion);
 
-        for (val scriptItem : dappReleaseItem.getScripts()) {
-            Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
-                if (isLastVersion && contract.getOpenSource() != null && contract.getOpenSource()) {
-                    dapp.setLastVersionOpenSourceLink(contract.getContractLink());
-                }
-            });
+            for (val scriptItem : dappReleaseItem.getScripts()) {
+                Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
+                    if (isLastVersion && contract.getOpenSource() != null && contract.getOpenSource()) {
+                        dapp.setLastVersionOpenSourceLink(contract.getContractLink());
+                    }
+                });
 
-            Optional.ofNullable(dappReleaseItem.getAudit()).ifPresent(audit -> {
-                if (isLastVersion) {
-                    dapp.setLastVersionAuditLink(audit.getAuditLink());
-                }
-            });
-
-            if (scriptItem.getPurpose() == Purpose.SPEND) {
-                val scriptHash = scriptItem.getScriptHash();
-                val invocationsPerHash = loadInvocationsPerHash(dappFeed, scriptHash, epochNo);
-                totalScriptInvocations += invocationsPerHash;
-                if (isLastVersion) {
-                    lastVersionTotalScriptInvocations = invocationsPerHash;
-                }
-
-                val contractAddress = scriptItem.getContractAddress();
-
-                val adaBalance = loadAddressBalance(dappFeed, contractAddress, epochNo);
-                totalInflowsOutflows += adaBalance;
-
-                if (isLastVersion) {
-                    lastVersionTotalInflowsOutflows += adaBalance;
-                }
-
-                val transactionsCount = loadTransactionsCount(dappFeed, contractAddress, epochNo);
-                totalTransactionsCount += transactionsCount;
-                if (isLastVersion) {
-                    lastVersionTotalTransactionsCount += transactionsCount;
-                }
-
-                val volume = loadVolume(dappFeed, contractAddress, epochNo);
-                totalVolume += volume;
-                if (isLastVersion) {
-                    lastVersionTotalVolume += volume;
-                }
-
-                val uniqueAccounts = loadUniqueAccounts(dappFeed, contractAddress, epochNo);
-                totalUniqueAccounts.addAll(uniqueAccounts);
-                if (isLastVersion) {
-                    lastVersionTotalUniqueAccounts.addAll(uniqueAccounts);
-                }
-            }
-            if (scriptItem.getPurpose() == Purpose.MINT) {
-                val mintPolicyID = scriptItem.getMintPolicyID();
-                val invocationsPerHash = loadInvocationsPerHash(dappFeed, mintPolicyID, epochNo);
-
-                totalScriptInvocations += invocationsPerHash;
-                if (isLastVersion) {
-                    lastVersionTotalScriptInvocations = invocationsPerHash;
-                }
-                // wind riders case
-                if (scriptItem.getAssetId().isPresent()) {
-                    val assetId = scriptItem.getAssetId().get();
-                    val tokenAdaBalance = loadTokensBalance(dappFeed, assetId, epochNo);
-                    totalInflowsOutflows += tokenAdaBalance;
+                Optional.ofNullable(dappReleaseItem.getAudit()).ifPresent(audit -> {
                     if (isLastVersion) {
-                        lastVersionTotalInflowsOutflows += tokenAdaBalance;
+                        dapp.setLastVersionAuditLink(audit.getAuditLink());
+                    }
+                });
+
+                if (scriptItem.getPurpose() == Purpose.SPEND) {
+                    val scriptHash = scriptItem.getScriptHash();
+                    val invocationsPerHash = loadInvocationsPerHash(dappFeed, scriptHash, epochNo);
+                    totalScriptInvocations += invocationsPerHash;
+                    if (isLastVersion) {
+                        lastVersionTotalScriptInvocations = invocationsPerHash;
+                    }
+
+                    val contractAddress = scriptItem.getContractAddress();
+
+                    val adaBalance = loadAddressBalance(dappFeed, contractAddress, epochNo);
+                    totalInflowsOutflows += adaBalance;
+
+                    if (isLastVersion) {
+                        lastVersionTotalInflowsOutflows += adaBalance;
+                    }
+
+                    val transactionsCount = loadTransactionsCount(dappFeed, contractAddress, epochNo);
+                    totalTransactionsCount += transactionsCount;
+                    if (isLastVersion) {
+                        lastVersionTotalTransactionsCount += transactionsCount;
+                    }
+
+                    val volume = loadVolume(dappFeed, contractAddress, epochNo);
+                    totalVolume += volume;
+                    if (isLastVersion) {
+                        lastVersionTotalVolume += volume;
+                    }
+
+                    val uniqueAccounts = loadUniqueAccounts(dappFeed, contractAddress, epochNo);
+                    totalUniqueAccounts.addAll(uniqueAccounts);
+                    if (isLastVersion) {
+                        lastVersionTotalUniqueAccounts.addAll(uniqueAccounts);
+                    }
+                }
+                if (scriptItem.getPurpose() == Purpose.MINT) {
+                    val mintPolicyID = scriptItem.getMintPolicyID();
+                    val invocationsPerHash = loadInvocationsPerHash(dappFeed, mintPolicyID, epochNo);
+
+                    totalScriptInvocations += invocationsPerHash;
+                    if (isLastVersion) {
+                        lastVersionTotalScriptInvocations = invocationsPerHash;
+                    }
+                    // wind riders case
+                    if (scriptItem.getAssetId().isPresent()) {
+                        val assetId = scriptItem.getAssetId().get();
+                        val tokenAdaBalance = loadTokensBalance(dappFeed, assetId, epochNo);
+                        totalInflowsOutflows += tokenAdaBalance;
+                        if (isLastVersion) {
+                            lastVersionTotalInflowsOutflows += tokenAdaBalance;
+                        }
                     }
                 }
             }
+
 
             dapp.setScriptInvocationsCount(totalScriptInvocations);
             dapp.setInflowsOutflows(totalInflowsOutflows);

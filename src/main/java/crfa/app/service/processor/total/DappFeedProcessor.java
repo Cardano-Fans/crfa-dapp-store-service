@@ -1,6 +1,5 @@
 package crfa.app.service.processor.total;
 
-import com.google.common.collect.HashMultiset;
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.domain.*;
 import crfa.app.repository.total.DappsRepository;
@@ -13,6 +12,7 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.service.processor.total.ProcessorHelper.*;
@@ -53,13 +53,13 @@ public class DappFeedProcessor implements FeedProcessor {
             var totalTransactionsCount = 0L;
             var totalVolume = 0L;
 
-            var totalUniqueAccounts= HashMultiset.create();
+            var totalUniqueAccounts= new HashSet<String>();
 
             var lastVersionTotalScriptsLocked = 0L;
             var lastVersionTotalScriptInvocations = 0L;
             var lastVersionTotalTransactionsCount = 0L;
             var lastVersionTotalVolume = 0L;
-            val lastVersionTotalUniqueAccounts = HashMultiset.create();
+            val lastVersionTotalUniqueAccounts = new HashSet<String>();
 
             for (val dappReleaseItem : dappSearchItem.getReleases()) {
                 val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
