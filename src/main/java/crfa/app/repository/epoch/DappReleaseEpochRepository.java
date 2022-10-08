@@ -22,7 +22,7 @@ public class DappReleaseEpochRepository {
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
 
-    public List<DAppReleaseEpoch> findByReleaseKey(String releaseKey) {
+     public List<DAppReleaseEpoch> findByReleaseKey(String releaseKey) {
 
         try {
             QueryBuilder<DAppReleaseEpoch, String> statementBuilder = dbManager.getdAppReleaseEpochDao().queryBuilder();

@@ -1,11 +1,8 @@
 package crfa.app.repository.total;
 
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.AdaPricePerDay;
 import crfa.app.repository.DbManager;
-import io.micronaut.runtime.event.annotation.EventListener;
-import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;

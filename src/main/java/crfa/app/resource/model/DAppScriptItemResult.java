@@ -1,13 +1,12 @@
 package crfa.app.resource.model;
 
-import crfa.app.domain.EpochDelta;
+import crfa.app.domain.EpochLevelData;
 import crfa.app.domain.ScriptType;
 import io.micronaut.core.annotation.Nullable;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Optional;
 
 @Builder
@@ -47,8 +46,6 @@ public class DAppScriptItemResult {
     @Nullable
     Long volume;
 
-    Map<Integer, EpochLevelStats> epochData;
-
-    Optional<EpochDelta> lastClosedEpochsDelta;
+    Optional<EpochLevelData> epochLevelData;
 
 }

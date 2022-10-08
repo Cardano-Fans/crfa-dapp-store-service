@@ -1,7 +1,6 @@
 package crfa.app.repository.total;
 
 import com.j256.ormlite.stmt.QueryBuilder;
-import crfa.app.domain.DApp;
 import crfa.app.domain.ScriptStats;
 import crfa.app.domain.ScriptStatsType;
 import crfa.app.repository.DbManager;

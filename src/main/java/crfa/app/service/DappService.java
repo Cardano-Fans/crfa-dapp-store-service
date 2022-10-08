@@ -2,8 +2,10 @@ package crfa.app.service;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import crfa.app.domain.EpochDelta;
-import crfa.app.domain.EpochGatherable;
+import crfa.app.domain.*;
+import crfa.app.repository.epoch.DappReleaseEpochRepository;
+import crfa.app.repository.epoch.DappScriptsEpochRepository;
+import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappReleaseRepository;
 import crfa.app.resource.InvalidParameterException;
 import crfa.app.resource.model.EpochLevelStats;
@@ -31,6 +33,15 @@ public class DappService {
 
     @Inject
     private ScrollsOnChainDataService scrollsOnChainDataService;
+
+    @Inject
+    private DappsEpochRepository dappsEpochRepository;
+
+    @Inject
+    private DappReleaseEpochRepository dappReleaseEpochRepository;
+
+    @Inject
+    private DappScriptsEpochRepository dappScriptsEpochRepository;
 
     public Cache<String, Float> buildMaxReleaseVersionCache() {
         val releaseVersionsCache = CacheBuilder.newBuilder().<String, Float>build();
@@ -66,6 +77,83 @@ public class DappService {
         return epochLevelStats;
     }
 
+    public Optional<EpochLevelData> getAllEpochLevelData(DApp dapp, boolean includeEpochDetails) {
+        if (dapp.getDAppType().hasSpend()) {
+            var id = dapp.getId();
+            val epochData = gatherEpochLevelData(dappsEpochRepository.findByDappId(id));
+
+            val one = getLastClosedEpochsDelta(epochData, 1); // 1 epoch
+            val six = getLastClosedEpochsDelta(epochData, 6); // 1 month
+            val eighten = getLastClosedEpochsDelta(epochData, 3 * 6); // 3 months
+
+            val b = EpochLevelData.builder()
+                    .epochData(Optional.empty())
+                    .lastEpochDeltaWithOnlyClosedEpochs(one)
+                    .lastMonthDeltaWithOnlyClosedEpochs(six)
+                    .lastQuarterDeltaWithOnlyClosedEpochs(eighten);
+
+            if (includeEpochDetails) {
+                b.epochData(Optional.of(epochData));
+            }
+
+            return Optional.of(b.build());
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<EpochLevelData> getAllEpochLevelData(DAppRelease dAppRelease, boolean includeEpochLevel) {
+        // TODO same stats also for non spend scripts
+        if (dAppRelease.getDAppType().hasSpend()) {
+            val releaseKey = dAppRelease.getId();
+            val epochData = gatherEpochLevelData(dappReleaseEpochRepository.findByReleaseKey(releaseKey));
+
+            val one = getLastClosedEpochsDelta(epochData, 1); // 1 epoch
+            val six = getLastClosedEpochsDelta(epochData, 6); // 1 month
+            val eighten = getLastClosedEpochsDelta(epochData, 3 * 6); // 3 months
+
+            val b = EpochLevelData.builder()
+                    .epochData(Optional.empty())
+                    .lastEpochDeltaWithOnlyClosedEpochs(one)
+                    .lastMonthDeltaWithOnlyClosedEpochs(six)
+                    .lastQuarterDeltaWithOnlyClosedEpochs(eighten);
+
+            if (includeEpochLevel) {
+                b.epochData(Optional.of(epochData));
+            }
+
+            return Optional.of(b.build());
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<EpochLevelData> getAllEpochLevelData(DappScriptItem dappScriptItem, boolean includeEpochLevel) {
+        // TODO same stats also for non spend dApps
+        if (dappScriptItem.getScriptType() ==  ScriptType.SPEND) {
+            val hash = dappScriptItem.getHash();
+            val dappScriptItemEpoches = dappScriptsEpochRepository.listByHash(hash);
+            val epochData = gatherEpochLevelData(dappScriptItemEpoches);
+
+            val one = getLastClosedEpochsDelta(epochData, 1); // 1 epoch
+            val six = getLastClosedEpochsDelta(epochData, 6); // 1 month
+            val eighten = getLastClosedEpochsDelta(epochData, 3 * 6); // 3 months
+
+            val b = EpochLevelData.builder()
+                    .epochData(Optional.empty())
+                    .lastEpochDeltaWithOnlyClosedEpochs(one)
+                    .lastMonthDeltaWithOnlyClosedEpochs(six)
+                    .lastQuarterDeltaWithOnlyClosedEpochs(eighten);
+
+            if (includeEpochLevel) {
+                b.epochData(Optional.of(epochData));
+            }
+
+            return Optional.of(b.build());
+        }
+
+        return Optional.empty();
+    }
     public Optional<EpochDelta> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats, int epochGap) {
         val closedEpochsMap = stats.entrySet().stream().filter(entry -> entry.getValue().isClosed()).collect(Collectors.toMap(
                 Map.Entry::getKey,
@@ -75,9 +163,13 @@ public class DappService {
         val nextEpochM = closedEpochsMap.keySet().stream().max(Integer::compare);
         val prevEpochM = nextEpochM.map(lastEpochNo -> lastEpochNo - epochGap);
 
-        return MoreOptionals.allOf(prevEpochM, nextEpochM, (prevEpoch, nextEpoch) -> {
+        var epochDelta = MoreOptionals.allOf(prevEpochM, nextEpochM, (prevEpoch, nextEpoch) -> {
             val prevStats = closedEpochsMap.get(prevEpoch); // prev
             val nextStats = closedEpochsMap.get(nextEpoch); // next
+
+            if (prevStats == null || nextEpoch == null) {
+                return null;
+            }
 
             val volumeDiff = nullSafe(nextStats.getVolume()) - nullSafe(prevStats.getVolume());
             val inflowsOutflowsDiff = nullSafe(nextStats.getInflowsOutflows()) - nullSafe(prevStats.getInflowsOutflows());
@@ -95,7 +187,7 @@ public class DappService {
                     prevEpoch,
                     nextEpoch,
                     volumeDiff,
-                    Double.isNaN(volumeDiffPerc) | Double.isInfinite(volumeDiffPerc)  ? 0 : volumeDiffPerc,
+                    Double.isNaN(volumeDiffPerc) | Double.isInfinite(volumeDiffPerc) ? 0 : volumeDiffPerc,
                     inflowsOutflowsDiff,
                     Double.isNaN(inflowsOutflowsDiffPerc) || Double.isInfinite(inflowsOutflowsDiffPerc) ? 0 : inflowsOutflowsDiffPerc,
                     uniqueAccountsDiff,
@@ -105,6 +197,8 @@ public class DappService {
                     Double.isNaN(activityDiffPerc) || Double.isInfinite(activityDiffPerc) ? 0 : activityDiffPerc
             );
         });
+
+        return epochDelta == null ? Optional.empty() : epochDelta;
     }
 
     public int currentEpoch() {

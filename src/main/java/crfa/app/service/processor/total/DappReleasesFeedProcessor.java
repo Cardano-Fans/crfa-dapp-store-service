@@ -11,7 +11,6 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.service.processor.total.ProcessorHelper.*;

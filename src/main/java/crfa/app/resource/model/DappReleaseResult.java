@@ -1,12 +1,11 @@
 package crfa.app.resource.model;
 
 import crfa.app.domain.DAppType;
-import crfa.app.domain.EpochDelta;
+import crfa.app.domain.EpochLevelData;
 import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Optional;
 
 @Builder
@@ -66,8 +65,6 @@ public class DappReleaseResult {
 
     boolean latestVersion;
 
-    Map<Integer, EpochLevelStats> epochData;
-
-    Optional<EpochDelta> lastClosedEpochsDelta;
+    Optional<EpochLevelData> epochLevelData;
 
 }

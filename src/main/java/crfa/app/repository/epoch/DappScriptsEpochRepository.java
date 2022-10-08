@@ -32,6 +32,20 @@ public class DappScriptsEpochRepository {
         return listDappScriptItems(releaseKey, Optional.empty(), Optional.empty());
     }
 
+    public List<DappScriptItemEpoch> listByHash(String hash) {
+        try {
+            QueryBuilder<DappScriptItemEpoch, String> statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("hash", hash)
+                    .query();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
         try {
             val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
