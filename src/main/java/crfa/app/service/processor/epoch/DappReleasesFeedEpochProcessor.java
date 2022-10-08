@@ -60,7 +60,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         dappReleases.forEach(dappRelease -> {
             dappScriptsEpochRepository.upsertDAppRelease(dappRelease);
         });
-        log.info("Upserted, dapp releases.");
+        log.info("Upserted, dapp releases epoch.");
 
         dappScriptsEpochRepository.removeAllExcept(dappReleases);
     }

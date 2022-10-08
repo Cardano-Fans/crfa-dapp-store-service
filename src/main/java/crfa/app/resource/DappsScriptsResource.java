@@ -129,11 +129,11 @@ public class DappsScriptsResource {
 
     // we may not have so many epochs to show such a large epoch gap
     private boolean canGoBackThatFar(DAppRelease dAppRelease, int eGap) {
-        return dappReleaseEpochRepository.dappScriptsEpochsCount(dAppRelease.getId()) > (eGap + 1);
+        return dappReleaseEpochRepository.dappScriptsEpochsCount(dAppRelease.getId()) > (eGap + 2);
     }
 
     private boolean canGoBackThatFar(DappScriptItem dappScriptItem, int eGap) {
-        return dappScriptsEpochRepository.dappScriptsEpochsCount(dappScriptItem.getReleaseKey()) > (eGap + 1);
+        return dappScriptsEpochRepository.dappScriptsEpochsCount(dappScriptItem.getReleaseKey()) > (eGap + 2);
     }
 
 }

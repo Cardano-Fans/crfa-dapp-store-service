@@ -41,7 +41,7 @@ public class DappsResource {
         val dappAggrTypeWithFallback = dappAggrType.orElse(DappAggrType.def());
 
         val currentEpoch = dappService.currentEpoch();
-        val fromEpoch = currentEpoch - (eGap + 1);
+        val fromEpoch = currentEpoch - (eGap + 2);
 
         return dappsRepository.findById(id)
                 .filter(dApp ->  canGoBackThatFar(dApp.getId(), eGap))
@@ -87,7 +87,7 @@ public class DappsResource {
         val dappAggrTypeWithFallback = dappAggrType.orElse(DappAggrType.def());
 
         val currentEpoch = dappService.currentEpoch();
-        val fromEpoch = currentEpoch - (eGap + 1);
+        val fromEpoch = currentEpoch - (eGap + 2);
 
          return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
                 .stream()
@@ -131,7 +131,7 @@ public class DappsResource {
 
     // we may not have so many epochs to show such a large epoch gap
     private boolean canGoBackThatFar(String dappId, int eGap) {
-        return dappsEpochRepository.dappEpochsCount(dappId) > (eGap + 1);
+        return dappsEpochRepository.dappEpochsCount(dappId) > (eGap + 2);
     }
 
 }

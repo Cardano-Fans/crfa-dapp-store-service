@@ -39,7 +39,7 @@ public class DappsReleasesResource {
         val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
 
         val currentEpoch = dappService.currentEpoch();
-        val fromEpoch = currentEpoch - (eGap + 1);
+        val fromEpoch = currentEpoch - (eGap + 2);
 
         return dappReleaseRepository.listDappReleases(sortBy, sortOrder)
                 .stream()
@@ -102,7 +102,7 @@ public class DappsReleasesResource {
 
     // we may not have so many epochs to show such a large epoch gap
     private boolean canGoBackThatFar(String releaseKey, int eGap) {
-        return dappReleaseEpochRepository.dappScriptsEpochsCount(releaseKey) > (eGap + 1);
+        return dappReleaseEpochRepository.dappScriptsEpochsCount(releaseKey) > (eGap + 2);
     }
 
 }
