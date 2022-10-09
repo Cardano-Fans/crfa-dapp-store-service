@@ -1,7 +1,6 @@
 package crfa.app.service.processor.epoch;
 
 import com.google.common.cache.Cache;
-import com.google.common.collect.HashMultiset;
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.client.metadata.DappSearchItem;
 import crfa.app.domain.*;
@@ -15,6 +14,7 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.domain.EraName.ALONZO;
@@ -95,13 +95,13 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         var totalScriptInvocations = 0L;
         var totalTransactionsCount = 0L;
         var totalVolume = 0L;
-        var totalUniqueAccounts = HashMultiset.<String>create();
+        var totalUniqueAccounts = new HashSet<String>();
 
         var lastVersionTotalInflowsOutflows = 0L;
         var lastVersionTotalScriptInvocations = 0L;
         var lastVersionTotalTransactionsCount = 0L;
         var lastVersionTotalVolume = 0L;
-        var lastVersionTotalUniqueAccounts = HashMultiset.<String>create();
+        var lastVersionTotalUniqueAccounts = new HashSet<String>();
 
         val maxVersion = maxReleaseCache.getIfPresent(dappId);
 

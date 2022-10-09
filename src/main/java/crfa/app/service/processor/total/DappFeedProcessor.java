@@ -53,7 +53,7 @@ public class DappFeedProcessor implements FeedProcessor {
             var totalTransactionsCount = 0L;
             var totalVolume = 0L;
 
-            var totalUniqueAccounts= new HashSet<String>();
+            var totalUniqueAccounts = new HashSet<String>();
 
             var lastVersionTotalScriptsLocked = 0L;
             var lastVersionTotalScriptInvocations = 0L;

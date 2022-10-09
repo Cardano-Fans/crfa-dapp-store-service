@@ -1,6 +1,5 @@
 package crfa.app.service.processor.epoch;
 
-import com.google.common.collect.HashMultiset;
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.client.metadata.DappSearchItem;
 import crfa.app.domain.*;
@@ -14,6 +13,7 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.domain.EraName.ALONZO;
@@ -108,7 +108,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         var totalInvocations = 0L;
         var totalTransactionsCount = 0L;
         var volume = 0L;
-        var uniqueAccounts = HashMultiset.<String>create();
+        var uniqueAccounts = new HashSet<String>();
 
         for (val scriptItem : dappReleaseItem.getScripts()) {
             if (scriptItem.getPurpose() == Purpose.SPEND) {
