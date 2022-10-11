@@ -22,7 +22,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
     private DappScriptsRepository dappScriptsRepository;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
         val dappScriptItems = new ArrayList<DappScriptItem>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> { // looping over dapps

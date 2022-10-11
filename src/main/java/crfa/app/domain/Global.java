@@ -21,7 +21,7 @@ public class Global {
 
     long totalDappsCount; // regardless if this is mint or spend; all dapp types
 
-    Map<DAppType, Long> countDappsByDappType;
+    long totalUniqueAccounts;
 
     BigDecimal adaPriceUSD;
 

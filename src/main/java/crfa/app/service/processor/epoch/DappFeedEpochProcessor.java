@@ -38,7 +38,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
     }
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
         val currentEpochNo = dappService.currentEpoch();
 
         val dapps = new ArrayList<DAppEpoch>();
@@ -175,7 +175,6 @@ public class DappFeedEpochProcessor implements FeedProcessor {
                     }
                 }
             }
-
 
             dapp.setScriptInvocationsCount(totalScriptInvocations);
             dapp.setInflowsOutflows(totalInflowsOutflows);

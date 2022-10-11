@@ -37,7 +37,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
     }
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
         val dappScriptItems = new ArrayList<DappScriptItemEpoch>();
         val currentEpochNo = dappService.currentEpoch();
 

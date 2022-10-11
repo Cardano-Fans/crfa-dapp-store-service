@@ -45,17 +45,8 @@ public class ScriptHashesStatsRepository {
         }
     }
 
-    public void upsert(Collection<ScriptStats> scriptStats) {
-        try {
-            dbManager.getScriptsStatsDao().create(scriptStats);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
     public void removeAllExcept(Collection<ScriptStats> items) {
-        //dbManager.removeAllExcept(items, () -> dbManager.getScriptsStatsDao());
+        dbManager.removeAllExcept(items, () -> dbManager.getScriptsStatsDao());
     }
 
 }

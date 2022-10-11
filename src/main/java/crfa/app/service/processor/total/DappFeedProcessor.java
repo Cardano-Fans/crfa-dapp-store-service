@@ -30,7 +30,7 @@ public class DappFeedProcessor implements FeedProcessor {
     private DappsRepository dappsRepository;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
         val dapps = new ArrayList<DApp>();
 
         val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
@@ -108,6 +108,9 @@ public class DappFeedProcessor implements FeedProcessor {
 
                         val uniqueAccounts = loadUniqueAccounts(dappFeed, contractAddress);
                         totalUniqueAccounts.addAll(uniqueAccounts);
+
+                        context.getUniqueAccounts().addAll(totalUniqueAccounts);
+
                         if (isLastVersion) {
                             lastVersionTotalUniqueAccounts.addAll(uniqueAccounts);
                         }
@@ -121,7 +124,12 @@ public class DappFeedProcessor implements FeedProcessor {
                         }
                         // wind riders case
                         if (scriptItem.getAssetId().isPresent()) {
-                            val tokenAdaBalance = loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
+                            val assetId = scriptItem.getAssetId().get();
+                            val holders = dappFeed.getTokenHoldersAddresses().get(assetId);
+
+                            context.getUniqueAccounts().addAll(holders);
+
+                            val tokenAdaBalance = loadTokensBalance(dappFeed, assetId);
                             totalScriptsLocked += tokenAdaBalance;
                             if (isLastVersion) {
                                 lastVersionTotalScriptsLocked += tokenAdaBalance;

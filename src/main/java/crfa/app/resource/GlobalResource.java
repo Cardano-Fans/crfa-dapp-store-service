@@ -1,58 +1,37 @@
 package crfa.app.resource;
 
-import crfa.app.domain.AdaPricePerDay;
 import crfa.app.domain.Global;
-import crfa.app.repository.total.AdaPriceRepository;
-import crfa.app.repository.total.DappsRepository;
+import crfa.app.repository.GlobalStatsRepository;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.math.BigDecimal;
 import java.util.Optional;
-
-import static crfa.app.domain.DappAggrType.ALL;
-import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
-import static crfa.app.domain.SortOrder.ASC;
 
 @Controller("/global")
 @Slf4j
 public class GlobalResource {
 
     @Inject
-    private DappsRepository dappsRepository;
-
-    @Inject
-    private AdaPriceRepository adaPriceRepository;
+    private GlobalStatsRepository globalStatsRepository;
 
     @Get(uri = "/stats", produces = "application/json")
-    public Global global() {
-        Global.GlobalBuilder builder = Global.builder();
+    public Optional<Global> global() {
+        return globalStatsRepository.returnGlobalStats().map(globalStats -> {
+            val builder = Global.builder();
 
-        builder.adaPriceEUR(adaPriceRepository.getLatestPrice("EUR")
-                .map(AdaPricePerDay::getPrice)
-                .map(BigDecimal::valueOf)
-                .orElse(null));
+            builder.totalScriptsLocked(globalStats.getTotalScriptsLocked());
+            builder.trxCount(globalStats.getTotalTrxCount());
+            builder.volume(globalStats.getTotalVolume());
+            builder.totalDappsCount(globalStats.getTotalDapps());
+            builder.adaPriceEUR(globalStats.getAdaPriceEUR());
+            builder.adaPriceUSD(globalStats.getAdaPriceUSD());
+            builder.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
 
-        builder.adaPriceUSD(adaPriceRepository.getLatestPrice("USD")
-                .map(AdaPricePerDay::getPrice)
-                .map(BigDecimal::valueOf)
-                .orElse(null));
-
-        builder.totalScriptsLocked(dappsRepository.totalScriptsLocked());
-        builder.trxCount(dappsRepository.totalScriptInvocations());
-        builder.volume(dappsRepository.volume());
-
-        try {
-            val dappUniqueReleases = dappsRepository.listDapps(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC), ALL).stream().count();
-            builder.totalDappsCount(dappUniqueReleases);
-        } catch (InvalidParameterException e) {
-            throw new RuntimeException(e);
-        }
-
-        return builder.build();
+            return builder.build();
+        });
     }
 
 }

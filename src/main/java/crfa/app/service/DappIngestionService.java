@@ -1,6 +1,7 @@
 package crfa.app.service;
 
 import crfa.app.domain.DappFeed;
+import crfa.app.domain.FeedProcessingContext;
 import crfa.app.domain.InjestionMode;
 import crfa.app.service.processor.FeedProcessor;
 import io.micronaut.context.ApplicationContext;
@@ -8,6 +9,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+
+import java.util.HashSet;
 
 import static crfa.app.domain.InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
 
@@ -18,8 +21,22 @@ public class DappIngestionService {
     @Inject
     private ApplicationContext appContext;
 
+    @Inject
+    private GlobalStatsProcessor globalStatsProcessor;
+
     public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val beans = appContext.getActiveBeanRegistrations(FeedProcessor.class);
+
+//        val uniqueAccounts = BloomFilter.<String>create(
+//                Funnels.stringFunnel(StandardCharsets.UTF_8),
+//                200_000,
+//                0.01);
+
+        val totalUniqueAccounts = new HashSet<String>();
+
+        val context = FeedProcessingContext.builder()
+                .uniqueAccounts(totalUniqueAccounts)
+                .build();
 
         for (val bean : beans) {
             val b = bean.getBean();
@@ -31,10 +48,14 @@ public class DappIngestionService {
                 continue;
             }
 
-            bean.getBean().process(dappFeed, injestionMode);
+            bean.getBean().process(dappFeed, injestionMode, context);
 
             log.info("Finished, dappFeed:{}", bean.getName());
         }
+
+        log.info("global stats processor...");
+        globalStatsProcessor.process(dappFeed, injestionMode, context);
+        log.info("global stats processor done.");
     }
 
 }

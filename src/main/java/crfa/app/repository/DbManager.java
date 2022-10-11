@@ -39,6 +39,8 @@ public class DbManager {
     private Dao<AdaPricePerDay, String> adaPricePerDayDao;
     private Dao<ScriptStats, String> scriptsDao;
 
+    private Dao<GlobalStats, String> globalStatsDao;
+
     @EventListener
     public void onStartup(ServerStartupEvent event) throws SQLException {
         log.info("Starting DbManager..., dbPath:{}", dbPath);
@@ -59,6 +61,8 @@ public class DbManager {
 
         this.adaPricePerDayDao = DaoManager.createDao(connectionSource, AdaPricePerDay.class);
         this.scriptsDao = DaoManager.createDao(connectionSource, ScriptStats.class);
+
+        this.globalStatsDao = DaoManager.createDao(connectionSource, GlobalStats.class);
 
         createDbsIfNecessary();
     }
@@ -95,8 +99,8 @@ public class DbManager {
         return adaPricePerDayDao;
     }
 
-    public Dao<DAppRelease, String> getdAppReleaseDao() {
-        return dAppReleaseDao;
+    public Dao<GlobalStats, String> getGlobalStatsDao() {
+        return globalStatsDao;
     }
 
     public <T> void clearDB(Class<T> clazz) {
@@ -119,6 +123,7 @@ public class DbManager {
 
         TableUtils.createTableIfNotExists(this.connectionSource, AdaPricePerDay.class);
         TableUtils.createTableIfNotExists(this.connectionSource, ScriptStats.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, GlobalStats.class);
     }
 
     // TODO optimise this by moving responsibility to db engine via SQL delete statement

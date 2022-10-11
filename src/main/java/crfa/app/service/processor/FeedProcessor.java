@@ -1,6 +1,7 @@
 package crfa.app.service.processor;
 
 import crfa.app.domain.DappFeed;
+import crfa.app.domain.FeedProcessingContext;
 import crfa.app.domain.InjestionMode;
 
 public interface FeedProcessor {
@@ -9,6 +10,6 @@ public interface FeedProcessor {
         return false;
     }
 
-    void process(DappFeed dappFeed, InjestionMode injestionMode);
+    void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context);
 
 }

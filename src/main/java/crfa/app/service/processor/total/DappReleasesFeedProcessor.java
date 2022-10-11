@@ -24,7 +24,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
     private DappReleaseRepository dappReleaseRepository;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
         val dappReleases = new ArrayList<DAppRelease>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
