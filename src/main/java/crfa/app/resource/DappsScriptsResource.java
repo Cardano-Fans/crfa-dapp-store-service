@@ -106,6 +106,7 @@ public class DappsScriptsResource {
                             .trxCount(dappScriptItem.getScriptInvocationsCount())
                             .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                             .volume(dappScriptItem.getVolume())
+                            .plutusVersion(dappScriptItem.getPlutusVersion())
                             .epochLevelData(dappService.getAllEpochLevelData(dappScriptItem, false))
                             .build();
                 })

@@ -76,7 +76,10 @@ public class DappScriptItemEpoch implements EpochGatherable {
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
-    @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
+   @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
     boolean closedEpoch;
+
+    @DatabaseField(columnName = "plutus_version")
+    int plutusVersion;
 
 }

@@ -32,12 +32,12 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
     private DappService dappService;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
-        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
-            log.info("epoch level ingestion disabled.");
-            return;
-        }
+    public boolean isEpochProcessor() {
+        return true;
+    }
 
+    @Override
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val dappScriptItems = new ArrayList<DappScriptItemEpoch>();
         val currentEpochNo = dappService.currentEpoch();
 
@@ -84,6 +84,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
         dappScriptItem.setVersion(scriptItem.getVersion());
         dappScriptItem.setUpdateTime(new Date());
         dappScriptItem.setEpochNo(epochNo);
+        dappScriptItem.setPlutusVersion(scriptItem.getPlutusVersion());
         dappScriptItem.setClosedEpoch(isClosedEpoch);
 
         if (scriptItem.getPurpose() == Purpose.SPEND) {

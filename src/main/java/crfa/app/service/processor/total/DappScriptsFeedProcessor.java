@@ -33,6 +33,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                     newDappReleaseItem.setDappId(dappSearchItem.getId());
                     newDappReleaseItem.setReleaseKey(String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
                     newDappReleaseItem.setVersion(scriptItem.getVersion());
+                    newDappReleaseItem.setPlutusVersion(scriptItem.getPlutusVersion());
                     newDappReleaseItem.setUpdateTime(new Date());
 
                     if (scriptItem.getPurpose() == Purpose.SPEND) {

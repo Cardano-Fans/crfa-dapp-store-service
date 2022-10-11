@@ -67,6 +67,9 @@ public class DappScriptItem {
     @Nullable
     Long volume;
 
+    @DatabaseField(columnName = "plutus_version")
+    int plutusVersion;
+
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 

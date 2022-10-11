@@ -34,6 +34,8 @@ public class ScriptItem {
 
     String mintPolicyID;
 
+    int plutusVersion;
+
     @Nullable
     String includeScriptBalanceFromAsset;
 

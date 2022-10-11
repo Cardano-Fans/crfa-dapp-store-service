@@ -5,6 +5,10 @@ import crfa.app.domain.InjestionMode;
 
 public interface FeedProcessor {
 
+    default boolean isEpochProcessor() {
+        return false;
+    }
+
     void process(DappFeed dappFeed, InjestionMode injestionMode);
 
 }

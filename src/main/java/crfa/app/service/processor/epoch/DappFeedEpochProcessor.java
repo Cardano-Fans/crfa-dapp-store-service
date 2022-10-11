@@ -33,12 +33,12 @@ public class DappFeedEpochProcessor implements FeedProcessor {
     private DappsEpochRepository dappsEpochRepository;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
-        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
-            log.info("epoch level ingestion disabled.");
-            return;
-        }
+    public boolean isEpochProcessor() {
+        return true;
+    }
 
+    @Override
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val currentEpochNo = dappService.currentEpoch();
 
         val dapps = new ArrayList<DAppEpoch>();

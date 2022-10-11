@@ -19,12 +19,12 @@ public class DappReleaseItem {
 
     float releaseNumber;
 
-    List<ScriptItem> scripts;
-
     @Nullable
     Audit audit;
 
     @Nullable
     Contract contract;
+
+    List<ScriptItem> scripts;
 
 }

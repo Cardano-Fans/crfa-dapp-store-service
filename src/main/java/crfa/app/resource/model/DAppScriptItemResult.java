@@ -46,6 +46,8 @@ public class DAppScriptItemResult {
     @Nullable
     Long volume;
 
+    int plutusVersion;
+
     Optional<EpochLevelData> epochLevelData;
 
 }
