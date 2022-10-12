@@ -127,7 +127,7 @@ public class DappScriptsEpochRepository {
 
     public void closeEpochs(int currentEpochNo) {
         try {
-            dbManager.getDappScriptItemEpochs().executeRaw("UPDATE dapp_script_item_epoch SET closed_epoch = true WHERE epoch_no < :currentEpochNo", String.valueOf(currentEpochNo));
+            dbManager.getDappScriptItemEpochs().executeRaw("UPDATE dapp_script_item_epoch SET closed_epoch = true WHERE epoch_no < " + currentEpochNo);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

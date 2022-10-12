@@ -86,7 +86,7 @@ public class DappReleaseEpochRepository {
 
     public void closeEpochs(int currentEpochNo) {
         try {
-            dbManager.getdAppReleaseEpochDao().executeRaw("UPDATE dapp_release_epoch SET closed_epoch = true WHERE epoch_no < :currentEpochNo", String.valueOf(currentEpochNo));
+            dbManager.getdAppReleaseEpochDao().executeRaw("UPDATE dapp_release_epoch SET closed_epoch = true WHERE epoch_no < " + currentEpochNo);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

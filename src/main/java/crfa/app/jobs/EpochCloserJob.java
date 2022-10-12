@@ -26,7 +26,7 @@ public class EpochCloserJob {
     @Inject
     private DappService dappService;
 
-    @Scheduled(fixedDelay = "5m", initialDelay = "15m")
+    @Scheduled(fixedDelay = "5m", initialDelay = "1m")
     public void onScheduled() {
         log.info("Executing epoch closer...");
         val epochNo = dappService.currentEpoch();
@@ -34,6 +34,7 @@ public class EpochCloserJob {
         dappReleaseEpochRepository.closeEpochs(epochNo);
         dappScriptsEpochRepository.closeEpochs(epochNo);
         dappsEpochRepository.closeEpochs(epochNo);
+
         log.info("Executing epoch closer done.");
     }
 
