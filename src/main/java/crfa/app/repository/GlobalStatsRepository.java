@@ -16,7 +16,7 @@ public class GlobalStatsRepository {
     @Inject
     private DbManager dbManager;
 
-    public Optional<GlobalStats> returnGlobalStats() {
+    public Optional<GlobalStats> findGlobalStats() {
         try {
             val statementBuilder = dbManager.getGlobalStatsDao().queryBuilder();
 

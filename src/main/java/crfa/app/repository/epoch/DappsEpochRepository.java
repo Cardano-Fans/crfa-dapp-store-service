@@ -54,6 +54,7 @@ public class DappsEpochRepository {
             throw new RuntimeException(e);
         }
     }
+
     public List<DAppEpoch> findByDappId(String dappId, int fromEpoch) {
         try {
             QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
@@ -106,6 +107,63 @@ public class DappsEpochRepository {
                     .orderBy(columnName, ascending)
                     .query();
         } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long inflowsOutflows(int epochNo) {
+        try {
+            val statementBuilder = dbManager.getdAppEpochDao()
+                    .queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("epoch_no", epochNo)
+                    .query()
+                    .stream()
+                    .filter(dAppEpoch -> dAppEpoch.getInflowsOutflows() != null)
+                    .mapToLong(dappEpoch -> dappEpoch.getInflowsOutflows().longValue())
+                    .reduce(0, Long::sum);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long totalScriptInvocations(int epochNo) {
+        try {
+            val statementBuilder = dbManager.getdAppEpochDao()
+                .queryBuilder();
+
+            return statementBuilder
+                .where()
+                .eq("epoch_no", epochNo)
+                .query()
+                .stream()
+                .filter(dAppEpoch -> dAppEpoch.getScriptInvocationsCount() != null)
+                .mapToLong(dappEpoch -> dappEpoch.getScriptInvocationsCount().longValue())
+                .reduce(0, Long::sum);
+        } catch(SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long volume(int epochNo) {
+        try {
+            val statementBuilder = dbManager.getdAppEpochDao()
+                    .queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("epoch_no", epochNo)
+                    .query()
+                    .stream()
+                    .filter(dAppEpoch -> dAppEpoch.getVolume() != null)
+                    .mapToLong(dappEpoch -> dappEpoch.getVolume().longValue())
+                    .reduce(0, Long::sum);
+        } catch(SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
         }

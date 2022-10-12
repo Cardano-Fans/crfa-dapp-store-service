@@ -46,12 +46,15 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
                 val currentEpochNo = dappService.currentEpoch();
 
                 if (injestCurrentEpochOnly) {
-                    dappReleases.add(createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, currentEpochNo));
-                } else {
-                    for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
-                        val isClosedEpoch = epochNo < currentEpochNo;
-                        dappReleases.add(createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, epochNo));
-                    }
+                    val dappItemEpoch = createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, currentEpochNo);
+                    dappReleases.add(dappItemEpoch);
+                    return;
+                }
+
+                for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+                    val isClosedEpoch = epochNo < currentEpochNo;
+                    val dappItemEpoch = createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, epochNo);
+                    dappReleases.add(dappItemEpoch);
                 }
             });
         });

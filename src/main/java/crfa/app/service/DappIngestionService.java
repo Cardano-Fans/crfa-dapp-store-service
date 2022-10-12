@@ -10,7 +10,9 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import static crfa.app.domain.InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
 
@@ -24,6 +26,9 @@ public class DappIngestionService {
     @Inject
     private GlobalStatsProcessor globalStatsProcessor;
 
+    @Inject
+    private GlobalStatsEpochProcessor globalStatsEpochProcessor;
+
     public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val beans = appContext.getActiveBeanRegistrations(FeedProcessor.class);
 
@@ -33,9 +38,11 @@ public class DappIngestionService {
 //                0.01);
 
         val totalUniqueAccounts = new HashSet<String>();
+        val totalUniqueAccountsEpoch = new HashMap<Integer, Set<String>>();
 
         val context = FeedProcessingContext.builder()
                 .uniqueAccounts(totalUniqueAccounts)
+                .uniqueAccountsEpoch(totalUniqueAccountsEpoch)
                 .build();
 
         for (val bean : beans) {
@@ -55,6 +62,7 @@ public class DappIngestionService {
 
         log.info("global stats processor...");
         globalStatsProcessor.process(dappFeed, injestionMode, context);
+        globalStatsEpochProcessor.process(dappFeed, injestionMode, context);
         log.info("global stats processor done.");
     }
 

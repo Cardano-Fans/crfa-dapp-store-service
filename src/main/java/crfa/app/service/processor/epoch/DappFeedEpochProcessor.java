@@ -49,12 +49,17 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
             if (injestCurrentEpochOnly) {
-                dapps.add(createDappEpoch(dappFeed, false, maxReleaseCache, dappSearchItem, currentEpochNo));
-            } else {
-                for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
-                    val isClosedEpoch = epochNo < currentEpochNo;
-                    dapps.add(createDappEpoch(dappFeed, isClosedEpoch, maxReleaseCache, dappSearchItem, epochNo));
-                }
+                val dappEpoch = createDappEpoch(dappFeed, false, maxReleaseCache, dappSearchItem, currentEpochNo, context);
+
+                dapps.add(dappEpoch);
+                return;
+            }
+
+            for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+                val isClosedEpoch = epochNo < currentEpochNo;
+                val dappEpoch = createDappEpoch(dappFeed, isClosedEpoch, maxReleaseCache, dappSearchItem, epochNo, context);
+
+                dapps.add(dappEpoch);
             }
         });
 
@@ -73,7 +78,8 @@ public class DappFeedEpochProcessor implements FeedProcessor {
                                              boolean isClosedEpoch,
                                              Cache<String, Float> maxReleaseCache,
                                              DappSearchItem dappSearchItem,
-                                             int epochNo) {
+                                             int epochNo,
+                                             FeedProcessingContext context) {
         val dapp = new DAppEpoch();
 
         val dappId = dappSearchItem.getId();
@@ -181,6 +187,10 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             dapp.setTransactionsCount(totalTransactionsCount);
             dapp.setVolume(totalVolume);
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
+
+            val accounts = context.getUniqueAccountsEpoch().getOrDefault(epochNo, new HashSet<>());
+            accounts.addAll(totalUniqueAccounts);
+            context.getUniqueAccountsEpoch().put(epochNo, accounts);
 
             dapp.setLastVersionInflowsOutflows(lastVersionTotalInflowsOutflows);
             dapp.setLastVersionTransactionsCount(lastVersionTotalTransactionsCount);

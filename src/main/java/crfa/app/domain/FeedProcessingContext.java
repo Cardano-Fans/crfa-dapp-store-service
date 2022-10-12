@@ -3,6 +3,7 @@ package crfa.app.domain;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Map;
 import java.util.Set;
 
 @Builder
@@ -10,5 +11,7 @@ import java.util.Set;
 public class FeedProcessingContext {
 
     Set<String> uniqueAccounts;
+
+    Map<Integer, Set<String>> uniqueAccountsEpoch;
 
 }

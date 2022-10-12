@@ -40,6 +40,7 @@ public class DbManager {
     private Dao<ScriptStats, String> scriptsDao;
 
     private Dao<GlobalStats, String> globalStatsDao;
+    private Dao<GlobalStatsEpoch, Integer> globalStatsEpochDao;
 
     @EventListener
     public void onStartup(ServerStartupEvent event) throws SQLException {
@@ -63,6 +64,7 @@ public class DbManager {
         this.scriptsDao = DaoManager.createDao(connectionSource, ScriptStats.class);
 
         this.globalStatsDao = DaoManager.createDao(connectionSource, GlobalStats.class);
+        this.globalStatsEpochDao = DaoManager.createDao(connectionSource, GlobalStatsEpoch.class);
 
         createDbsIfNecessary();
     }
@@ -103,6 +105,10 @@ public class DbManager {
         return globalStatsDao;
     }
 
+    public Dao<GlobalStatsEpoch, Integer> getGlobalStatsEpochDao() {
+        return globalStatsEpochDao;
+    }
+
     public <T> void clearDB(Class<T> clazz) {
         try {
             TableUtils.clearTable(connectionSource,  clazz);
@@ -123,7 +129,9 @@ public class DbManager {
 
         TableUtils.createTableIfNotExists(this.connectionSource, AdaPricePerDay.class);
         TableUtils.createTableIfNotExists(this.connectionSource, ScriptStats.class);
+
         TableUtils.createTableIfNotExists(this.connectionSource, GlobalStats.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, GlobalStatsEpoch.class);
     }
 
     // TODO optimise this by moving responsibility to db engine via SQL delete statement

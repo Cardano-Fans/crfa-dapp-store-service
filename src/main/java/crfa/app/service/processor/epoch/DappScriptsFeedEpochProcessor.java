@@ -47,12 +47,15 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
                     val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
                     if (injestCurrentEpochOnly) {
-                        dappScriptItems.add(createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, scriptItem, currentEpochNo));
-                    } else {
-                        for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
-                            val isClosedEpoch = epochNo < currentEpochNo;
-                            dappScriptItems.add(createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, scriptItem, epochNo));
-                        }
+                        val dappItemEpoch = createDappItemEpoch(dappFeed, false, dappSearchItem, dappReleaseItem, scriptItem, currentEpochNo);
+                        dappScriptItems.add(dappItemEpoch);
+                        return;
+                    }
+
+                    for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+                        val isClosedEpoch = epochNo < currentEpochNo;
+                        val dappItemEpoch = createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, scriptItem, epochNo);
+                        dappScriptItems.add(dappItemEpoch);
                     }
                 }
             });
