@@ -62,7 +62,11 @@ public class DappIngestionService {
 
         log.info("global stats processor...");
         globalStatsProcessor.process(dappFeed, injestionMode, context);
-        globalStatsEpochProcessor.process(dappFeed, injestionMode, context);
+
+        if (injestionMode != WITHOUT_EPOCHS_ONLY_AGGREGATES) {
+            globalStatsEpochProcessor.process(dappFeed, injestionMode, context);
+        }
+
         log.info("global stats processor done.");
     }
 

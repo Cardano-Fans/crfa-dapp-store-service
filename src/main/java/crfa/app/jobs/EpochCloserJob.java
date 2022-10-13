@@ -26,7 +26,8 @@ public class EpochCloserJob {
     @Inject
     private DappService dappService;
 
-    @Scheduled(fixedDelay = "5m", initialDelay = "1m")
+    //@Scheduled(fixedDelay = "15m", initialDelay = "1m")
+    @Scheduled(cron = "0 0 0 1/1 * ?") // run every day at midnight
     public void onScheduled() {
         log.info("Executing epoch closer...");
         val epochNo = dappService.currentEpoch();

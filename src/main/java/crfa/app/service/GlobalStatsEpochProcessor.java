@@ -31,11 +31,30 @@ public class GlobalStatsEpochProcessor {
 
         val epochs = Eras.epochsBetween(ALONZO, currentEpochNo);
 
-        for (val epochNo : epochs) {
+        val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
+
+        if (injestCurrentEpochOnly) {
             val b = GlobalStatsEpoch.builder();
+            b.epochNo(currentEpochNo);
             b.updateTime(new Date());
 
+            b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(currentEpochNo));
+            b.totalTrxCount(dappsEpochRepository.totalScriptInvocations(currentEpochNo));
+            b.totalVolume(dappsEpochRepository.volume(currentEpochNo));
+
+            Optional.ofNullable(context.getUniqueAccountsEpoch().get(currentEpochNo)).ifPresent(uniqueAccounts -> {
+                b.totalUniqueAccounts(uniqueAccounts.size());
+            });
+
+            globalStatsEpochRepository.upsert(b.build());
+
+            return;
+        }
+
+        for (val epochNo : epochs) {
+            val b = GlobalStatsEpoch.builder();
             b.epochNo(epochNo);
+            b.updateTime(new Date());
 
             b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(epochNo));
             b.totalTrxCount(dappsEpochRepository.totalScriptInvocations(epochNo));
