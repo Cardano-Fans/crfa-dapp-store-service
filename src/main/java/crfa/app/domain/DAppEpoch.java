@@ -49,11 +49,6 @@ public class DAppEpoch implements EpochGatherable {
     @DatabaseField(columnName = "sub_category")
     String subCategory; // e.g. LENDING_DAPP
 
-    // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "transactions_count")
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
-    Long transactionsCount; // value across all scripts per dApp
-
     @DatabaseField(columnName = "volume")
     @Nullable
     Long volume;
@@ -77,27 +72,6 @@ public class DAppEpoch implements EpochGatherable {
     @Nullable
     @DatabaseField(columnName = "last_version_open_source_link")
     String lastVersionOpenSourceLink;
-
-    // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "last_version_transactions_count")
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
-    Long lastVersionTransactionsCount;
-
-    // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "last_version_script_invocations")
-    Long lastVersionScriptInvocationsCount;
-
-    @DatabaseField(canBeNull = false, columnName = "last_version_inflows_outflows")
-    @Nullable
-    Long lastVersionInflowsOutflows;
-
-    @DatabaseField(columnName = "last_version_volume")
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
-    Long lastVersionVolume;
-
-    // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "last_version_unique_accounts")
-    Integer lastVersionUniqueAccounts;
 
     @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
     boolean closedEpoch;

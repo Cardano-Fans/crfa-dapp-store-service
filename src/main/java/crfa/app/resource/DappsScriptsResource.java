@@ -37,8 +37,8 @@ public class DappsScriptsResource {
     @Get(uri = "/by-release-key/{releaseKey}", produces = "application/json")
     public Optional<DappScriptsResponse> listScriptsResponse(@PathVariable String releaseKey,
                                                    @QueryValue Optional<SortBy> sortBy,
-                                                   @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
-        val dappScriptItems = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy, sortOrder);
+                                                   @QueryValue Optional<SortOrder> sortOrder) {
+        val dappScriptItems = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy.orElse(SortBy.SCRIPTS_INVOKED), sortOrder.orElse(SortOrder.DESC));
 
         return dappReleaseRepository.findById(releaseKey)
                 .map(dAppRelease -> {
@@ -54,7 +54,6 @@ public class DappsScriptsResource {
 
         val scriptInvocationsCount = dAppRelease.getScriptInvocationsCount();
         val uniqueAccounts = dAppRelease.getUniqueAccounts();
-        val transactionsCount = dAppRelease.getTransactionsCount();
 
         val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getDappId());
 
@@ -74,7 +73,7 @@ public class DappsScriptsResource {
                 .twitter(dAppRelease.getTwitter())
                 .updateTime(dAppRelease.getUpdateTime())
                 .releaseNumber(dAppRelease.getReleaseNumber())
-                .transactionsCount(transactionsCount)
+                .transactionsCount(scriptInvocationsCount)
                 .scriptsLocked(dAppRelease.getScriptsLocked())
                 .trxCount(scriptInvocationsCount)
                 .volume(dAppRelease.getVolume())
@@ -96,7 +95,7 @@ public class DappsScriptsResource {
                             .scriptsLocked(dappScriptItem.getScriptsLocked())
                             .scriptType(dappScriptItem.getScriptType())
                             .mintPolicyID(dappScriptItem.getMintPolicyID())
-                            .contractAddress(dappScriptItem.getContractAddress())
+//                            .contractAddress(dappScriptItem.getContractAddress())
                             .version(dappScriptItem.getVersion())
                             .updateTime(dappScriptItem.getUpdateTime())
                             .releaseKey(dappScriptItem.getReleaseKey())

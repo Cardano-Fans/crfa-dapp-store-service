@@ -3,7 +3,6 @@ package crfa.app.domain;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 @Builder
 @Getter

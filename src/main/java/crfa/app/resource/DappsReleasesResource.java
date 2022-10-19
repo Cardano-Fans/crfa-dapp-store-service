@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static crfa.app.domain.SortBy.RELEASE_NUMBER;
+import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
 import static crfa.app.domain.SortOrder.ASC;
 
 @Controller("/dapps")
@@ -30,10 +31,10 @@ public class DappsReleasesResource {
 
     @Get(uri = "/list-releases", produces = "application/json")
     public List<DappReleaseResult> listDappReleases(@QueryValue Optional<SortBy> sortBy,
-                                                    @QueryValue Optional<SortOrder> sortOrder) throws InvalidParameterException {
+                                                    @QueryValue Optional<SortOrder> sortOrder) {
         val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
 
-        return dappReleaseRepository.listDappReleases(sortBy, sortOrder)
+        return dappReleaseRepository.listDappReleases(sortBy.orElse(SCRIPTS_INVOKED), sortOrder.orElse(SortOrder.DESC))
                 .stream()
                 .map(dAppRelease -> {
                     val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getDappId());
@@ -57,7 +58,7 @@ public class DappsReleasesResource {
                             .updateTime(dAppRelease.getUpdateTime())
                             .releaseNumber(dAppRelease.getReleaseNumber())
                             .scriptsLocked(dAppRelease.getScriptsLocked())
-                            .transactionsCount(dAppRelease.getTransactionsCount())
+                            .transactionsCount(dAppRelease.getScriptInvocationsCount())
                             .trxCount(dAppRelease.getScriptInvocationsCount())
                             .latestVersion(isLastVersion)
                             .uniqueAccounts(dAppRelease.getUniqueAccounts())
@@ -70,7 +71,7 @@ public class DappsReleasesResource {
     }
 
     @Get(uri = "/find-release/{id}", produces = "application/json")
-    public List<DappReleaseResult> findDappRelease(String id) throws InvalidParameterException {
+    public List<DappReleaseResult> findDappRelease(String id) {
         return listDappReleases(Optional.of(RELEASE_NUMBER), Optional.of(ASC))
                 .stream()
                 .filter(dappReleaseResult -> dappReleaseResult.getId().equalsIgnoreCase(id))

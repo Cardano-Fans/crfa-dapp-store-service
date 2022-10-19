@@ -38,9 +38,9 @@ public class DappScriptItem {
     @DatabaseField(canBeNull = false, columnName = "version")
     int version;
 
-    @DatabaseField(columnName = "contract_address")
-    @Nullable
-    String contractAddress;
+//    @DatabaseField(columnName = "contract_address")
+//    @Nullable
+//    String contractAddress;
 
     @DatabaseField(columnName = "mint_policy_id")
     @Nullable
@@ -49,11 +49,6 @@ public class DappScriptItem {
     @DatabaseField(columnName = "scripts_locked")
     @Nullable
     Long scriptsLocked; // for mint scripts we don't have scripts locked value
-
-    // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "transactionsCount")
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
-    Long transactionsCount;
 
     // total number of all script innovations belonging to this dApp
     @DatabaseField(canBeNull = false, columnName = "script_invocations")

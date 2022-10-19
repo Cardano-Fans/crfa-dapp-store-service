@@ -1,20 +1,18 @@
 package crfa.app.repository.epoch;
 
 import com.j256.ormlite.stmt.QueryBuilder;
-import crfa.app.domain.*;
+import crfa.app.domain.DApp;
+import crfa.app.domain.DAppEpoch;
 import crfa.app.repository.DbManager;
 import crfa.app.repository.RepositoryColumnConverter;
-import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Singleton
 @Slf4j
@@ -55,62 +53,62 @@ public class DappsEpochRepository {
         }
     }
 
-    public List<DAppEpoch> findByDappId(String dappId, int fromEpoch) {
-        try {
-            QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+//    public List<DAppEpoch> findByDappId(String dappId, int fromEpoch) {
+//        try {
+//            QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+//
+//            statementBuilder
+//                    .where()
+//                    .eq("dapp_id", dappId)
+//                    .and()
+//                    .ge("epoch_no", fromEpoch);
+//
+//            return dbManager.getdAppEpochDao().query(statementBuilder.prepare());
+//        } catch (SQLException e) {
+//            log.error("db error", e);
+//            throw new RuntimeException(e);
+//        }
+//    }
 
-            statementBuilder
-                    .where()
-                    .eq("dapp_id", dappId)
-                    .and()
-                    .ge("epoch_no", fromEpoch);
+//    public long dappEpochsCount(String dappId) {
+//        try {
+//            QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+//
+//            return statementBuilder
+//                    .where()
+//                    .eq("dapp_id", dappId)
+//                    .countOf();
+//        } catch (SQLException e) {
+//            log.error("db error", e);
+//            throw new RuntimeException(e);
+//        }
+//    }
 
-            return dbManager.getdAppEpochDao().query(statementBuilder.prepare());
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public long dappEpochsCount(String dappId) {
-        try {
-            QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
-
-            return statementBuilder
-                    .where()
-                    .eq("dapp_id", dappId)
-                    .countOf();
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<DAppEpoch> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder, DappAggrType dappAggrType) throws InvalidParameterException {
-        val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy, dappAggrType);
-        val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
-
-        if (decomposedSortBy.isEmpty()) {
-            throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
-        }
-        if (decomposedSortOrder.isEmpty()) {
-            throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
-        }
-
-        try {
-            val statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
-
-            val columnName = decomposedSortBy.get();
-            val ascending = decomposedSortOrder.get();
-
-            return statementBuilder
-                    .orderBy(columnName, ascending)
-                    .query();
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
+//    public List<DAppEpoch> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+//        val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
+//        val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
+//
+//        if (decomposedSortBy.isEmpty()) {
+//            throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
+//        }
+//        if (decomposedSortOrder.isEmpty()) {
+//            throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
+//        }
+//
+//        try {
+//            val statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+//
+//            val columnName = decomposedSortBy.get();
+//            val ascending = decomposedSortOrder.get();
+//
+//            return statementBuilder
+//                    .orderBy(columnName, ascending)
+//                    .query();
+//        } catch (SQLException e) {
+//            log.error("db error", e);
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public long inflowsOutflows(int epochNo) {
         try {

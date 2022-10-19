@@ -2,19 +2,16 @@ package crfa.app.repository.total;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.DApp;
-import crfa.app.domain.DappAggrType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DbManager;
 import crfa.app.repository.RepositoryColumnConverter;
-import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -35,19 +32,6 @@ public class DappsRepository {
         try {
             return statementBuilder.query()
                     .stream().map(DApp::getScriptsLocked).reduce(0L, Long::sum);
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Long totalContractTransactionsCount() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
-
-        try {
-            return statementBuilder
-                    .query()
-                    .stream().map(DApp::getTransactionsCount).reduce(0L, Long::sum);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -94,25 +78,15 @@ public class DappsRepository {
         }
     }
 
-    public List<DApp> listDapps(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder, DappAggrType dappAggrType) throws InvalidParameterException {
-        val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy, dappAggrType);
+    public List<DApp> listDapps(SortBy sortBy, SortOrder sortOrder) {
+        val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
         val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
-
-        if (decomposedSortBy.isEmpty()) {
-            throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
-        }
-        if (decomposedSortOrder.isEmpty()) {
-            throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
-        }
 
         try {
             val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
-            val columnName = decomposedSortBy.get();
-            val ascending = decomposedSortOrder.get();
-
             return statementBuilder
-                    .orderBy(columnName, ascending)
+                    .orderBy(decomposedSortBy, decomposedSortOrder)
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);

@@ -26,8 +26,8 @@ public class DAppScriptItemResult {
 
     int version;
 
-    @Nullable
-    String contractAddress;
+//    @Nullable
+//    String contractAddress;
 
     @Nullable
     String mintPolicyID;

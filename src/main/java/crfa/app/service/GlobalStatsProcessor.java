@@ -4,7 +4,6 @@ import crfa.app.domain.*;
 import crfa.app.repository.GlobalStatsRepository;
 import crfa.app.repository.total.AdaPriceRepository;
 import crfa.app.repository.total.DappsRepository;
-import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -12,11 +11,9 @@ import lombok.val;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Optional;
 
-import static crfa.app.domain.DappAggrType.ALL;
 import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
-import static crfa.app.domain.SortOrder.ASC;
+import static crfa.app.domain.SortOrder.DESC;
 
 @Singleton
 @Slf4j
@@ -60,11 +57,7 @@ public class GlobalStatsProcessor {
     }
 
     private int totalDapps() {
-        try {
-            return dappsRepository.listDapps(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC), ALL).size();
-        } catch (InvalidParameterException e) {
-            throw new RuntimeException(e);
-        }
+        return dappsRepository.listDapps(SCRIPTS_INVOKED, DESC).size();
     }
 
 }

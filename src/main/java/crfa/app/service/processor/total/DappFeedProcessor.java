@@ -15,12 +15,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
+import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
 
-@Singleton
-@Slf4j
 
 // DappsFeedProcessor handles top level list-dapps case
+@Singleton
+@Slf4j
 public class DappFeedProcessor implements FeedProcessor {
 
     @Inject
@@ -50,16 +51,9 @@ public class DappFeedProcessor implements FeedProcessor {
 
             var totalScriptsLocked = 0L;
             var totalScriptInvocations = 0L;
-            var totalTransactionsCount = 0L;
             var totalVolume = 0L;
 
             var totalUniqueAccounts = new HashSet<String>();
-
-            var lastVersionTotalScriptsLocked = 0L;
-            var lastVersionTotalScriptInvocations = 0L;
-            var lastVersionTotalTransactionsCount = 0L;
-            var lastVersionTotalVolume = 0L;
-            val lastVersionTotalUniqueAccounts = new HashSet<String>();
 
             for (val dappReleaseItem : dappSearchItem.getReleases()) {
                 val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
@@ -79,85 +73,32 @@ public class DappFeedProcessor implements FeedProcessor {
                         }
                     });
 
-                    if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        val invocationsPerHash = loadInvocationsPerHash(dappFeed, scriptItem.getScriptHash());
+                    val hash = scriptItem.getUnifiedHash();
+                    totalScriptInvocations += loadInvocations(dappFeed, hash);
 
-                        totalScriptInvocations += invocationsPerHash;
-                        if (isLastVersion) {
-                            lastVersionTotalScriptInvocations = invocationsPerHash;
-                        }
-
-                        val contractAddress = scriptItem.getContractAddress();
-                        val adaBalance = loadAddressBalance(dappFeed, contractAddress);
-                        totalScriptsLocked += adaBalance;
-                        if (isLastVersion) {
-                            lastVersionTotalScriptsLocked += adaBalance;
-                        }
-
-                        val transactionsCount = loadTransactionsCount(dappFeed, contractAddress);
-                        totalTransactionsCount += transactionsCount;
-                        if (isLastVersion) {
-                            lastVersionTotalTransactionsCount += transactionsCount;
-                        }
-
-                        val volume = loadVolume(dappFeed, contractAddress);
-                        totalVolume += volume;
-                        if (isLastVersion) {
-                            lastVersionTotalVolume += volume;
-                        }
-
-                        val uniqueAccounts = loadUniqueAccounts(dappFeed, contractAddress);
-                        totalUniqueAccounts.addAll(uniqueAccounts);
-
-                        context.getUniqueAccounts().addAll(totalUniqueAccounts);
-
-                        if (isLastVersion) {
-                            lastVersionTotalUniqueAccounts.addAll(uniqueAccounts);
-                        }
+                    if (scriptItem.getPurpose() == SPEND) {
+                        totalVolume += loadVolume(dappFeed, hash);
+                        totalScriptsLocked += loadAdaBalance(dappFeed, hash);
+                        totalUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash));
                     }
-                    if (scriptItem.getPurpose() == Purpose.MINT) {
-                        val invocationsPerHash = loadInvocationsPerHash(dappFeed, scriptItem.getMintPolicyID());
-
-                        totalScriptInvocations += invocationsPerHash;
-                        if (isLastVersion) {
-                            lastVersionTotalScriptInvocations = invocationsPerHash;
-                        }
-                        // wind riders case
-                        if (scriptItem.getAssetId().isPresent()) {
-                            val assetId = scriptItem.getAssetId().get();
-                            val holders = dappFeed.getTokenHoldersAddresses().get(assetId);
-
-                            context.getUniqueAccounts().addAll(holders);
-
-                            val tokenAdaBalance = loadTokensBalance(dappFeed, assetId);
-                            totalScriptsLocked += tokenAdaBalance;
-                            if (isLastVersion) {
-                                lastVersionTotalScriptsLocked += tokenAdaBalance;
-                            }
-                        }
+                    if (scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetId().isPresent()) {
+                        totalScriptsLocked += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
                     }
+
+                    context.getUniqueAccounts().addAll(totalUniqueAccounts);
                 }
             }
 
             dapp.setScriptInvocationsCount(totalScriptInvocations);
             dapp.setScriptsLocked(totalScriptsLocked);
-            dapp.setTransactionsCount(totalTransactionsCount);
             dapp.setVolume(totalVolume);
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
-
-            dapp.setLastVersionScriptsLocked(lastVersionTotalScriptsLocked);
-            dapp.setLastVersionTransactionsCount(lastVersionTotalTransactionsCount);
-            dapp.setLastVersionScriptInvocationsCount(lastVersionTotalScriptInvocations);
-            dapp.setLastVersionVolume(lastVersionTotalVolume);
-            dapp.setLastVersionUniqueAccounts(lastVersionTotalUniqueAccounts.size());
 
             dapps.add(dapp);
         });
 
         log.info("Upserting dapps, count:{}...", dapps.size());
-        dapps.forEach(dapp -> {
-            dappsRepository.upsertDApp(dapp);
-        });
+        dapps.forEach(dapp -> dappsRepository.upsertDApp(dapp));
         log.info("Upserted dapps.");
 
         dappsRepository.removeAllExcept(dapps);

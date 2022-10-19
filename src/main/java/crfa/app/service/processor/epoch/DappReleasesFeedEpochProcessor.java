@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.domain.Purpose.MINT;
+import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 
 @Slf4j
@@ -60,9 +62,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         });
 
         log.info("Upserting, dapp releases epoch, count:{}", dappReleases.size());
-        dappReleases.forEach(dappRelease -> {
-            dappScriptsEpochRepository.upsertDAppRelease(dappRelease);
-        });
+        dappReleases.forEach(dappRelease -> dappScriptsEpochRepository.upsertDAppRelease(dappRelease));
         log.info("Upserted, dapp releases epoch.");
 
         dappScriptsEpochRepository.removeAllExcept(dappReleases);
@@ -72,7 +72,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
                                             boolean isClosedEpoch,
                                             DappSearchItem dappSearchItem,
                                             DappReleaseItem dappReleaseItem,
-                                            Integer epochNo) {
+                                            int epochNo) {
 
         val dappReleaseEpoch = new DAppReleaseEpoch();
 
@@ -109,32 +109,27 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
 
         var inflowsOutflows = 0L;
         var totalInvocations = 0L;
-        var totalTransactionsCount = 0L;
         var volume = 0L;
         var uniqueAccounts = new HashSet<String>();
 
         for (val scriptItem : dappReleaseItem.getScripts()) {
-            if (scriptItem.getPurpose() == Purpose.SPEND) {
-                val contractAddress = scriptItem.getContractAddress();
+            val hash = scriptItem.getUnifiedHash();
 
-                totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getScriptHash(), epochNo);
-                inflowsOutflows += loadAddressBalance(dappFeed, contractAddress, epochNo);
-                totalTransactionsCount += loadTransactionsCount(dappFeed, contractAddress, epochNo);
-                volume += loadVolume(dappFeed, contractAddress, epochNo);
-                uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, contractAddress, epochNo));
+            totalInvocations += loadInvocations(dappFeed, hash, epochNo);
+
+            if (scriptItem.getPurpose() == SPEND) {
+                inflowsOutflows += loadAdaBalance(dappFeed, hash, epochNo);
+                volume += loadVolume(dappFeed, hash, epochNo);
+                uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
             }
-            if (scriptItem.getPurpose() == Purpose.MINT) {
-                totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getMintPolicyID(), epochNo);
 
-                if (scriptItem.getAssetId().isPresent()) {
-                    inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().get(), epochNo);
-                }
+            if (scriptItem.getPurpose() == MINT && scriptItem.getAssetId().isPresent()) {
+                inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().orElseThrow(), epochNo);
             }
         }
 
         dappReleaseEpoch.setScriptInvocationsCount(totalInvocations);
         dappReleaseEpoch.setInflowsOutflows(inflowsOutflows);
-        dappReleaseEpoch.setTransactionsCount(totalTransactionsCount);
         dappReleaseEpoch.setUniqueAccounts(uniqueAccounts.size());
         dappReleaseEpoch.setVolume(volume);
 

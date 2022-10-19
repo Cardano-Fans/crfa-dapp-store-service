@@ -9,33 +9,25 @@ import java.util.Set;
 @Slf4j
 public class ProcessorHelper {
 
-    public static long loadInvocationsPerHash(DappFeed dappFeed, String hash, int epochNo) {
-        return dappFeed.getInvocationsCountPerHashEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
-            log.warn("Unable to find total invocations for hash:{}", hashEpochKey);
+    public static long loadInvocations(DappFeed dappFeed, String hash, int epochNo) {
+        return dappFeed.getInvocationsCountEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
+            log.warn("Unable to find total invocations for hashEpochKey:{}", hashEpochKey);
 
             return 0L;
         });
     }
 
-    public static long loadAddressBalance(DappFeed dappFeed, String contractAddress, int epochNo) {
-        return dappFeed.getScriptLockedPerContractAddressEpoch().computeIfAbsent(new EpochKey<>(epochNo, contractAddress), addrEpochKey -> {
-            log.warn("Unable to find scriptsLocked for contractAddress:{}", addrEpochKey);
+    public static long loadAdaBalance(DappFeed dappFeed, String hash, int epochNo) {
+        return dappFeed.getScriptLockedEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
+            log.warn("Unable to find scriptsLocked for hashEpochKey:{}", hashEpochKey);
 
             return 0L;
         });
     }
 
-    public static long loadTransactionsCount(DappFeed dappFeed, String contractAddress, int epochNo) {
-        return dappFeed.getTransactionCountsPerContractAddressEpoch().computeIfAbsent(new EpochKey<>(epochNo, contractAddress), addrEpochKey -> {
-            log.warn("Unable to find transactionsCount for contractAddress:{}", addrEpochKey);
-
-            return 0L;
-        });
-    }
-
-    public static Set<String> loadUniqueAccounts(DappFeed dappFeed, String contractAddress, int epochNo) {
-        return dappFeed.getUniqueAccountsEpoch().computeIfAbsent(new EpochKey<>(epochNo, contractAddress), addrEpochKey -> {
-            log.warn("Unable to find unique addresses for contractAddress:{}", addrEpochKey);
+    public static Set<String> loadUniqueAccounts(DappFeed dappFeed, String hash, int epochNo) {
+        return dappFeed.getUniqueAccountsEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
+            log.warn("Unable to find unique addresses for hashEpochKey:{}", hashEpochKey);
 
             return Set.of();
         });
@@ -43,14 +35,14 @@ public class ProcessorHelper {
 
     public static long loadTokensBalance(DappFeed dappFeed, String assetId, int epochNo) {
         return dappFeed.getTokenHoldersBalanceEpoch().computeIfAbsent(new EpochKey<>(epochNo, assetId), assetIdEpochKey -> {
-            log.warn("Unable to load balance for assetId:{}", assetIdEpochKey);
+            log.warn("Unable to load balance for assetIdEpochKey:{}", assetIdEpochKey);
             return 0L;
         });
     }
 
-    public static long loadVolume(DappFeed dappFeed, String address, int epochNo) {
-        return dappFeed.getVolumePerContractAddressEpoch().computeIfAbsent(new EpochKey<>(epochNo, address), addrEpochKey -> {
-            log.warn("Unable to load volume for addrEpochKey:{}", addrEpochKey);
+    public static long loadVolume(DappFeed dappFeed, String hash, int epochNo) {
+        return dappFeed.getVolumeEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
+            log.warn("Unable to load volume for hashEpochKey:{}", hashEpochKey);
             return 0L;
         });
     }

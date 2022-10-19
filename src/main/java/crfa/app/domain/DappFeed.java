@@ -17,19 +17,17 @@ public class DappFeed {
 
     List<DappSearchItem> dappSearchResult;
 
-    Map<String, Long> invocationsCountPerHash;
-    Map<String, Long> scriptLockedPerContractAddress;
-    Map<String, Long> volumePerContractAddress;
-    Map<String, Long> transactionCountsPerContractAddress;
+    Map<String, Long> invocationsCount;
+    Map<String, Long> getAdaBalance;
+    Map<String, Long> volume;
     Map<String, Long> tokenHoldersBalance;
     Map<String, Set<String>> tokenHoldersAddresses;
     Map<String, Set<String>> uniqueAccounts;
 
-    Map<EpochKey<String>, Long> invocationsCountPerHashEpoch;
-    Map<EpochKey<String>, Long> scriptLockedPerContractAddressEpoch;
-    Map<EpochKey<String>, Long> transactionCountsPerContractAddressEpoch;
+    Map<EpochKey<String>, Long> invocationsCountEpoch;
+    Map<EpochKey<String>, Long> scriptLockedEpoch;
     Map<EpochKey<String>, Long> tokenHoldersBalanceEpoch;
-    Map<EpochKey<String>, Long> volumePerContractAddressEpoch;
+    Map<EpochKey<String>, Long> volumeEpoch;
     Map<EpochKey<String>, Set<String>> tokenHoldersAddressesEpoch;
     Map<EpochKey<String>, Set<String>> uniqueAccountsEpoch;
 

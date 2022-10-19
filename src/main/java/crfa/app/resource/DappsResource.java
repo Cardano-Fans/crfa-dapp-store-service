@@ -1,6 +1,5 @@
 package crfa.app.resource;
 
-import crfa.app.domain.DappAggrType;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.total.DappsRepository;
@@ -16,8 +15,6 @@ import lombok.val;
 import java.util.List;
 import java.util.Optional;
 
-import static crfa.app.domain.DappAggrType.LAST;
-
 @Controller("/dapps")
 @Slf4j
 public class DappsResource {
@@ -29,16 +26,14 @@ public class DappsResource {
     private DappService dappService;
 
     @Get(uri = "/find-dapp/{id}", produces = "application/json")
-    public Optional<DappResult> findDappById(String id,
-                                             @QueryValue Optional<DappAggrType> dappAggrType) {
-        val dappAggrTypeWithFallback = dappAggrType.orElse(DappAggrType.def());
+    public Optional<DappResult> findDappById(String id) {
 
         return dappsRepository.findById(id)
                 .map(dapp -> {
-                    val scriptInvocationsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount();
-                    val scriptsLocked = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked();
-                    val volume = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionVolume() : dapp.getVolume();
-                    val uniqueAccounts = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionUniqueAccounts() : dapp.getUniqueAccounts();
+                    val scriptInvocationsCount = dapp.getScriptInvocationsCount();
+                    val scriptsLocked = dapp.getScriptsLocked();
+                    val volume = dapp.getVolume();
+                    val uniqueAccounts = dapp.getUniqueAccounts();
 
                     val dAppType = dapp.getDAppType();
 
@@ -65,17 +60,14 @@ public class DappsResource {
 
                                       @Get(uri = "/list-dapps", produces = "application/json")
     public List<DappResult> listDapps(@QueryValue Optional<SortBy> sortBy,
-                                      @QueryValue Optional<SortOrder> sortOrder,
-                                      @QueryValue Optional<DappAggrType> dappAggrType) throws InvalidParameterException {
-        val dappAggrTypeWithFallback = dappAggrType.orElse(DappAggrType.def());
-
-         return dappsRepository.listDapps(sortBy, sortOrder, dappAggrTypeWithFallback)
+                                      @QueryValue Optional<SortOrder> sortOrder) {
+         return dappsRepository.listDapps(sortBy.orElse(SortBy.SCRIPTS_INVOKED), SortOrder.DESC)
                 .stream()
                  .map(dapp -> {
-                    val scriptInvocationsCount = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptInvocationsCount() : dapp.getScriptInvocationsCount();
-                    val scriptsLocked = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionScriptsLocked() : dapp.getScriptsLocked();
-                    val volume = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionVolume() : dapp.getVolume();
-                    val uniqueAccounts = dappAggrTypeWithFallback == LAST ? dapp.getLastVersionUniqueAccounts() : dapp.getUniqueAccounts();
+                    val scriptInvocationsCount = dapp.getScriptInvocationsCount();
+                    val scriptsLocked = dapp.getScriptsLocked();
+                    val volume = dapp.getVolume();
+                    val uniqueAccounts = dapp.getUniqueAccounts();
 
                     return DappResult.builder()
                             .id(dapp.getId())

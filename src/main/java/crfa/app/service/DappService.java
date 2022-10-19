@@ -7,7 +7,6 @@ import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.repository.epoch.DappScriptsEpochRepository;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappReleaseRepository;
-import crfa.app.resource.InvalidParameterException;
 import crfa.app.resource.model.EpochLevelStats;
 import crfa.app.utils.MoreOptionals;
 import jakarta.inject.Inject;
@@ -21,7 +20,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static crfa.app.domain.ScriptType.SPEND;
 import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
 import static crfa.app.domain.SortOrder.ASC;
 import static crfa.app.utils.MoreInts.nullSafe;
@@ -47,40 +45,28 @@ public class DappService {
     public Cache<String, Float> buildMaxReleaseVersionCache() {
         val releaseVersionsCache = CacheBuilder.newBuilder().<String, Float>build();
 
-        try {
-            dappReleaseRepository.listDappReleases(Optional.of(SCRIPTS_INVOKED), Optional.of(ASC)).forEach(dAppRelease -> {
-                val dappId = dAppRelease.getDappId();
-                releaseVersionsCache.put(dappId, dappReleaseRepository.getMaxReleaseVersion(dappId));
-            });
-        } catch (InvalidParameterException e) {
-            throw new RuntimeException(e);
-        }
+        dappReleaseRepository.listDappReleases(SCRIPTS_INVOKED, ASC).forEach(dAppRelease -> {
+            val dappId = dAppRelease.getDappId();
+            releaseVersionsCache.put(dappId, dappReleaseRepository.getMaxReleaseVersion(dappId));
+        });
 
         return releaseVersionsCache;
     }
 
-    public Map<Integer, EpochLevelStats> gatherEpochLevelData(Collection<? extends EpochGatherable> it, boolean hasSpend) {
+    public Map<Integer, EpochLevelStats> gatherEpochLevelData(Collection<? extends EpochGatherable> it) {
         val epochLevelStats = new HashMap<Integer, EpochLevelStats>();
 
         it.forEach(epochGatherable -> {
             val epochNo = epochGatherable.getEpochNo();
 
-            if (hasSpend) {
-                epochLevelStats.put(epochNo, EpochLevelStats.builder()
-                        .volume(epochGatherable.getVolume())
-                        .inflowsOutflows(epochGatherable.getInflowsOutflows())
-                        .uniqueAccounts(epochGatherable.getUniqueAccounts())
-                        .trxCount(epochGatherable.getScriptInvocationsCount())
-                        .closed(epochGatherable.isClosedEpoch())
-                        .build()
-                );
-            } else {
-                epochLevelStats.put(epochNo, EpochLevelStats.builder()
-                        .trxCount(epochGatherable.getScriptInvocationsCount())
-                        .closed(epochGatherable.isClosedEpoch())
-                        .build()
-                );
-            }
+            epochLevelStats.put(epochNo, EpochLevelStats.builder()
+                    .volume(epochGatherable.getVolume())
+                    .inflowsOutflows(epochGatherable.getInflowsOutflows())
+                    .uniqueAccounts(epochGatherable.getUniqueAccounts())
+                    .trxCount(epochGatherable.getScriptInvocationsCount())
+                    .closed(epochGatherable.isClosedEpoch())
+                    .build()
+            );
         });
 
         return epochLevelStats;
@@ -89,9 +75,10 @@ public class DappService {
     public Optional<EpochLevelData> getAllEpochLevelData(DApp dapp, boolean includeEpochDetails) {
         val id = dapp.getId();
         var dappEpochList = dappsEpochRepository.findByDappId(id);
-        val epochData = gatherEpochLevelData(dappEpochList, dapp.getDAppType().hasSpend());
+        val epochData = gatherEpochLevelData(dappEpochList);
 
         val hasSpend = dapp.getDAppType().hasSpend();
+
         val one = getLastClosedEpochsDelta(epochData, 1, hasSpend); // 1 epoch
         val six = getLastClosedEpochsDelta(epochData, 6, hasSpend); // 1 month
         val eighten = getLastClosedEpochsDelta(epochData, (3 * 6), hasSpend); // 3 months
@@ -111,7 +98,7 @@ public class DappService {
 
     public Optional<EpochLevelData> getAllEpochLevelData(DAppRelease dAppRelease, boolean includeEpochLevel) {
         val releaseKey = dAppRelease.getId();
-        val epochData = gatherEpochLevelData(dappReleaseEpochRepository.findByReleaseKey(releaseKey), dAppRelease.getDAppType().hasSpend());
+        val epochData = gatherEpochLevelData(dappReleaseEpochRepository.findByReleaseKey(releaseKey));
 
         val hasSpend = dAppRelease.getDAppType().hasSpend();
 
@@ -135,9 +122,9 @@ public class DappService {
     public Optional<EpochLevelData> getAllEpochLevelData(DappScriptItem dappScriptItem, boolean includeEpochLevel) {
         val hash = dappScriptItem.getHash();
         val dappScriptItemEpoches = dappScriptsEpochRepository.listByHash(hash);
-        val epochData = gatherEpochLevelData(dappScriptItemEpoches, dappScriptItem.getScriptType() == SPEND);
+        val epochData = gatherEpochLevelData(dappScriptItemEpoches);
 
-        val hasSpend = dappScriptItem.getScriptType() == SPEND;
+        val hasSpend = dappScriptItem.getScriptType() == ScriptType.SPEND;
 
         val one = getLastClosedEpochsDelta(epochData, 1, hasSpend); // 1 epoch
         val six = getLastClosedEpochsDelta(epochData, 6, hasSpend); // 1 month
@@ -156,7 +143,7 @@ public class DappService {
         return Optional.of(b.build());
     }
 
-    public Optional<EpochDelta> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats, int epochGap, boolean includesSpend) {
+    public Optional<EpochDelta> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats, int epochGap, boolean hasSpend) {
         val closedEpochsMap = stats.entrySet().stream().filter(entry -> entry.getValue().isClosed()).collect(Collectors.toMap(
                 Map.Entry::getKey,
                 Map.Entry::getValue
@@ -173,7 +160,7 @@ public class DappService {
                 return null;
             }
 
-            if (includesSpend) {
+            if (hasSpend) {
                 val volumeDiff = nullSafe(nextStats.getVolume()) - nullSafe(prevStats.getVolume());
                 val inflowsOutflowsDiff = nullSafe(nextStats.getInflowsOutflows()) - nullSafe(prevStats.getInflowsOutflows());
                 val uniqueAccountsDiff = nullSafe(nextStats.getUniqueAccounts()) - nullSafe(prevStats.getUniqueAccounts());
@@ -223,7 +210,7 @@ public class DappService {
     }
 
     public int currentEpoch() {
-        return scrollsOnChainDataService.currentEpoch().orElseThrow().intValue();
+        return scrollsOnChainDataService.currentEpoch().orElseThrow();
     }
 
 }

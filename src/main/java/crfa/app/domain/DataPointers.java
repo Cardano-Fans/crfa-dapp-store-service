@@ -9,11 +9,7 @@ import java.util.Set;
 @Builder
 public class DataPointers {
 
-    public Set<AddressPointers> addressPointersList;
-
     public List<String> mintPolicyIds;
-
-    public List<String> contractAddresses;
 
     public List<String> scriptHashes;
 

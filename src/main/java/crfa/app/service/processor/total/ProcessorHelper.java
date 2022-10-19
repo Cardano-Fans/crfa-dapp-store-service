@@ -8,33 +8,25 @@ import java.util.Set;
 @Slf4j
 public class ProcessorHelper {
 
-    public static long loadInvocationsPerHash(DappFeed dappFeed, String hash) {
-        return dappFeed.getInvocationsCountPerHash().computeIfAbsent(hash, h -> {
+    public static long loadInvocations(DappFeed dappFeed, String hash) {
+        return dappFeed.getInvocationsCount().computeIfAbsent(hash, h -> {
             log.warn("Unable to find total invocations for hash:{}", h);
 
             return 0L;
         });
     }
 
-    public static long loadAddressBalance(DappFeed dappFeed, String contractAddress) {
-        return dappFeed.getScriptLockedPerContractAddress().computeIfAbsent(contractAddress, addrEpochKey -> {
-            log.warn("Unable to find scriptsLocked for contractAddress:{}", addrEpochKey);
+    public static long loadAdaBalance(DappFeed dappFeed, String hash) {
+        return dappFeed.getGetAdaBalance().computeIfAbsent(hash, h -> {
+            log.warn("Unable to find scriptsLocked for hash:{}", h);
 
             return 0L;
         });
     }
 
-    public static long loadTransactionsCount(DappFeed dappFeed, String contractAddress) {
-        return dappFeed.getTransactionCountsPerContractAddress().computeIfAbsent(contractAddress, addr -> {
-            log.warn("Unable to find transactionsCount for contractAddress:{}", addr);
-
-            return 0L;
-        });
-    }
-
-    public static Set<String> loadUniqueAccounts(DappFeed dappFeed, String contractAddress) {
-        return dappFeed.getUniqueAccounts().computeIfAbsent(contractAddress, addr -> {
-            log.warn("Unable to find unique addresses for contractAddress:{}", addr);
+    public static Set<String> loadUniqueAccounts(DappFeed dappFeed, String hash) {
+        return dappFeed.getUniqueAccounts().computeIfAbsent(hash, h -> {
+            log.warn("Unable to find unique addresses for hash:{}", h);
 
             return Set.of();
         });
@@ -47,9 +39,9 @@ public class ProcessorHelper {
         });
     }
 
-    public static long loadVolume(DappFeed dappFeed, String address) {
-        return dappFeed.getVolumePerContractAddress().computeIfAbsent(address, addr -> {
-            log.warn("Unable to load volume for addr:{}", addr);
+    public static long loadVolume(DappFeed dappFeed, String hash) {
+        return dappFeed.getVolume().computeIfAbsent(hash, h -> {
+            log.warn("Unable to load volume for hash:{}", h);
             return 0L;
         });
     }

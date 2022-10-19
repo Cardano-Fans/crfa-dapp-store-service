@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.HashSet;
 
 import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.domain.Purpose.MINT;
+import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 import static java.lang.String.format;
 
@@ -63,10 +65,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
         log.info("Upserting dapp script item epochs..., itemsCount:{}", dappScriptItems.size());
 
-        dappScriptItems.forEach(dappScriptItemEpoch -> {
-            log.debug("Upserting, dapp item:{} - id:{}, epochNo:{}", dappScriptItemEpoch.getName(), dappScriptItemEpoch.getId(), dappScriptItemEpoch.getEpochNo());
-            dappScriptsRepository.update(dappScriptItemEpoch);
-        });
+        dappScriptItems.forEach(dappScriptItemEpoch -> dappScriptsRepository.update(dappScriptItemEpoch));
 
         log.info("Upserted dapp script item epochs.");
 
@@ -88,46 +87,36 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
         dappScriptItem.setUpdateTime(new Date());
         dappScriptItem.setEpochNo(epochNo);
         dappScriptItem.setPlutusVersion(scriptItem.getPlutusVersion());
+
         dappScriptItem.setClosedEpoch(isClosedEpoch);
 
-        if (scriptItem.getPurpose() == Purpose.SPEND) {
-            val scriptHash = scriptItem.getScriptHash();
+        val hash = scriptItem.getUnifiedHash();
 
-            dappScriptItem.setId(generateKey(epochNo, scriptHash));
-            dappScriptItem.setHash(scriptHash);
+        val allUniqueAccounts = new HashSet<>();
+
+        dappScriptItem.setId(generateKey(epochNo, hash));
+        dappScriptItem.setHash(hash);
+        dappScriptItem.setScriptInvocationsCount(loadInvocations(dappFeed, hash, epochNo));
+
+        if (scriptItem.getPurpose() == SPEND) {
             dappScriptItem.setScriptType(ScriptType.SPEND);
-            dappScriptItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, scriptHash, epochNo));
-
-            val contractAddress = scriptItem.getContractAddress();
-            dappScriptItem.setContractAddress(contractAddress);
-            dappScriptItem.setVolume(loadVolume(dappFeed, contractAddress, epochNo));
-            dappScriptItem.setInflowsOutflows(loadAddressBalance(dappFeed, contractAddress, epochNo));
-            dappScriptItem.setTransactionsCount(loadTransactionsCount(dappFeed, contractAddress, epochNo));
-            dappScriptItem.setUniqueAccounts(loadUniqueAccounts(dappFeed, contractAddress, epochNo).size());
+            dappScriptItem.setInflowsOutflows(loadAdaBalance(dappFeed, hash, epochNo));
+            dappScriptItem.setVolume(loadVolume(dappFeed, hash, epochNo));
+            allUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
         }
-        if (scriptItem.getPurpose() == Purpose.MINT) {
-            val mintPolicyID = scriptItem.getMintPolicyID();
 
-            dappScriptItem.setId(generateKey(epochNo, mintPolicyID));
-            dappScriptItem.setHash(mintPolicyID);
+        if (scriptItem.getPurpose() == MINT) {
             dappScriptItem.setScriptType(ScriptType.MINT);
-            dappScriptItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, mintPolicyID, epochNo));
             dappScriptItem.setMintPolicyID(scriptItem.getMintPolicyID());
 
             if (scriptItem.getAssetId().isPresent()) {
                 val assetId = scriptItem.getAssetId().get();
                 // in case of purpouse = MINT there is no way we could have any script balance to add, so we only take tokens balance (ADA)
-                dappScriptItem.setInflowsOutflows(loadTokensBalance(dappFeed, assetId, epochNo));
-
-                val holders = dappFeed.getTokenHoldersAddresses().get(assetId);
-
-                val allUniqueAccounts = new HashSet<>();
-
-                holders.forEach(holder -> allUniqueAccounts.addAll(holders));
-
-                dappScriptItem.setUniqueAccounts(allUniqueAccounts.size());
+                dappScriptItem.setInflowsOutflows(dappScriptItem.getInflowsOutflows() == null ? 0 : dappScriptItem.getInflowsOutflows() + loadTokensBalance(dappFeed, assetId, epochNo));
             }
         }
+
+        dappScriptItem.setUniqueAccounts(allUniqueAccounts.size());
 
         return dappScriptItem;
     }

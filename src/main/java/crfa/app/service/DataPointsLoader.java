@@ -7,7 +7,12 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import static crfa.app.domain.InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
 @Singleton
 @Slf4j
@@ -17,13 +22,13 @@ public class DataPointsLoader {
     private ScrollsOnChainDataService scrollsOnChainDataService;
 
     public DataPointers load(List<DappSearchItem> dappSearchResult, InjestionMode injestionMode) {
-        val addressPointersList = new HashSet<AddressPointers>();
+        val scriptHashes = new ArrayList<String>();
         val mintPolicyIds = new ArrayList<String>();
+
         val assetIdToTokenHolders = new HashMap<String, Set<String>>();
         val assetIdToTokenHoldersWithEpoch = new HashMap<EpochKey<String>, Set<String>>();
 
         dappSearchResult.forEach(dappSearchItem -> {
-
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
                 val dappReleaseId = new DappReleaseId();
 
@@ -31,12 +36,16 @@ public class DataPointsLoader {
                 dappReleaseId.setReleaseNumber(dappReleaseItem.getReleaseNumber());
 
                 dappReleaseItem.getScripts().forEach(scriptItem -> {
-                    if (scriptItem.getPurpose() == Purpose.MINT) {
-                        dappReleaseId.setHash(scriptItem.getMintPolicyID());
 
+                    if (scriptItem.getPurpose() == Purpose.SPEND) {
+                        scriptHashes.add(scriptItem.getUnifiedHash());
+                    }
+
+                    if (scriptItem.getPurpose() == Purpose.MINT) {
                         mintPolicyIds.add(scriptItem.getMintPolicyID());
+
                         if (scriptItem.getIncludeScriptBalanceFromAsset() != null) {
-                            val assetId = scriptItem.getAssetId().get();
+                            val assetId = scriptItem.getAssetId().orElseThrow();
                             log.info("Fetching holders for assetId:" + assetId);
 
                             val tokenHolders = scrollsOnChainDataService.getCurrentAssetHolders(assetId);
@@ -44,46 +53,23 @@ public class DataPointsLoader {
                             assetIdToTokenHolders.put(assetId, tokenHolders);
 
                             if (!(injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES)) {
-                                val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId, injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES);
+                                val tokenHoldersWithEpochs = scrollsOnChainDataService.getAssetHoldersWithEpochs(assetId, injestionMode == CURRENT_EPOCH_AND_AGGREGATES);
 
                                 tokenHoldersWithEpochs.forEach((epochNo, tokenHoldersWith) -> {
                                     assetIdToTokenHoldersWithEpoch.put(new EpochKey<>(epochNo, assetId), tokenHoldersWith);
                                 });
                             }
                         }
-                    } else if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        dappReleaseId.setHash(scriptItem.getScriptHash());
                     }
-
-                    val addressPointer = new AddressPointers();
-                    addressPointer.setScriptHash(scriptItem.getScriptHash());
-
-                    if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        addressPointer.setContractAddress(scriptItem.getContractAddress());
-                    }
-
-                    addressPointersList.add(addressPointer);
                 });
             });
         });
 
-        val contractAddresses = addressPointersList.stream()
-                .filter(addressPointers -> addressPointers.getContractAddress() != null)
-                .map(AddressPointers::getContractAddress)
-                .toList();
-
-        val scriptHashes = addressPointersList.stream()
-                .filter(addressPointers -> addressPointers.getScriptHash() != null)
-                .map(AddressPointers::getScriptHash)
-                .toList();
-
         return DataPointers.builder()
-                .addressPointersList(addressPointersList)
+                .mintPolicyIds(mintPolicyIds)
+                .scriptHashes(scriptHashes)
                 .assetIdToTokenHolders(assetIdToTokenHolders)
                 .assetIdToTokenHoldersWithEpoch(assetIdToTokenHoldersWithEpoch)
-                .mintPolicyIds(mintPolicyIds)
-                .contractAddresses(contractAddresses)
-                .scriptHashes(scriptHashes)
                 .build();
     }
 

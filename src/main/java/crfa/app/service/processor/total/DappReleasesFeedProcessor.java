@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
+import static crfa.app.domain.Purpose.MINT;
+import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
 
 @Slf4j
@@ -58,32 +60,26 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
 
                 var totalScriptsLocked = 0L;
                 var totalInvocations = 0L;
-                var totalTransactionsCount = 0L;
                 var volume = 0L;
                 var uniqueAccounts = new HashSet<String>();
 
                 for (val scriptItem : dappReleaseItem.getScripts()) {
-                    if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        val contractAddress = scriptItem.getContractAddress();
+                    val hash = scriptItem.getUnifiedHash();
 
-                        totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getScriptHash());
-                        totalScriptsLocked += loadAddressBalance(dappFeed, contractAddress);
-                        totalTransactionsCount += loadTransactionsCount(dappFeed, contractAddress);
-                        volume += loadVolume(dappFeed, contractAddress);
-                        uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, contractAddress));
+                    totalInvocations += loadInvocations(dappFeed, hash);
+
+                    if (scriptItem.getPurpose() == SPEND) {
+                        volume += loadVolume(dappFeed, hash);
+                        totalScriptsLocked += loadAdaBalance(dappFeed, hash);
+                        uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash));
                     }
-                    if (scriptItem.getPurpose() == Purpose.MINT) {
-                        totalInvocations += loadInvocationsPerHash(dappFeed, scriptItem.getMintPolicyID());
-
-                        if (scriptItem.getAssetId().isPresent()) {
-                            totalScriptsLocked += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
-                        }
+                    if (scriptItem.getPurpose() == MINT && scriptItem.getAssetId().isPresent()) {
+                        totalScriptsLocked += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
                     }
                 }
 
                 dappRelease.setScriptInvocationsCount(totalInvocations);
                 dappRelease.setScriptsLocked(totalScriptsLocked);
-                dappRelease.setTransactionsCount(totalTransactionsCount);
                 dappRelease.setUniqueAccounts(uniqueAccounts.size());
                 dappRelease.setVolume(volume);
 
@@ -92,9 +88,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
         });
 
         log.info("Upserting, dapp releases, count:{}", dappReleases.size());
-        dappReleases.forEach(dappRelease -> {
-            dappReleaseRepository.upsertDAppRelease(dappRelease);
-        });
+        dappReleases.forEach(dappRelease -> dappReleaseRepository.upsertDAppRelease(dappRelease));
         log.info("Upserted, dapp releases.");
 
         dappReleaseRepository.removeAllExcept(dappReleases);

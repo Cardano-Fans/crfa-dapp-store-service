@@ -11,6 +11,8 @@ import lombok.val;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static crfa.app.domain.Purpose.MINT;
+import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
 
 @Singleton
@@ -36,31 +38,29 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                     newDappReleaseItem.setPlutusVersion(scriptItem.getPlutusVersion());
                     newDappReleaseItem.setUpdateTime(new Date());
 
-                    if (scriptItem.getPurpose() == Purpose.SPEND) {
-                        val scriptHash = scriptItem.getScriptHash();
+                    val hash = scriptItem.getUnifiedHash();
+                    newDappReleaseItem.setHash(hash);
+                    newDappReleaseItem.setScriptType(scriptItem.getPurpose() == SPEND ? ScriptType.SPEND : ScriptType.MINT);
+                    newDappReleaseItem.setScriptInvocationsCount(loadInvocations(dappFeed, hash));
 
-                        newDappReleaseItem.setHash(scriptItem.getScriptHash());
+                    if (scriptItem.getPurpose() == SPEND) {
                         newDappReleaseItem.setScriptType(ScriptType.SPEND);
-                        newDappReleaseItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, scriptHash));
+                        newDappReleaseItem.setScriptsLocked(loadAdaBalance(dappFeed, hash));
+                        newDappReleaseItem.setVolume(loadVolume(dappFeed, hash));
 
-                        val contractAddress = scriptItem.getContractAddress();
-                        newDappReleaseItem.setContractAddress(contractAddress);
-                        newDappReleaseItem.setScriptsLocked(loadAddressBalance(dappFeed, contractAddress));
-                        newDappReleaseItem.setTransactionsCount(loadTransactionsCount(dappFeed, contractAddress));
-                        newDappReleaseItem.setUniqueAccounts(loadUniqueAccounts(dappFeed, contractAddress).size());
-                        newDappReleaseItem.setVolume(loadVolume(dappFeed, contractAddress));
+                        newDappReleaseItem.setUniqueAccounts(loadUniqueAccounts(dappFeed, hash).size());
                     }
-                    if (scriptItem.getPurpose() == Purpose.MINT) {
+                    if (scriptItem.getPurpose() == MINT) {
                         val mintPolicyID = scriptItem.getMintPolicyID();
-
-                        newDappReleaseItem.setHash(scriptItem.getMintPolicyID());
-                        newDappReleaseItem.setMintPolicyID(scriptItem.getMintPolicyID());
                         newDappReleaseItem.setScriptType(ScriptType.MINT);
-                        newDappReleaseItem.setScriptInvocationsCount(loadInvocationsPerHash(dappFeed, mintPolicyID));
+                        newDappReleaseItem.setMintPolicyID(mintPolicyID);
 
+                        // e.g. wing riders
                         if (scriptItem.getAssetId().isPresent()) {
                             val assetId = scriptItem.getAssetId().get();
                             // in case of purpouse = MINT there is no way we could have any script balance to add, so we only take tokens balance (ADA)
+
+                            // ???????????????
                             newDappReleaseItem.setScriptsLocked(loadTokensBalance(dappFeed, assetId));
                         }
                     }
@@ -71,10 +71,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
         });
 
         log.info("Upserting dapp script items..., itemsCount:{}", dappScriptItems.size());
-        dappScriptItems.forEach(dappScriptItem -> {
-            log.debug("Upserting, dapp item:{} - {}", dappScriptItem.getName(), dappScriptItem.getDappId());
-            dappScriptsRepository.update(dappScriptItem);
-        });
+        dappScriptItems.forEach(dappScriptItem -> dappScriptsRepository.update(dappScriptItem));
         log.info("Upserted dapp script items.");
 
         dappScriptsRepository.removeAllExcept(dappScriptItems);

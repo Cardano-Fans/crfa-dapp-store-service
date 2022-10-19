@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.util.Optional;
 
+import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.utils.MoreHex.toHex;
 
 @Builder
@@ -27,21 +28,29 @@ public class ScriptItem {
 
     Purpose purpose;
 
-    String contractAddress;
+//    @Deprecated
+//    String contractAddress;
 
     @Nullable
     String scriptHash;
 
+    @Nullable
     String mintPolicyID;
 
     int plutusVersion;
 
+    String fullScriptHash;
+
     @Nullable
     String includeScriptBalanceFromAsset;
 
+    public String getUnifiedHash() {
+        return purpose == SPEND ? fullScriptHash : mintPolicyID;
+    }
+
     public Optional<String> getAssetId() {
         return Optional.ofNullable(includeScriptBalanceFromAsset)
-                .map(asset -> String.format("%s%s", mintPolicyID, toHex(asset)));
+                .map(asset -> String.format("%s.%s", mintPolicyID, toHex(asset)));
     }
 
 }

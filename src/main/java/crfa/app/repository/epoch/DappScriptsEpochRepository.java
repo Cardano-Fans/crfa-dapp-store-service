@@ -6,17 +6,14 @@ import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DbManager;
 import crfa.app.repository.RepositoryColumnConverter;
-import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Singleton
 @Slf4j
@@ -28,8 +25,8 @@ public class DappScriptsEpochRepository {
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
 
-    public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey) throws InvalidParameterException {
-        return listDappScriptItems(releaseKey, Optional.empty(), Optional.empty());
+    public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey) {
+        return listDappScriptItems(releaseKey, SortBy.SCRIPTS_INVOKED, SortOrder.DESC);
     }
 
     public List<DappScriptItemEpoch> listByHash(String hash) {
@@ -46,22 +43,15 @@ public class DappScriptsEpochRepository {
         }
     }
 
-    public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey, Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DappScriptItemEpoch> listDappScriptItems(String releaseKey, SortBy sortBy, SortOrder sortOrder) {
         try {
             val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
             val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
-            if (decomposedSortBy.isEmpty()) {
-                throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
-            }
-            if (decomposedSortOrder.isEmpty()) {
-                throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
-            }
-
-            QueryBuilder<DappScriptItemEpoch, String> statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
+            val statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
 
             return statementBuilder
-                    .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
+                    .orderBy(decomposedSortBy, decomposedSortOrder)
                     .where()
                     .eq("release_key", releaseKey)
                     .query();
@@ -85,22 +75,15 @@ public class DappScriptsEpochRepository {
         }
     }
 
-    public List<DappScriptItemEpoch> listDappScriptItems(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DappScriptItemEpoch> listDappScriptItems(SortBy sortBy, SortOrder sortOrder) {
         try {
             val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
             val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
-            if (decomposedSortBy.isEmpty()) {
-                throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
-            }
-            if (decomposedSortOrder.isEmpty()) {
-                throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
-            }
-
-            QueryBuilder<DappScriptItemEpoch, String> statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
+            val statementBuilder = dbManager.getDappScriptItemEpochs().queryBuilder();
 
             return statementBuilder
-                    .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
+                    .orderBy(decomposedSortBy, decomposedSortOrder)
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -108,8 +91,8 @@ public class DappScriptsEpochRepository {
         }
     }
 
-    public List<DappScriptItemEpoch> listDappScriptItems() throws InvalidParameterException {
-        return listDappScriptItems(Optional.empty(), Optional.empty());
+    public List<DappScriptItemEpoch> listDappScriptItems() {
+        return listDappScriptItems(SortBy.SCRIPTS_INVOKED, SortOrder.DESC);
     }
 
     public void update(DappScriptItemEpoch dappScriptItem) {

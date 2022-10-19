@@ -1,11 +1,12 @@
 package crfa.app.utils;
 
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
 
 public class MoreHex {
 
     public static String toHex(String str) {
-        return str.chars().mapToObj(Integer::toHexString).collect(Collectors.joining());
+        return str.chars().mapToObj(Integer::toHexString).collect(joining());
     }
 
 }
+

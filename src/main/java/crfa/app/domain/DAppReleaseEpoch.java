@@ -67,11 +67,6 @@ public class DAppReleaseEpoch implements EpochGatherable {
     @Nullable
     Long inflowsOutflows;
 
-    // total number of transactions for dApp since beginning
-    @DatabaseField(columnName = "transactions_count")
-    @Nullable // we don't always have contract calls, for instance for MINT scripts
-    Long transactionsCount; // value across all scripts per dApp
-
     @DatabaseField(columnName = "unique_accounts")
     @Nullable
     Integer uniqueAccounts;

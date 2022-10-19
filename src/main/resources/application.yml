@@ -20,8 +20,8 @@ micronaut:
 
 env: dev
 dbPath-dapps: crfa-dapp-store-dapps-dev.db
-#redis-host: localhost
-redis-host: kajka.lan
+redis-host: localhost
+#redis-host: kajka.lan
 
 jackson:
   serialization-inclusion: NON_ABSENT # Omit null and Optional.empty(), but include empty collections

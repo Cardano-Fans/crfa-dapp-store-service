@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 
 @Singleton
@@ -99,15 +100,8 @@ public class DappFeedEpochProcessor implements FeedProcessor {
 
         var totalInflowsOutflows = 0L;
         var totalScriptInvocations = 0L;
-        var totalTransactionsCount = 0L;
         var totalVolume = 0L;
         var totalUniqueAccounts = new HashSet<String>();
-
-        var lastVersionTotalInflowsOutflows = 0L;
-        var lastVersionTotalScriptInvocations = 0L;
-        var lastVersionTotalTransactionsCount = 0L;
-        var lastVersionTotalVolume = 0L;
-        var lastVersionTotalUniqueAccounts = new HashSet<String>();
 
         val maxVersion = maxReleaseCache.getIfPresent(dappId);
 
@@ -115,6 +109,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             boolean isLastVersion = isLastVersion(dappReleaseItem, maxVersion);
 
             for (val scriptItem : dappReleaseItem.getScripts()) {
+
                 Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
                     if (isLastVersion && contract.getOpenSource() != null && contract.getOpenSource()) {
                         dapp.setLastVersionOpenSourceLink(contract.getContractLink());
@@ -127,76 +122,30 @@ public class DappFeedEpochProcessor implements FeedProcessor {
                     }
                 });
 
+                val hash = scriptItem.getUnifiedHash();
+
+                totalScriptInvocations += loadInvocations(dappFeed, hash, epochNo);
+
                 if (scriptItem.getPurpose() == Purpose.SPEND) {
-                    val scriptHash = scriptItem.getScriptHash();
-                    val invocationsPerHash = loadInvocationsPerHash(dappFeed, scriptHash, epochNo);
-                    totalScriptInvocations += invocationsPerHash;
-                    if (isLastVersion) {
-                        lastVersionTotalScriptInvocations = invocationsPerHash;
-                    }
-
-                    val contractAddress = scriptItem.getContractAddress();
-
-                    val adaBalance = loadAddressBalance(dappFeed, contractAddress, epochNo);
-                    totalInflowsOutflows += adaBalance;
-
-                    if (isLastVersion) {
-                        lastVersionTotalInflowsOutflows += adaBalance;
-                    }
-
-                    val transactionsCount = loadTransactionsCount(dappFeed, contractAddress, epochNo);
-                    totalTransactionsCount += transactionsCount;
-                    if (isLastVersion) {
-                        lastVersionTotalTransactionsCount += transactionsCount;
-                    }
-
-                    val volume = loadVolume(dappFeed, contractAddress, epochNo);
-                    totalVolume += volume;
-                    if (isLastVersion) {
-                        lastVersionTotalVolume += volume;
-                    }
-
-                    val uniqueAccounts = loadUniqueAccounts(dappFeed, contractAddress, epochNo);
-                    totalUniqueAccounts.addAll(uniqueAccounts);
-                    if (isLastVersion) {
-                        lastVersionTotalUniqueAccounts.addAll(uniqueAccounts);
-                    }
+                    totalVolume += loadVolume(dappFeed, hash, epochNo);
+                    totalInflowsOutflows += loadAdaBalance(dappFeed, hash, epochNo);
+                    totalUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
                 }
-                if (scriptItem.getPurpose() == Purpose.MINT) {
-                    val mintPolicyID = scriptItem.getMintPolicyID();
-                    val invocationsPerHash = loadInvocationsPerHash(dappFeed, mintPolicyID, epochNo);
 
-                    totalScriptInvocations += invocationsPerHash;
-                    if (isLastVersion) {
-                        lastVersionTotalScriptInvocations = invocationsPerHash;
-                    }
-                    // wind riders case
-                    if (scriptItem.getAssetId().isPresent()) {
-                        val assetId = scriptItem.getAssetId().get();
-                        val tokenAdaBalance = loadTokensBalance(dappFeed, assetId, epochNo);
-                        totalInflowsOutflows += tokenAdaBalance;
-                        if (isLastVersion) {
-                            lastVersionTotalInflowsOutflows += tokenAdaBalance;
-                        }
-                    }
+                // wing riders case
+                if (scriptItem.getPurpose() == MINT && scriptItem.getAssetId().isPresent()) {
+                    totalInflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().get(), epochNo);
                 }
             }
 
             dapp.setScriptInvocationsCount(totalScriptInvocations);
             dapp.setInflowsOutflows(totalInflowsOutflows);
-            dapp.setTransactionsCount(totalTransactionsCount);
             dapp.setVolume(totalVolume);
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
 
             val accounts = context.getUniqueAccountsEpoch().getOrDefault(epochNo, new HashSet<>());
             accounts.addAll(totalUniqueAccounts);
             context.getUniqueAccountsEpoch().put(epochNo, accounts);
-
-            dapp.setLastVersionInflowsOutflows(lastVersionTotalInflowsOutflows);
-            dapp.setLastVersionTransactionsCount(lastVersionTotalTransactionsCount);
-            dapp.setLastVersionScriptInvocationsCount(lastVersionTotalScriptInvocations);
-            dapp.setLastVersionVolume(lastVersionTotalVolume);
-            dapp.setLastVersionUniqueAccounts(lastVersionTotalUniqueAccounts.size());
         }
 
         return dapp;

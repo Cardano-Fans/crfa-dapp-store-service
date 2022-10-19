@@ -6,14 +6,12 @@ import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.DbManager;
 import crfa.app.repository.RepositoryColumnConverter;
-import crfa.app.resource.InvalidParameterException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -60,22 +58,15 @@ public class DappReleaseRepository {
         }
     }
 
-    public List<DAppRelease> listDappReleases(Optional<SortBy> sortBy, Optional<SortOrder> sortOrder) throws InvalidParameterException {
+    public List<DAppRelease> listDappReleases(SortBy sortBy, SortOrder sortOrder) {
         val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
         val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
-
-        if (decomposedSortBy.isEmpty()) {
-            throw new InvalidParameterException("Invalid sortBy, valid values: " + Arrays.asList(SortBy.values()));
-        }
-        if (decomposedSortOrder.isEmpty()) {
-            throw new InvalidParameterException("Invalid sortOrder, valid values: " + Arrays.asList(SortOrder.values()));
-        }
 
         try {
             QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
 
             return statementBuilder
-                    .orderBy(decomposedSortBy.get(), decomposedSortOrder.get())
+                    .orderBy(decomposedSortBy, decomposedSortOrder)
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);
