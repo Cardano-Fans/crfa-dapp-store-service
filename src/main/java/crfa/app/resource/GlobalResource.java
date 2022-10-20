@@ -38,6 +38,7 @@ public class GlobalResource {
             builder.totalDappsCount(globalStats.getTotalDapps());
             builder.adaPriceEUR(globalStats.getAdaPriceEUR());
             builder.adaPriceUSD(globalStats.getAdaPriceUSD());
+            builder.fees(globalStats.getTotalFees());
             builder.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
 
             return builder.build();
@@ -52,6 +53,7 @@ public class GlobalResource {
             b.inflowsOutflows(globalStats.getInflowsOutflows());
             b.trxCount(globalStats.getTotalTrxCount());
             b.volume(globalStats.getTotalVolume());
+            b.fees(globalStats.getTotalFees());
             b.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
 
             return new AbstractMap.SimpleEntry<>(globalStats.getEpochNo(), b.build());

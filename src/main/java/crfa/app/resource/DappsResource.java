@@ -33,6 +33,7 @@ public class DappsResource {
                     val scriptInvocationsCount = dapp.getScriptInvocationsCount();
                     val scriptsLocked = dapp.getScriptsLocked();
                     val volume = dapp.getVolume();
+                    val fees = dapp.getFees();
                     val uniqueAccounts = dapp.getUniqueAccounts();
 
                     val dAppType = dapp.getDAppType();
@@ -48,6 +49,7 @@ public class DappsResource {
                             .twitter(dapp.getTwitter())
                             .scriptsLocked(scriptsLocked)
                             .volume(volume)
+                            .fees(fees)
                             .uniqueAccounts(uniqueAccounts)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
@@ -61,12 +63,13 @@ public class DappsResource {
                                       @Get(uri = "/list-dapps", produces = "application/json")
     public List<DappResult> listDapps(@QueryValue Optional<SortBy> sortBy,
                                       @QueryValue Optional<SortOrder> sortOrder) {
-         return dappsRepository.listDapps(sortBy.orElse(SortBy.SCRIPTS_INVOKED), SortOrder.DESC)
+         return dappsRepository.listDapps(sortBy.orElse(SortBy.SCRIPTS_INVOKED), sortOrder.orElse(SortOrder.DESC))
                 .stream()
                  .map(dapp -> {
                     val scriptInvocationsCount = dapp.getScriptInvocationsCount();
                     val scriptsLocked = dapp.getScriptsLocked();
                     val volume = dapp.getVolume();
+                    val fees = dapp.getFees();
                     val uniqueAccounts = dapp.getUniqueAccounts();
 
                     return DappResult.builder()
@@ -80,6 +83,7 @@ public class DappsResource {
                             .twitter(dapp.getTwitter())
                             .scriptsLocked(scriptsLocked)
                             .volume(volume)
+                            .fees(fees)
                             .uniqueAccounts(uniqueAccounts)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())

@@ -41,6 +41,7 @@ public class GlobalStatsEpochProcessor {
             b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(currentEpochNo));
             b.totalTrxCount(dappsEpochRepository.totalScriptInvocations(currentEpochNo));
             b.totalVolume(dappsEpochRepository.volume(currentEpochNo));
+            b.totalFees(dappsEpochRepository.volume(currentEpochNo));
 
             Optional.ofNullable(context.getUniqueAccountsEpoch().get(currentEpochNo)).ifPresent(uniqueAccounts -> {
                 b.totalUniqueAccounts(uniqueAccounts.size());

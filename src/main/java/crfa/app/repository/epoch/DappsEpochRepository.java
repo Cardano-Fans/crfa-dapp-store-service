@@ -167,6 +167,25 @@ public class DappsEpochRepository {
         }
     }
 
+    public long fees(int epochNo) {
+        try {
+            val statementBuilder = dbManager.getdAppEpochDao()
+                    .queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("epoch_no", epochNo)
+                    .query()
+                    .stream()
+                    .filter(dAppEpoch -> dAppEpoch.getFees() != null)
+                    .mapToLong(dappEpoch -> dappEpoch.getVolume().longValue())
+                    .reduce(0, Long::sum);
+        } catch(SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public void upsertDApp(DAppEpoch dapp) {
         try {
             dbManager.getdAppEpochDao().createOrUpdate(dapp);

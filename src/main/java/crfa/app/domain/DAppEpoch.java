@@ -53,6 +53,10 @@ public class DAppEpoch implements EpochGatherable {
     @Nullable
     Long volume;
 
+    @DatabaseField(columnName = "fees")
+    @Nullable
+    Long fees;
+
     @DatabaseField(columnName = "unique_accounts")
     @Nullable
     Integer uniqueAccounts;

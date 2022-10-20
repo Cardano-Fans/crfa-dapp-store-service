@@ -41,6 +41,7 @@ public class GlobalStatsProcessor {
         b.totalScriptsLocked(dappsRepository.totalScriptsLocked());
         b.totalTrxCount(dappsRepository.totalScriptInvocations());
         b.totalVolume(dappsRepository.volume());
+        b.totalFees(dappsRepository.fees());
 
         b.totalDapps(totalDapps());
 

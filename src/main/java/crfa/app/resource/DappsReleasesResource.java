@@ -57,6 +57,7 @@ public class DappsReleasesResource {
                             .twitter(dAppRelease.getTwitter())
                             .updateTime(dAppRelease.getUpdateTime())
                             .releaseNumber(dAppRelease.getReleaseNumber())
+                            .fees(dAppRelease.getFees())
                             .scriptsLocked(dAppRelease.getScriptsLocked())
                             .transactionsCount(dAppRelease.getScriptInvocationsCount())
                             .trxCount(dAppRelease.getScriptInvocationsCount())

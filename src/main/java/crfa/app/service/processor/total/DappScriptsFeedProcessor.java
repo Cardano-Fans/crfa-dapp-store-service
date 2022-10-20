@@ -47,6 +47,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                         newDappReleaseItem.setScriptType(ScriptType.SPEND);
                         newDappReleaseItem.setScriptsLocked(loadAdaBalance(dappFeed, hash));
                         newDappReleaseItem.setVolume(loadVolume(dappFeed, hash));
+                        newDappReleaseItem.setFees(loadFees(dappFeed, hash));
 
                         newDappReleaseItem.setUniqueAccounts(loadUniqueAccounts(dappFeed, hash).size());
                     }

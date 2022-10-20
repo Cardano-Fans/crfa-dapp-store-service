@@ -52,7 +52,6 @@ public class DappService {
 
         return releaseVersionsCache;
     }
-
     public Map<Integer, EpochLevelStats> gatherEpochLevelData(Collection<? extends EpochGatherable> it) {
         val epochLevelStats = new HashMap<Integer, EpochLevelStats>();
 
@@ -61,6 +60,7 @@ public class DappService {
 
             epochLevelStats.put(epochNo, EpochLevelStats.builder()
                     .volume(epochGatherable.getVolume())
+                    .fees(epochGatherable.getFees())
                     .inflowsOutflows(epochGatherable.getInflowsOutflows())
                     .uniqueAccounts(epochGatherable.getUniqueAccounts())
                     .trxCount(epochGatherable.getScriptInvocationsCount())
@@ -162,11 +162,13 @@ public class DappService {
 
             if (hasSpend) {
                 val volumeDiff = nullSafe(nextStats.getVolume()) - nullSafe(prevStats.getVolume());
+                val feesDiff = nullSafe(nextStats.getFees()) - nullSafe(prevStats.getFees());
                 val inflowsOutflowsDiff = nullSafe(nextStats.getInflowsOutflows()) - nullSafe(prevStats.getInflowsOutflows());
                 val uniqueAccountsDiff = nullSafe(nextStats.getUniqueAccounts()) - nullSafe(prevStats.getUniqueAccounts());
                 val trxCountDiff = nullSafe(nextStats.getTrxCount()) - nullSafe(prevStats.getTrxCount());
 
                 val volumeDiffPerc = (float) volumeDiff / nullSafe(prevStats.getVolume()) * 100;
+                val feesDiffPerc = (float) feesDiff / nullSafe(prevStats.getFees()) * 100;
                 val inflowsOutflowsDiffPerc = (float) inflowsOutflowsDiff / nullSafe(prevStats.getInflowsOutflows()) * 100;
                 val uniqueAccountsDiffPerc = (float) uniqueAccountsDiff / nullSafe(prevStats.getUniqueAccounts()) * 100;
                 val trxCountDiffPerc = (float) trxCountDiff / nullSafe(prevStats.getTrxCount()) * 100;
@@ -183,6 +185,8 @@ public class DappService {
                         nextEpoch,
                         volumeDiff,
                         Double.isNaN(volumeDiffPerc) | Double.isInfinite(volumeDiffPerc) ? 0 : volumeDiffPerc,
+                        feesDiff,
+                        Double.isNaN(feesDiffPerc) | Double.isInfinite(feesDiffPerc) ? 0 : feesDiffPerc,
                         inflowsOutflowsDiff,
                         Double.isNaN(inflowsOutflowsDiffPerc) || Double.isInfinite(inflowsOutflowsDiffPerc) ? 0 : inflowsOutflowsDiffPerc,
                         uniqueAccountsDiff,

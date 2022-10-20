@@ -16,6 +16,8 @@ public class GlobalEpoch {
 
     Long volume;
 
+    Long fees;
+
     long totalUniqueAccounts;
 
 }

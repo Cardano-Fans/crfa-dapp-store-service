@@ -71,6 +71,10 @@ public class DAppRelease {
     @Nullable
     Long volume;
 
+    @DatabaseField(columnName = "fees")
+    @Nullable
+    Long fees;
+
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 

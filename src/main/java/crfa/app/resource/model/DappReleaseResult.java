@@ -52,6 +52,9 @@ public class DappReleaseResult {
     @Nullable
     Long volume;
 
+    @Nullable
+    Long fees;
+
     Date updateTime;
 
     @Nullable

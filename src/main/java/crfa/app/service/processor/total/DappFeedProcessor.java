@@ -52,6 +52,7 @@ public class DappFeedProcessor implements FeedProcessor {
             var totalScriptsLocked = 0L;
             var totalScriptInvocations = 0L;
             var totalVolume = 0L;
+            var fees = 0L;
 
             var totalUniqueAccounts = new HashSet<String>();
 
@@ -78,6 +79,7 @@ public class DappFeedProcessor implements FeedProcessor {
 
                     if (scriptItem.getPurpose() == SPEND) {
                         totalVolume += loadVolume(dappFeed, hash);
+                        fees += loadFees(dappFeed, hash);
                         totalScriptsLocked += loadAdaBalance(dappFeed, hash);
                         totalUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash));
                     }
@@ -92,6 +94,7 @@ public class DappFeedProcessor implements FeedProcessor {
             dapp.setScriptInvocationsCount(totalScriptInvocations);
             dapp.setScriptsLocked(totalScriptsLocked);
             dapp.setVolume(totalVolume);
+            dapp.setFees(fees);
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
 
             dapps.add(dapp);

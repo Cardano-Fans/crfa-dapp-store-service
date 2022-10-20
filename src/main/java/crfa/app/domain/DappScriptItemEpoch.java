@@ -56,6 +56,10 @@ public class DappScriptItemEpoch implements EpochGatherable {
     @Nullable
     Long volume;
 
+    @DatabaseField(columnName = "fees")
+    @Nullable
+    Long fees;
+
     @DatabaseField(columnName = "inflows_outflows")
     @Nullable
     Long inflowsOutflows; // for mint scripts we don't have scripts locked value

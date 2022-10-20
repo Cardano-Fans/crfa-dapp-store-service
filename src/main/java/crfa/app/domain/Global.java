@@ -18,6 +18,8 @@ public class Global {
 
     Long volume;
 
+    Long fees;
+
     long totalDappsCount; // regardless if this is mint or spend; all dapp types
 
     long totalUniqueAccounts;

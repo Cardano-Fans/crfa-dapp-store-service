@@ -40,6 +40,9 @@ public class DappResult {
     Long volume;
 
     @Nullable
+    Long fees;
+
+    @Nullable
     Integer uniqueAccounts;
 
     // unified for transactionsCount and scriptInvocationsCount

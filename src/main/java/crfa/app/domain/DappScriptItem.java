@@ -62,6 +62,10 @@ public class DappScriptItem {
     @Nullable
     Long volume;
 
+    @DatabaseField(columnName = "fees")
+    @Nullable
+    Long fees;
+
     @DatabaseField(columnName = "plutus_version")
     int plutusVersion;
 

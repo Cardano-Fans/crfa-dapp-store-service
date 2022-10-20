@@ -9,7 +9,10 @@ public interface EpochGatherable {
    @Nullable
    Long getVolume();
 
-   @Nullable
+    @Nullable
+    Long getFees();
+
+    @Nullable
    Long getInflowsOutflows();
 
    @Nullable

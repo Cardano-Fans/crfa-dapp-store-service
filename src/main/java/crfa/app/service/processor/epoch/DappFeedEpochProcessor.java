@@ -101,6 +101,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         var totalInflowsOutflows = 0L;
         var totalScriptInvocations = 0L;
         var totalVolume = 0L;
+        var totalFees = 0L;
         var totalUniqueAccounts = new HashSet<String>();
 
         val maxVersion = maxReleaseCache.getIfPresent(dappId);
@@ -128,6 +129,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
 
                 if (scriptItem.getPurpose() == Purpose.SPEND) {
                     totalVolume += loadVolume(dappFeed, hash, epochNo);
+                    totalFees += loadFees(dappFeed, hash, epochNo);
                     totalInflowsOutflows += loadAdaBalance(dappFeed, hash, epochNo);
                     totalUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
                 }
@@ -141,6 +143,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             dapp.setScriptInvocationsCount(totalScriptInvocations);
             dapp.setInflowsOutflows(totalInflowsOutflows);
             dapp.setVolume(totalVolume);
+            dapp.setFees(totalFees);
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
 
             val accounts = context.getUniqueAccountsEpoch().getOrDefault(epochNo, new HashSet<>());

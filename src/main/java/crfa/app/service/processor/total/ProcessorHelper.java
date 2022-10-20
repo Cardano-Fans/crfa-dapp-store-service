@@ -46,4 +46,11 @@ public class ProcessorHelper {
         });
     }
 
+    public static long loadFees(DappFeed dappFeed, String hash) {
+        return dappFeed.getFees().computeIfAbsent(hash, h -> {
+            log.warn("Unable to fees for hash:{}", h);
+            return 0L;
+        });
+    }
+
 }

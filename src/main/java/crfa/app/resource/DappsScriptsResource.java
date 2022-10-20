@@ -77,6 +77,7 @@ public class DappsScriptsResource {
                 .scriptsLocked(dAppRelease.getScriptsLocked())
                 .trxCount(scriptInvocationsCount)
                 .volume(dAppRelease.getVolume())
+                .fees(dAppRelease.getFees())
                 .uniqueAccounts(uniqueAccounts)
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
@@ -95,7 +96,6 @@ public class DappsScriptsResource {
                             .scriptsLocked(dappScriptItem.getScriptsLocked())
                             .scriptType(dappScriptItem.getScriptType())
                             .mintPolicyID(dappScriptItem.getMintPolicyID())
-//                            .contractAddress(dappScriptItem.getContractAddress())
                             .version(dappScriptItem.getVersion())
                             .updateTime(dappScriptItem.getUpdateTime())
                             .releaseKey(dappScriptItem.getReleaseKey())
@@ -105,6 +105,7 @@ public class DappsScriptsResource {
                             .trxCount(dappScriptItem.getScriptInvocationsCount())
                             .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                             .volume(dappScriptItem.getVolume())
+                            .fees(dappScriptItem.getFees())
                             .plutusVersion(dappScriptItem.getPlutusVersion())
                             .epochLevelData(dappService.getAllEpochLevelData(dappScriptItem, false))
                             .build();

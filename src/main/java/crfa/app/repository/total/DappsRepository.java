@@ -64,6 +64,20 @@ public class DappsRepository {
         }
     }
 
+    public Long fees() {
+        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+
+        try {
+            return statementBuilder.query()
+                    .stream()
+                    .filter(dApp -> dApp.getFees() != null)
+                    .map(DApp::getVolume).reduce(0L, Long::sum);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public Optional<DApp> findById(String id) {
         try {
             QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();

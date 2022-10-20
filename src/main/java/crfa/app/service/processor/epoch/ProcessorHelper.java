@@ -47,4 +47,11 @@ public class ProcessorHelper {
         });
     }
 
+    public static long loadFees(DappFeed dappFeed, String hash, int epochNo) {
+        return dappFeed.getFeesEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
+            log.warn("Unable to fees for hashEpochKey:{}", hashEpochKey);
+            return 0L;
+        });
+    }
+
 }

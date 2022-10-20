@@ -12,6 +12,9 @@ public final class EpochLevelStats {
     Long volume; // for mint scripts we don't have scripts locked value
 
     @Nullable
+    Long fees;
+
+    @Nullable
     Long inflowsOutflows;
 
     @Nullable // - null for script based only dapps

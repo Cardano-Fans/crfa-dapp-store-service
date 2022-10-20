@@ -49,6 +49,7 @@ public class DappFeedCreator {
         val scriptLockedPerContractAddr = scrollsOnChainDataService.scriptLocked(dataPointers.scriptHashes);
         val volumePerContract = scrollsOnChainDataService.volume(dataPointers.scriptHashes);
         val tokenHoldersAssetIdToAdaBalance = loadTokenHoldersBalance(dataPointers.assetIdToTokenHolders);
+        val fees = scrollsOnChainDataService.fees(dataPointers.scriptHashes);
         val uniqueAccounts = scrollsOnChainDataService.uniqueAccounts(dataPointers.scriptHashes);
 
         val uniqueAccountsMerge = uniqueAccountsUnion(uniqueAccounts, dataPointers.assetIdToTokenHolders);
@@ -60,6 +61,7 @@ public class DappFeedCreator {
                     // for all epochs - aggregates
                     .getAdaBalance(scriptLockedPerContractAddr)
                     .volume(volumePerContract)
+                    .fees(fees)
                     .invocationsCount(addMaps(mintPolicyCounts, scriptHashesCount))
                     .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
                     .uniqueAccounts(uniqueAccountsMerge)
@@ -74,6 +76,8 @@ public class DappFeedCreator {
             val scriptHashesCountWithEpoch = scrollsOnChainDataService.scriptHashesCountWithEpochs(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
             val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch, isCurrentEpochAndAggregates);
             val uniqueAccountsWithEpoch = scrollsOnChainDataService.uniqueAccountsEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+            val feesWithEpoch = scrollsOnChainDataService.feesEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+
             val uniqueAccountsMergeEpoch = uniqueAccountsUnionEpoch(uniqueAccountsWithEpoch, dataPointers.assetIdToTokenHoldersWithEpoch);
 
             return DappFeed.builder()
@@ -82,6 +86,7 @@ public class DappFeedCreator {
                     // for all epochs - aggregates
                     .getAdaBalance(scriptLockedPerContractAddr)
                     .volume(volumePerContract)
+                    .fees(fees)
                     .invocationsCount(addMaps(mintPolicyCounts, scriptHashesCount))
                     .uniqueAccounts(uniqueAccountsMerge)
                     .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
@@ -92,6 +97,7 @@ public class DappFeedCreator {
                     .invocationsCountEpoch(addMaps(mintPolicyCountsWithEpoch, scriptHashesCountWithEpoch))
                     .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
                     .volumeEpoch(volumePerContractWithEpoch)
+                    .feesEpoch(feesWithEpoch)
                     .uniqueAccountsEpoch(uniqueAccountsMergeEpoch)
                     .tokenHoldersAddressesEpoch(dataPointers.assetIdToTokenHoldersWithEpoch)
                     .build();
@@ -136,8 +142,6 @@ public class DappFeedCreator {
                         val epochKey = new EpochKey<>(epochNo, addr);
 
                         val balance = scriptLockedPerContractWithEpoch.getOrDefault(epochKey, 0L);
-
-                        log.debug("loadTokenHoldersBalanceWithEpoch - addr:{}, balanceAtEpoch:{}, epoch:{}", addr, balance, epochNo);
 
                         return new Tuple2<>(epochKey, balance);
                     })
