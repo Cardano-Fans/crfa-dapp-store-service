@@ -144,6 +144,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             dapp.setInflowsOutflows(totalInflowsOutflows);
             dapp.setVolume(totalVolume);
             dapp.setFees(totalFees);
+
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
 
             val accounts = context.getUniqueAccountsEpoch().getOrDefault(epochNo, new HashSet<>());

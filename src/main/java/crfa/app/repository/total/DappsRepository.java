@@ -15,6 +15,9 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 @Singleton
 @Slf4j
@@ -25,6 +28,10 @@ public class DappsRepository {
 
     @Inject
     private RepositoryColumnConverter repositoryColumnConverter;
+
+    public Set<String> allCategories() {
+        return listDapps().stream().map(DApp::getCategory).collect(toSet());
+    }
 
     public Long totalScriptsLocked() {
         QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
@@ -90,6 +97,10 @@ public class DappsRepository {
             log.error("db error", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public List<DApp> listDapps() {
+        return listDapps(SortBy.SCRIPTS_INVOKED, SortOrder.DESC);
     }
 
     public List<DApp> listDapps(SortBy sortBy, SortOrder sortOrder) {

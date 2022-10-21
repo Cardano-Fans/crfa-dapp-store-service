@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class DappScriptsResponse {
+public class DappScriptsResult {
 
     DappReleaseResult release;
 

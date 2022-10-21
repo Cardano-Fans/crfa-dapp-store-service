@@ -7,8 +7,7 @@ import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.repository.epoch.DappScriptsEpochRepository;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappReleaseRepository;
-import crfa.app.resource.model.EpochLevelStats;
-import crfa.app.utils.MoreMath;
+import crfa.app.domain.EpochLevelStats;
 import crfa.app.utils.MoreOptionals;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -59,7 +58,7 @@ public class DappService {
             epochLevelStats.put(epochNo, EpochLevelStats.builder()
                     .volume(epochGatherable.getVolume())
                     .fees(epochGatherable.getFees())
-                    .avgFee(MoreMath.safeDivision(epochGatherable.getFees(), epochGatherable.getScriptInvocationsCount()))
+                    .avgFee(epochGatherable.getAvgFee())
                     .inflowsOutflows(epochGatherable.getInflowsOutflows())
                     .uniqueAccounts(epochGatherable.getUniqueAccounts())
                     .trxCount(epochGatherable.getScriptInvocationsCount())

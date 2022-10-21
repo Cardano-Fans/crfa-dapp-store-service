@@ -9,10 +9,10 @@ public interface EpochGatherable {
    @Nullable
    Long getVolume();
 
-    @Nullable
-    Long getFees();
+   @Nullable
+   Long getFees();
 
-    @Nullable
+   @Nullable
    Long getInflowsOutflows();
 
    @Nullable
@@ -22,5 +22,7 @@ public interface EpochGatherable {
    Long getScriptInvocationsCount();
 
    boolean isClosedEpoch();
+
+   @javax.annotation.Nullable Double getAvgFee();
 
 }

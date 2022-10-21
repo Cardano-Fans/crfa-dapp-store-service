@@ -1,6 +1,5 @@
 package crfa.app.domain;
 
-import crfa.app.resource.model.EpochLevelStats;
 import lombok.Builder;
 import lombok.Getter;
 

@@ -18,7 +18,6 @@ import java.util.Optional;
 import static crfa.app.domain.SortBy.RELEASE_NUMBER;
 import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
 import static crfa.app.domain.SortOrder.ASC;
-import static crfa.app.utils.MoreMath.safeDivision;
 
 @Controller("/dapps")
 @Slf4j
@@ -60,7 +59,7 @@ public class DappsReleasesResource {
                             .updateTime(dAppRelease.getUpdateTime())
                             .releaseNumber(dAppRelease.getReleaseNumber())
                             .fees(dAppRelease.getFees())
-                            .avgFee(safeDivision(dAppRelease.getFees(), dAppRelease.getScriptInvocationsCount()))
+                            .avgFee(dAppRelease.getAvgFee())
                             .scriptsLocked(dAppRelease.getScriptsLocked())
                             .transactionsCount(dAppRelease.getScriptInvocationsCount())
                             .trxCount(dAppRelease.getScriptInvocationsCount())

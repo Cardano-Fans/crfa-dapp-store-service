@@ -1,4 +1,4 @@
-package crfa.app.domain;
+package crfa.app.resource.model;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class GlobalEpoch {
+public class GlobalStatsEpochResult {
 
     Long inflowsOutflows;
 
@@ -17,6 +17,8 @@ public class GlobalEpoch {
     Long volume;
 
     Long fees;
+
+    Double avgFee;
 
     long totalUniqueAccounts;
 

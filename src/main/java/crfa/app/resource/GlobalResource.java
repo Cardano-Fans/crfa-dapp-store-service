@@ -1,9 +1,11 @@
 package crfa.app.resource;
 
-import crfa.app.domain.Global;
-import crfa.app.domain.GlobalEpoch;
+import crfa.app.repository.GlobalCategoryStatsRepository;
 import crfa.app.repository.GlobalStatsEpochRepository;
 import crfa.app.repository.GlobalStatsRepository;
+import crfa.app.resource.model.GlobalCategoryStatsResult;
+import crfa.app.resource.model.GlobalStatsEpochResult;
+import crfa.app.resource.model.GlobalStatsResult;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;
@@ -27,37 +29,59 @@ public class GlobalResource {
     @Inject
     private GlobalStatsEpochRepository globalStatsEpochRepository;
 
+    @Inject
+    private GlobalCategoryStatsRepository globalCategoryStatsRepository;
+
     @Get(uri = "/stats", produces = "application/json")
-    public Optional<Global> global() {
+    public Optional<GlobalStatsResult> globalStats() {
         return globalStatsRepository.findGlobalStats().map(globalStats -> {
-            val builder = Global.builder();
+            val b = GlobalStatsResult.builder();
 
-            builder.totalScriptsLocked(globalStats.getTotalScriptsLocked());
-            builder.trxCount(globalStats.getTotalTrxCount());
-            builder.volume(globalStats.getTotalVolume());
-            builder.totalDappsCount(globalStats.getTotalDapps());
-            builder.adaPriceEUR(globalStats.getAdaPriceEUR());
-            builder.adaPriceUSD(globalStats.getAdaPriceUSD());
-            builder.fees(globalStats.getTotalFees());
-            builder.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
+            b.totalScriptsLocked(globalStats.getTotalScriptsLocked());
+            b.trxCount(globalStats.getTotalTrxCount());
+            b.volume(globalStats.getTotalVolume());
+            b.totalDappsCount(globalStats.getTotalDapps());
+            b.fees(globalStats.getTotalFees());
+            b.avgFee(globalStats.getAvgFee());
+            b.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
 
-            return builder.build();
+            b.adaPriceEUR(globalStats.getAdaPriceEUR());
+            b.adaPriceUSD(globalStats.getAdaPriceUSD());
+
+            return b.build();
         });
     }
 
     @Get(uri = "/stats/epochs", produces = "application/json")
-    public Map<Integer, GlobalEpoch> globalEpoch() {
+    public Map<Integer, GlobalStatsEpochResult> globalEpochStats() {
         return globalStatsEpochRepository.listGlobalStats().stream().map(globalStats -> {
-            val b = GlobalEpoch.builder();
+            val b = GlobalStatsEpochResult.builder();
 
             b.inflowsOutflows(globalStats.getInflowsOutflows());
             b.trxCount(globalStats.getTotalTrxCount());
             b.volume(globalStats.getTotalVolume());
             b.fees(globalStats.getTotalFees());
+            b.avgFee(globalStats.getAvgFee());
             b.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
 
             return new AbstractMap.SimpleEntry<>(globalStats.getEpochNo(), b.build());
         }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+    }
+
+    @Get(uri = "/stats/category", produces = "application/json")
+    public Map<String, GlobalCategoryStatsResult> globalCategoryStats() {
+        return globalCategoryStatsRepository.listGlobalStats().stream().map(globalStats -> {
+            val b = GlobalCategoryStatsResult.builder();
+
+            b.trxCount(globalStats.getTrxCount());
+            b.volume(globalStats.getVolume());
+            b.fees(globalStats.getFees());
+            b.avgFee(globalStats.getAvgFee());
+            b.scriptsLocked(globalStats.getScriptsLocked());
+            b.dapps(globalStats.getDapps());
+
+            return new AbstractMap.SimpleEntry<>(globalStats.getCategoryType(), b.build());
+        }).collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
 
 }

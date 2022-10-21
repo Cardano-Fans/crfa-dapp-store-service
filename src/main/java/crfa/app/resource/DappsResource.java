@@ -15,7 +15,8 @@ import lombok.val;
 import java.util.List;
 import java.util.Optional;
 
-import static crfa.app.utils.MoreMath.safeDivision;
+import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
+import static crfa.app.domain.SortOrder.DESC;
 
 @Controller("/dapps")
 @Slf4j
@@ -52,7 +53,7 @@ public class DappsResource {
                             .scriptsLocked(scriptsLocked)
                             .volume(volume)
                             .fees(fees)
-                            .avgFee(safeDivision(fees, dapp.getScriptInvocationsCount()))
+                            .avgFee(dapp.getAvgFee())
                             .uniqueAccounts(uniqueAccounts)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
@@ -66,7 +67,7 @@ public class DappsResource {
                                       @Get(uri = "/list-dapps", produces = "application/json")
     public List<DappResult> listDapps(@QueryValue Optional<SortBy> sortBy,
                                       @QueryValue Optional<SortOrder> sortOrder) {
-         return dappsRepository.listDapps(sortBy.orElse(SortBy.SCRIPTS_INVOKED), sortOrder.orElse(SortOrder.DESC))
+         return dappsRepository.listDapps(sortBy.orElse(SCRIPTS_INVOKED), sortOrder.orElse(DESC))
                 .stream()
                  .map(dapp -> {
                     val scriptInvocationsCount = dapp.getScriptInvocationsCount();
@@ -87,7 +88,7 @@ public class DappsResource {
                             .scriptsLocked(scriptsLocked)
                             .volume(volume)
                             .fees(fees)
-                            .avgFee(safeDivision(fees, dapp.getScriptInvocationsCount()))
+                            .avgFee(dapp.getAvgFee())
                             .uniqueAccounts(uniqueAccounts)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())

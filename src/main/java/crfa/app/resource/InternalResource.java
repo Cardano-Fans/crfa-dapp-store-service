@@ -63,4 +63,21 @@ public class InternalResource {
         return HttpResponse.status(HttpStatus.OK);
     }
 
+    @Post(value = "/rebuildDbPartial", consumes = "application/json", produces = "application/json")
+    public HttpResponse<?> rebuildDbPartial() {
+        val injestionMode = InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
+
+        log.info("Dapps update scheduled, mode:{}", injestionMode);
+
+        log.info("Gathering data feed...");
+        val dataFeed = dappFeedCreator.createFeed(injestionMode);
+        log.info("Got data feed.");
+
+        dappIngestionService.process(dataFeed, injestionMode);
+
+        log.info("dapps update completed, mode:{}", injestionMode);
+
+        return HttpResponse.status(HttpStatus.OK);
+    }
+
 }

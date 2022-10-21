@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.util.Date;
 
+import static crfa.app.utils.MoreMath.safeDivision;
+
 // table to represent dapp release item, which is in fact on script level
 
 @Builder
@@ -71,5 +73,9 @@ public class DappScriptItem {
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
+
+    public @Nullable Double getAvgFee() {
+        return safeDivision(fees, scriptInvocationsCount);
+    }
 
 }

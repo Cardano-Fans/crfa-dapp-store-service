@@ -1,4 +1,4 @@
-package crfa.app.resource.model;
+package crfa.app.domain;
 
 import io.micronaut.core.annotation.Nullable;
 import lombok.Builder;

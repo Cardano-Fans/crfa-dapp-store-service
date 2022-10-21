@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.util.Date;
 
+import static crfa.app.utils.MoreMath.safeDivision;
+
 // table to represent dapp, either last version or all versions
 
 @Builder
@@ -71,11 +73,11 @@ public class DApp {
     @DatabaseField(columnName = "last_version_open_source_link")
     String lastVersionOpenSourceLink;
 
-    @DatabaseField(columnName = "last_version_scripts_locked")
-    @Nullable
-    Long lastVersionScriptsLocked;
-
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
+
+    public @Nullable Double getAvgFee() {
+        return safeDivision(fees, scriptInvocationsCount);
+    }
 
 }

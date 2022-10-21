@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.util.Date;
 
+import static crfa.app.utils.MoreMath.safeDivision;
+
 // table to represent dApp release
 
 @Builder
@@ -96,6 +98,10 @@ public class DAppRelease {
 
     public boolean isLatestVersion(float maxReleaseVersion) {
         return Float.compare(maxReleaseVersion, releaseNumber) == 0;
+    }
+
+    public @Nullable Double getAvgFee() {
+        return safeDivision(fees, scriptInvocationsCount);
     }
 
 }

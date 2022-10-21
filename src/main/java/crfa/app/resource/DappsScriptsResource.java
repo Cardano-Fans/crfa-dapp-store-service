@@ -8,7 +8,7 @@ import crfa.app.repository.total.DappReleaseRepository;
 import crfa.app.repository.total.DappScriptsRepository;
 import crfa.app.resource.model.DAppScriptItemResult;
 import crfa.app.resource.model.DappReleaseResult;
-import crfa.app.resource.model.DappScriptsResponse;
+import crfa.app.resource.model.DappScriptsResult;
 import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -20,8 +20,6 @@ import lombok.val;
 
 import java.util.List;
 import java.util.Optional;
-
-import static crfa.app.utils.MoreMath.safeDivision;
 
 @Controller("/dapps")
 @Slf4j
@@ -37,14 +35,14 @@ public class DappsScriptsResource {
     private DappService dappService;
 
     @Get(uri = "/by-release-key/{releaseKey}", produces = "application/json")
-    public Optional<DappScriptsResponse> listScriptsResponse(@PathVariable String releaseKey,
-                                                   @QueryValue Optional<SortBy> sortBy,
-                                                   @QueryValue Optional<SortOrder> sortOrder) {
+    public Optional<DappScriptsResult> listScriptsResponse(@PathVariable String releaseKey,
+                                                           @QueryValue Optional<SortBy> sortBy,
+                                                           @QueryValue Optional<SortOrder> sortOrder) {
         val dappScriptItems = dappScriptsRepository.listDappScriptItems(releaseKey, sortBy.orElse(SortBy.SCRIPTS_INVOKED), sortOrder.orElse(SortOrder.DESC));
 
         return dappReleaseRepository.findById(releaseKey)
                 .map(dAppRelease -> {
-                    return DappScriptsResponse.builder()
+                    return DappScriptsResult.builder()
                             .release(getDappReleaseResult(dAppRelease))
                             .scripts(getdAppScriptItemResults(dappScriptItems))
                             .build();
@@ -80,7 +78,7 @@ public class DappsScriptsResource {
                 .trxCount(scriptInvocationsCount)
                 .volume(dAppRelease.getVolume())
                 .fees(dAppRelease.getFees())
-                .avgFee(safeDivision(dAppRelease.getFees(), dAppRelease.getScriptInvocationsCount()))
+                .avgFee(dAppRelease.getAvgFee())
                 .uniqueAccounts(uniqueAccounts)
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
@@ -109,7 +107,7 @@ public class DappsScriptsResource {
                             .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                             .volume(dappScriptItem.getVolume())
                             .fees(dappScriptItem.getFees())
-                            .avgFee(safeDivision(dappScriptItem.getFees(), dappScriptItem.getScriptInvocationsCount()))
+                            .avgFee(dappScriptItem.getAvgFee())
                             .plutusVersion(dappScriptItem.getPlutusVersion())
                             .epochLevelData(dappService.getAllEpochLevelData(dappScriptItem, false))
                             .build();

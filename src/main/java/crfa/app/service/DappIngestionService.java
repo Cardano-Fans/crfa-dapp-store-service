@@ -29,6 +29,9 @@ public class DappIngestionService {
     @Inject
     private GlobalStatsEpochProcessor globalStatsEpochProcessor;
 
+    @Inject
+    private GlobalCategoryStatsProcessor globalCategoryStatsProcessor;
+
     public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val beans = appContext.getActiveBeanRegistrations(FeedProcessor.class);
 
@@ -50,6 +53,10 @@ public class DappIngestionService {
 
             log.info("Processing, dappFeed:{}", bean.getName());
 
+//            if (b.isEpochProcessor()) {
+//                continue;
+//            }
+
             if (b.isEpochProcessor() && injestionMode == WITHOUT_EPOCHS_ONLY_AGGREGATES) {
                 log.info("This bean is epoch processor bean and ingestionMode:{}, continue to the next one!", injestionMode);
                 continue;
@@ -66,8 +73,11 @@ public class DappIngestionService {
         if (injestionMode != WITHOUT_EPOCHS_ONLY_AGGREGATES) {
             globalStatsEpochProcessor.process(dappFeed, injestionMode, context);
         }
-
         log.info("global stats processor done.");
+
+        log.info("global category stats processor...");
+        globalCategoryStatsProcessor.process(dappFeed, injestionMode, context);
+        log.info("global category stats processor done.");
     }
 
 }

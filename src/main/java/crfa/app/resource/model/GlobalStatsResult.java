@@ -1,4 +1,4 @@
-package crfa.app.domain;
+package crfa.app.resource.model;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class Global {
+public class GlobalStatsResult {
 
     Long totalScriptsLocked;
 
@@ -19,6 +19,8 @@ public class Global {
     Long volume;
 
     Long fees;
+
+    Double avgFee;
 
     long totalDappsCount; // regardless if this is mint or spend; all dapp types
 
