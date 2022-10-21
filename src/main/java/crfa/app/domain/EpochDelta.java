@@ -13,14 +13,16 @@ public class EpochDelta {
     int fromEpoch;
     int toEpoch;
     Long volumeDiff;
-    Float volumeDiffPerc;
+    Double volumeDiffPerc;
     Long feesDiff;
-    Float feesDiffPerc;
+    Double feesDiffPerc;
+    Double avgFeesDiff;
+    Double avgFeesDiffPerc;
     Long inflowsOutflowsDiff;
-    Float inflowsOutflowsDiffPerc;
+    Double inflowsOutflowsDiffPerc;
     Integer uniqueAccountsDiff;
-    Float uniqueAccountsDiffPerc;
+    Double uniqueAccountsDiffPerc;
     Long trxCountDiff;
-    Float trxCountDiffPerc;
+    Double trxCountDiffPerc;
     Double activityDiffPerc;
 }

@@ -15,6 +15,9 @@ public final class EpochLevelStats {
     Long fees;
 
     @Nullable
+    Double avgFee;
+
+    @Nullable
     Long inflowsOutflows;
 
     @Nullable // - null for script based only dapps

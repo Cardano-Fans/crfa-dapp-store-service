@@ -21,6 +21,8 @@ import lombok.val;
 import java.util.List;
 import java.util.Optional;
 
+import static crfa.app.utils.MoreMath.safeDivision;
+
 @Controller("/dapps")
 @Slf4j
 public class DappsScriptsResource {
@@ -78,6 +80,7 @@ public class DappsScriptsResource {
                 .trxCount(scriptInvocationsCount)
                 .volume(dAppRelease.getVolume())
                 .fees(dAppRelease.getFees())
+                .avgFee(safeDivision(dAppRelease.getFees(), dAppRelease.getScriptInvocationsCount()))
                 .uniqueAccounts(uniqueAccounts)
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
@@ -106,6 +109,7 @@ public class DappsScriptsResource {
                             .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                             .volume(dappScriptItem.getVolume())
                             .fees(dappScriptItem.getFees())
+                            .avgFee(safeDivision(dappScriptItem.getFees(), dappScriptItem.getScriptInvocationsCount()))
                             .plutusVersion(dappScriptItem.getPlutusVersion())
                             .epochLevelData(dappService.getAllEpochLevelData(dappScriptItem, false))
                             .build();

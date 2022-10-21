@@ -49,6 +49,9 @@ public class DAppScriptItemResult {
     @Nullable
     Long fees;
 
+    @Nullable
+    Double avgFee;
+
     int plutusVersion;
 
     Optional<EpochLevelData> epochLevelData;

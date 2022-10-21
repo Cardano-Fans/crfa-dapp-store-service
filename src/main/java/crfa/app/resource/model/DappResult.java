@@ -43,6 +43,9 @@ public class DappResult {
     Long fees;
 
     @Nullable
+    Double avgFee;
+
+    @Nullable
     Integer uniqueAccounts;
 
     // unified for transactionsCount and scriptInvocationsCount

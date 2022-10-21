@@ -4,24 +4,21 @@
 - JDK17
 
 ## TODO
-- crfa-dapp-store: total fees genereted by script address, dapp release and of course dapp root level but also over epoch
-
-- crfa-dapp-store: set(tx size) by script addr, benefit is that we can to e.g. median fee or min fee, max fee per script address, etc
-- crfa-dapp-store: set(tx fee) by script addr
-- crfa-dapp-store:: avg transaction size per script addr, same over epochs across all dapps
-- crfa-dapp-store:: avg transaction fee per script addr, same over epochs across all dapps
-- crfa-dapp-store: pool ticker for a script address using blockfrost
+Shorter term:
 - crfa-dapp-store: all stats per category + all stats per sub category
+- crfa-dapp-store: pool ticker for a script address using blockfrost
 
-- ===
-- scrolls: volume fixes 
-- top 25 resource hogs, which dapps use the most expensive and most size intensive scripts
-- top 25 addresses in terms of dapp volume
-  
+- crfa-dapp-store: set(tx size) by script addr - total size shows by how many bytes ledger grows
+- crfa-dapp-store: set(avg tx size) by script addr, this allows us to see is script / dapp is a storage guzzler, e.g. does not use Plutus V2 or uses unoptimised code
+
+Optimisations:
 - consider using bloom filters instead of HashSet (memory optimisation only)
+- use hibernate H2 with file storage instead of clunky ORM (https://www.baeldung.com/h2-embedded-db-data-storage)
 
-- scrolls: user contract transactions vs all contract transactions (wallet CONNECTOR)
+Longer term:
+- scrolls: adjusted volume so we don't include returning transaction
+- top 25 / 100 resource hogs, which dapps use the most expensive and most size intensive scripts?
+- top 25 / 100 script addresses / dapps in terms of dapp volume?
+- top 25 / 100 script addresses / dapps in terms of dapp avg transaction fee?
 
-REALLY EASY since we already have a reducer for it:
-- dashboard general epoch level stats: volume, unique accounts, inflowsOutflows, trxCount
-- 
+- scrolls: user contract transactions vs all contract transactions (wallet CONNECTOR). Feature to discuss, maybe users don't need it???
