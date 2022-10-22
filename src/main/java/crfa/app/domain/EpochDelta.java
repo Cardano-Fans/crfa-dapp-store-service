@@ -16,14 +16,22 @@ public class EpochDelta {
     Double volumeDiffPerc;
     Long feesDiff;
     Double feesDiffPerc;
+
     Double avgFeesDiff;
     Double avgFeesDiffPerc;
+
     Long inflowsOutflowsDiff;
     Double inflowsOutflowsDiffPerc;
+
     Integer uniqueAccountsDiff;
     Double uniqueAccountsDiffPerc;
+
     Long trxCountDiff;
     Double trxCountDiffPerc;
+
+    Double avgTrxSizeDiff;
+    Double avgTrxSizeDiffPerc;
+
     Double activityDiffPerc;
 
 }

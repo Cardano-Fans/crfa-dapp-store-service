@@ -58,6 +58,9 @@ public class DappReleaseResult {
     @Nullable
     Double avgFee;
 
+    @Nullable
+    Double avgTrxSize;
+
     Date updateTime;
 
     @Nullable

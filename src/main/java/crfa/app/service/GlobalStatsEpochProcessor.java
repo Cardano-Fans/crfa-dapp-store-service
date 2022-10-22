@@ -41,7 +41,9 @@ public class GlobalStatsEpochProcessor {
             b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(currentEpochNo));
             b.totalTrxCount(dappsEpochRepository.totalScriptInvocations(currentEpochNo));
             b.totalVolume(dappsEpochRepository.volume(currentEpochNo));
-            b.totalFees(dappsEpochRepository.volume(currentEpochNo));
+
+            b.totalTrxSizes(dappsEpochRepository.fees(currentEpochNo));
+            b.totalFees(dappsEpochRepository.trxSizes(currentEpochNo));
 
             Optional.ofNullable(context.getUniqueAccountsEpoch().get(currentEpochNo)).ifPresent(uniqueAccounts -> {
                 b.totalUniqueAccounts(uniqueAccounts.size());
@@ -60,6 +62,9 @@ public class GlobalStatsEpochProcessor {
             b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(epochNo));
             b.totalTrxCount(dappsEpochRepository.totalScriptInvocations(epochNo));
             b.totalVolume(dappsEpochRepository.volume(epochNo));
+
+            b.totalTrxSizes(dappsEpochRepository.trxSizes(epochNo));
+            b.totalFees(dappsEpochRepository.fees(epochNo));
 
             Optional.ofNullable(context.getUniqueAccountsEpoch().get(epochNo)).ifPresent(uniqueAccounts -> {
                 b.totalUniqueAccounts(uniqueAccounts.size());

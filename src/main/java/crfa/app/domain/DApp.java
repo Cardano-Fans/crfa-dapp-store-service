@@ -57,6 +57,10 @@ public class DApp {
     @Nullable
     Long fees;
 
+    @DatabaseField(columnName = "trx_sizes")
+    @Nullable
+    Long trxSizes;
+
     @DatabaseField(columnName = "unique_accounts")
     @Nullable
     Integer uniqueAccounts;
@@ -78,6 +82,10 @@ public class DApp {
 
     public @Nullable Double getAvgFee() {
         return safeDivision(fees, scriptInvocationsCount);
+    }
+
+    public @Nullable Double getAvgTrxSize() {
+        return safeDivision(trxSizes, scriptInvocationsCount);
     }
 
 }

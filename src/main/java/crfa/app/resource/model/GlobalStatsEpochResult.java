@@ -20,6 +20,8 @@ public class GlobalStatsEpochResult {
 
     Double avgFee;
 
+    Double avgTrxSize;
+
     long totalUniqueAccounts;
 
 }

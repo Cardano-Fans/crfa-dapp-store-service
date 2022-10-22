@@ -16,6 +16,7 @@ import java.util.Optional;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
+import static crfa.app.utils.MoreMath.safeDivision;
 
 @Slf4j
 @Singleton
@@ -62,6 +63,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 var totalInvocations = 0L;
                 var volume = 0L;
                 var fees = 0L;
+                var trxSizes = 0L;
                 var uniqueAccounts = new HashSet<String>();
 
                 for (val scriptItem : dappReleaseItem.getScripts()) {
@@ -71,8 +73,9 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
 
                     if (scriptItem.getPurpose() == SPEND) {
                         volume += loadVolume(dappFeed, hash);
-                        fees += loadFees(dappFeed, hash);
+                        fees += loadFee(dappFeed, hash);
                         totalScriptsLocked += loadAdaBalance(dappFeed, hash);
+                        trxSizes += loadTrxSize(dappFeed, hash);
                         uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash));
                     }
                     if (scriptItem.getPurpose() == MINT && scriptItem.getAssetId().isPresent()) {
@@ -85,6 +88,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setUniqueAccounts(uniqueAccounts.size());
                 dappRelease.setVolume(volume);
                 dappRelease.setFees(fees);
+                dappRelease.setTrxSizes(trxSizes);
 
                 dappReleases.add(dappRelease);
             });

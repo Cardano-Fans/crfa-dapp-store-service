@@ -19,6 +19,8 @@ public class GlobalCategoryStatsResult {
 
     private double avgFee;
 
+    private double avgTrxSize;
+
     private int dapps;
 
 //    @DatabaseField(canBeNull = false, columnName = "unique_accounts")

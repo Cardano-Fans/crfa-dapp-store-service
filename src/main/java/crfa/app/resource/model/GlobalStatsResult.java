@@ -22,6 +22,8 @@ public class GlobalStatsResult {
 
     Double avgFee;
 
+    Double avgTrxSize;
+
     long totalDappsCount; // regardless if this is mint or spend; all dapp types
 
     long totalUniqueAccounts;

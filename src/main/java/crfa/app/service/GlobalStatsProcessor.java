@@ -42,6 +42,7 @@ public class GlobalStatsProcessor {
         b.totalTrxCount(dappsRepository.totalScriptInvocations());
         b.totalVolume(dappsRepository.volume());
         b.totalFees(dappsRepository.fees());
+        b.totalTrxSizes(dappsRepository.totalTrxSizes());
 
         b.totalDapps(totalDapps());
 

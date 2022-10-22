@@ -7,7 +7,6 @@ import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.repository.epoch.DappScriptsEpochRepository;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappReleaseRepository;
-import crfa.app.domain.EpochLevelStats;
 import crfa.app.utils.MoreOptionals;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -59,6 +58,7 @@ public class DappService {
                     .volume(epochGatherable.getVolume())
                     .fees(epochGatherable.getFees())
                     .avgFee(epochGatherable.getAvgFee())
+                    .avgTrxSize(epochGatherable.getAvgTrxSize())
                     .inflowsOutflows(epochGatherable.getInflowsOutflows())
                     .uniqueAccounts(epochGatherable.getUniqueAccounts())
                     .trxCount(epochGatherable.getScriptInvocationsCount())
@@ -165,6 +165,7 @@ public class DappService {
                 val inflowsOutflowsDiff = safeSubtraction(nextStats.getInflowsOutflows(), prevStats.getInflowsOutflows());
                 val uniqueAccountsDiff = safeSubtraction(nextStats.getUniqueAccounts(), prevStats.getUniqueAccounts());
                 val trxCountDiff = safeSubtraction(nextStats.getTrxCount(), prevStats.getTrxCount());
+                val avgTrxSize = safeSubtraction(nextStats.getAvgTrxSize(), prevStats.getAvgTrxSize());
 
                 val volumeDiffPerc = safeMultiplication(safeDivision(volumeDiff, prevStats.getVolume()), (double) 100);
                 val feesDiffPerc = safeMultiplication(safeDivision(feesDiff, prevStats.getFees()), (double) 100);
@@ -172,6 +173,7 @@ public class DappService {
                 val inflowsOutflowsDiffPerc = safeMultiplication(safeDivision(inflowsOutflowsDiff, prevStats.getInflowsOutflows()), (double) 100);
                 val uniqueAccountsDiffPerc = safeMultiplication(safeDivision(uniqueAccountsDiff, prevStats.getUniqueAccounts()), (double) 100);
                 val trxCountDiffPerc = safeMultiplication(safeDivision(trxCountDiff, prevStats.getTrxCount()), (double) 100);
+                val avgTrxSizeDiffPerc = safeMultiplication(safeDivision(avgTrxSize, prevStats.getAvgTrxSize()), (double) 100);
 
                 val activityDiffPerc = Stream.of(volumeDiffPerc, uniqueAccountsDiffPerc, trxCountDiffPerc).filter(Objects::nonNull).mapToDouble(Double::doubleValue).average().getAsDouble();
 
@@ -195,6 +197,8 @@ public class DappService {
                         uniqueAccountsDiffPerc,
                         trxCountDiff,
                         trxCountDiffPerc,
+                        avgTrxSize,
+                        avgTrxSizeDiffPerc,
                         activityDiffPerc
                 );
             } else {

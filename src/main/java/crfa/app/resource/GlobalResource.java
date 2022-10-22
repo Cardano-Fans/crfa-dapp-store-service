@@ -43,6 +43,8 @@ public class GlobalResource {
             b.totalDappsCount(globalStats.getTotalDapps());
             b.fees(globalStats.getTotalFees());
             b.avgFee(globalStats.getAvgFee());
+            b.avgTrxSize(globalStats.getAvgTrxSize());
+
             b.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
 
             b.adaPriceEUR(globalStats.getAdaPriceEUR());
@@ -62,6 +64,7 @@ public class GlobalResource {
             b.volume(globalStats.getTotalVolume());
             b.fees(globalStats.getTotalFees());
             b.avgFee(globalStats.getAvgFee());
+            b.avgTrxSize(globalStats.getAvgTrxSize());
             b.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
 
             return new AbstractMap.SimpleEntry<>(globalStats.getEpochNo(), b.build());
@@ -78,6 +81,7 @@ public class GlobalResource {
             b.fees(globalStats.getFees());
             b.avgFee(globalStats.getAvgFee());
             b.scriptsLocked(globalStats.getScriptsLocked());
+            b.avgTrxSize(globalStats.getAvgTrxSize());
             b.dapps(globalStats.getDapps());
 
             return new AbstractMap.SimpleEntry<>(globalStats.getCategoryType(), b.build());

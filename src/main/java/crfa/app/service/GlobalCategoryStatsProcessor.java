@@ -34,10 +34,10 @@ public class GlobalCategoryStatsProcessor {
 
             b.categoryType(cat);
             b.updateTime(new Date());
-            b.avgFee(dappPerCat.stream().filter(Objects::nonNull).mapToDouble(DApp::getAvgFee).average().orElse(0.0D));
             b.scriptsLocked(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getScriptsLocked).sum());
             b.trxCount(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getScriptInvocationsCount).sum());
             b.fees(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getFees).sum());
+            b.trxSizes(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getTrxSizes).sum());
             b.volume(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getVolume).sum());
             b.dapps(dappPerCat.size());
 

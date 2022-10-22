@@ -293,7 +293,7 @@ public class ScrollsOnChainDataService {
 
         val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
 
-        for(val epochNo : epochs) {
+        for (val epochNo : epochs) {
             hashes.forEach(hash -> {
                 val key = format("%s.%s.%d", collection, hash, epochNo);
 
@@ -305,6 +305,63 @@ public class ScrollsOnChainDataService {
                     val resultAda = result / ONE_MLN;
 
                     feesPerEpoch.put(new EpochKey<>(epochNo, hash), resultAda);
+                } else {
+                    feesPerEpoch.put(new EpochKey<>(epochNo, hash), 0L);
+                }
+            });
+        }
+
+        return feesPerEpoch;
+    }
+
+    public Map<String, Long> trxSizes(Collection<String> hashes) {
+        log.info("loading trx sizes data...");
+
+        val trxSizesPerHash = new HashMap<String, Long>();
+
+        val collection = "c15";
+
+        hashes.forEach(hash -> {
+            log.debug("Loading trx sizes per hash:{}", hash);
+
+            val key = String.format("%s.%s", collection, hash);
+
+            val r = redissonClient.getAtomicLong(key);
+
+            if (r.isExists()) {
+                val result = r.get();
+
+                trxSizesPerHash.put(hash, result);
+            } else {
+                trxSizesPerHash.put(hash, 0L);
+            }
+        });
+
+        return trxSizesPerHash;
+    }
+
+    public Map<EpochKey<String>, Long> trxSizesEpochLevel(Collection<String> hashes,
+                                                          boolean currentEpochOnly) {
+        log.info("loading trx sizes on epoch level...");
+
+        val feesPerEpoch = new HashMap<EpochKey<String>, Long>();
+
+        val collection = "c16";
+
+        val currentEpochNo = currentEpoch().orElseThrow();
+
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+
+        for (val epochNo : epochs) {
+            hashes.forEach(hash -> {
+                val key = format("%s.%s.%d", collection, hash, epochNo);
+
+                val r = redissonClient.getAtomicLong(key);
+
+                if (r.isExists()) {
+                    val result = r.get();
+
+                    feesPerEpoch.put(new EpochKey<>(epochNo, hash), result);
                 } else {
                     feesPerEpoch.put(new EpochKey<>(epochNo, hash), 0L);
                 }

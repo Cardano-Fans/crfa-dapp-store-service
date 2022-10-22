@@ -40,17 +40,13 @@ public class DappScriptItem {
     @DatabaseField(canBeNull = false, columnName = "version")
     int version;
 
-//    @DatabaseField(columnName = "contract_address")
-//    @Nullable
-//    String contractAddress;
-
     @DatabaseField(columnName = "mint_policy_id")
     @Nullable
     String mintPolicyID;
 
     @DatabaseField(columnName = "scripts_locked")
     @Nullable
-    Long scriptsLocked; // for mint scripts we don't have scripts locked value
+    Long scriptsLocked; // for mint scripts we don't have scripts locked value // ADA
 
     // total number of all script innovations belonging to this dApp
     @DatabaseField(canBeNull = false, columnName = "script_invocations")
@@ -62,11 +58,15 @@ public class DappScriptItem {
 
     @DatabaseField(columnName = "volume")
     @Nullable
-    Long volume;
+    Long volume; // ADA
 
     @DatabaseField(columnName = "fees")
     @Nullable
-    Long fees;
+    Long fees; // ADA
+
+    @DatabaseField(columnName = "trx_sizes")
+    @Nullable
+    Long trxSizes;
 
     @DatabaseField(columnName = "plutus_version")
     int plutusVersion;
@@ -76,6 +76,10 @@ public class DappScriptItem {
 
     public @Nullable Double getAvgFee() {
         return safeDivision(fees, scriptInvocationsCount);
+    }
+
+    public @Nullable Double getAvgTrxSize() {
+        return safeDivision(trxSizes, scriptInvocationsCount);
     }
 
 }

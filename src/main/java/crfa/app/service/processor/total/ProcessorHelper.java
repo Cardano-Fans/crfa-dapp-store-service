@@ -46,9 +46,16 @@ public class ProcessorHelper {
         });
     }
 
-    public static long loadFees(DappFeed dappFeed, String hash) {
+    public static long loadFee(DappFeed dappFeed, String hash) {
         return dappFeed.getFees().computeIfAbsent(hash, h -> {
             log.warn("Unable to fees for hash:{}", h);
+            return 0L;
+        });
+    }
+
+    public static long loadTrxSize(DappFeed dappFeed, String hash) {
+        return dappFeed.getTrxSizes().computeIfAbsent(hash, h -> {
+            log.warn("Unable to load trx size for hash:{}", h);
             return 0L;
         });
     }

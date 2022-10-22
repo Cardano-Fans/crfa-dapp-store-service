@@ -102,7 +102,9 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
             dappScriptItem.setScriptType(ScriptType.SPEND);
             dappScriptItem.setInflowsOutflows(loadAdaBalance(dappFeed, hash, epochNo));
             dappScriptItem.setVolume(loadVolume(dappFeed, hash, epochNo));
-            dappScriptItem.setFees(loadFees(dappFeed, hash, epochNo));
+            dappScriptItem.setFees(loadFee(dappFeed, hash, epochNo));
+            dappScriptItem.setTrxSizes(loadTrxSize(dappFeed, hash, epochNo));
+
             allUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
         }
 

@@ -79,6 +79,7 @@ public class DappsScriptsResource {
                 .volume(dAppRelease.getVolume())
                 .fees(dAppRelease.getFees())
                 .avgFee(dAppRelease.getAvgFee())
+                .avgTrxSize(dAppRelease.getAvgTrxSize())
                 .uniqueAccounts(uniqueAccounts)
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
@@ -108,6 +109,7 @@ public class DappsScriptsResource {
                             .volume(dappScriptItem.getVolume())
                             .fees(dappScriptItem.getFees())
                             .avgFee(dappScriptItem.getAvgFee())
+                            .avgTrxSize(dappScriptItem.getAvgTrxSize())
                             .plutusVersion(dappScriptItem.getPlutusVersion())
                             .epochLevelData(dappService.getAllEpochLevelData(dappScriptItem, false))
                             .build();

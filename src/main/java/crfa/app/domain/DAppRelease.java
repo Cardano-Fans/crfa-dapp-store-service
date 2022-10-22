@@ -77,6 +77,10 @@ public class DAppRelease {
     @Nullable
     Long fees;
 
+    @DatabaseField(columnName = "trx_sizes")
+    @Nullable
+    Long trxSizes;
+
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
@@ -102,6 +106,10 @@ public class DAppRelease {
 
     public @Nullable Double getAvgFee() {
         return safeDivision(fees, scriptInvocationsCount);
+    }
+
+    public @Nullable Double getAvgTrxSize() {
+        return safeDivision(trxSizes, scriptInvocationsCount);
     }
 
 }

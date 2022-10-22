@@ -1,6 +1,5 @@
 package crfa.app.repository.total;
 
-import com.j256.ormlite.stmt.QueryBuilder;
 import crfa.app.domain.DApp;
 import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
@@ -34,11 +33,14 @@ public class DappsRepository {
     }
 
     public Long totalScriptsLocked() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+        val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
-                    .stream().map(DApp::getScriptsLocked).reduce(0L, Long::sum);
+                    .stream()
+                    .filter(dApp -> dApp.getScriptsLocked() != null)
+                    .mapToLong(DApp::getScriptsLocked)
+                    .sum();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -46,11 +48,28 @@ public class DappsRepository {
     }
 
     public Long totalScriptInvocations() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+        val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
-                    .stream().map(DApp::getScriptInvocationsCount).reduce(0L, Long::sum);
+                    .stream()
+                    .mapToLong(DApp::getScriptInvocationsCount)
+                    .sum();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Long totalTrxSizes() {
+        val statementBuilder = dbManager.getdAppDao().queryBuilder();
+
+        try {
+            return statementBuilder.query()
+                    .stream()
+                    .filter(dApp -> dApp.getTrxSizes() != null)
+                    .mapToLong(DApp::getTrxSizes)
+                    .sum();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -58,13 +77,14 @@ public class DappsRepository {
     }
 
     public Long volume() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+        val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
                     .filter(dApp -> dApp.getVolume() != null)
-                    .map(DApp::getVolume).reduce(0L, Long::sum);
+                    .mapToLong(DApp::getVolume)
+                    .sum();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -72,13 +92,14 @@ public class DappsRepository {
     }
 
     public Long fees() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+        val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
                     .filter(dApp -> dApp.getFees() != null)
-                    .map(DApp::getVolume).reduce(0L, Long::sum);
+                    .mapToLong(DApp::getFees)
+                    .sum();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -87,7 +108,7 @@ public class DappsRepository {
 
     public Optional<DApp> findById(String id) {
         try {
-            QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+            val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
             statementBuilder
                     .where().eq("id", id);

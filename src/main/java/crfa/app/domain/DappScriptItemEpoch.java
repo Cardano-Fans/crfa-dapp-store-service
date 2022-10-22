@@ -58,6 +58,10 @@ public class DappScriptItemEpoch implements EpochGatherable {
     @Nullable
     Long fees;
 
+    @DatabaseField(columnName = "trx_sizes")
+    @Nullable
+    Long trxSizes;
+
     @DatabaseField(columnName = "inflows_outflows")
     @Nullable
     Long inflowsOutflows; // for mint scripts we don't have scripts locked value
@@ -81,6 +85,10 @@ public class DappScriptItemEpoch implements EpochGatherable {
 
     public @Nullable Double getAvgFee() {
         return safeDivision(fees, scriptInvocationsCount);
+    }
+
+    public @Nullable Double getAvgTrxSize() {
+        return safeDivision(trxSizes, scriptInvocationsCount);
     }
 
 }

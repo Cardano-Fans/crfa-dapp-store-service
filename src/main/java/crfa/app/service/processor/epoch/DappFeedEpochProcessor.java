@@ -20,6 +20,7 @@ import java.util.Optional;
 import static crfa.app.domain.EraName.ALONZO;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
+import static crfa.app.utils.MoreMath.safeDivision;
 
 @Singleton
 @Slf4j
@@ -102,6 +103,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         var totalScriptInvocations = 0L;
         var totalVolume = 0L;
         var totalFees = 0L;
+        var totalTrxSizes = 0L;
         var totalUniqueAccounts = new HashSet<String>();
 
         val maxVersion = maxReleaseCache.getIfPresent(dappId);
@@ -129,8 +131,10 @@ public class DappFeedEpochProcessor implements FeedProcessor {
 
                 if (scriptItem.getPurpose() == Purpose.SPEND) {
                     totalVolume += loadVolume(dappFeed, hash, epochNo);
-                    totalFees += loadFees(dappFeed, hash, epochNo);
+                    totalFees += loadFee(dappFeed, hash, epochNo);
                     totalInflowsOutflows += loadAdaBalance(dappFeed, hash, epochNo);
+                    totalTrxSizes += loadTrxSize(dappFeed, hash, epochNo);
+
                     totalUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
                 }
 
@@ -144,6 +148,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             dapp.setInflowsOutflows(totalInflowsOutflows);
             dapp.setVolume(totalVolume);
             dapp.setFees(totalFees);
+            dapp.setTrxSizes(totalTrxSizes);
 
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
 

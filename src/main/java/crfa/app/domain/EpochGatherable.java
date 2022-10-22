@@ -25,4 +25,6 @@ public interface EpochGatherable {
 
    @javax.annotation.Nullable Double getAvgFee();
 
+    @javax.annotation.Nullable Double getAvgTrxSize();
+
 }

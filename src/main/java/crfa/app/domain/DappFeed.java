@@ -21,6 +21,7 @@ public class DappFeed {
     Map<String, Long> getAdaBalance;
     Map<String, Long> volume;
     Map<String, Long> fees;
+    Map<String, Long> trxSizes;
 
     Map<String, Long> tokenHoldersBalance;
     Map<String, Set<String>> tokenHoldersAddresses;
@@ -30,6 +31,7 @@ public class DappFeed {
     Map<EpochKey<String>, Long> scriptLockedEpoch;
     Map<EpochKey<String>, Long> volumeEpoch;
     Map<EpochKey<String>, Long> feesEpoch;
+    Map<EpochKey<String>, Long> trxSizesEpoch;
 
     Map<EpochKey<String>, Long> tokenHoldersBalanceEpoch;
     Map<EpochKey<String>, Set<String>> tokenHoldersAddressesEpoch;

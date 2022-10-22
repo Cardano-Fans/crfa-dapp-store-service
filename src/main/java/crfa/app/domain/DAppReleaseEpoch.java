@@ -85,6 +85,10 @@ public class DAppReleaseEpoch implements EpochGatherable {
     @Nullable
     Long fees;
 
+    @DatabaseField(columnName = "trx_sizes")
+    @Nullable
+    Long trxSizes;
+
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
@@ -113,6 +117,10 @@ public class DAppReleaseEpoch implements EpochGatherable {
 
     public @Nullable Double getAvgFee() {
         return safeDivision(fees, scriptInvocationsCount);
+    }
+
+    public @Nullable Double getAvgTrxSize() {
+        return safeDivision(trxSizes, scriptInvocationsCount);
     }
 
 }

@@ -33,6 +33,9 @@ public class GlobalStatsEpoch {
     @DatabaseField(canBeNull = false, columnName = "total_fees")
     private long totalFees;
 
+    @DatabaseField(canBeNull = false, columnName = "total_trx_sizes")
+    private long totalTrxSizes;
+
     @DatabaseField(canBeNull = false, columnName = "total_unique_accounts")
     private long totalUniqueAccounts;
 
@@ -41,6 +44,10 @@ public class GlobalStatsEpoch {
 
     public @Nullable Double getAvgFee() {
         return safeDivision(totalFees, totalTrxCount);
+    }
+
+    public @Nullable Double getAvgTrxSize() {
+        return safeDivision(totalTrxSizes, totalTrxCount);
     }
 
 }

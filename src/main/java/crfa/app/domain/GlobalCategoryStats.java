@@ -3,9 +3,12 @@ package crfa.app.domain;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
 import java.util.Date;
+
+import static crfa.app.utils.MoreMath.safeDivision;
 
 @Builder
 @DatabaseTable(tableName = "global_category_stats")
@@ -30,8 +33,8 @@ public class GlobalCategoryStats {
     @DatabaseField(canBeNull = false, columnName = "fees")
     private long fees;
 
-    @DatabaseField(canBeNull = false, columnName = "avg_fee")
-    private double avgFee;
+    @DatabaseField(canBeNull = false, columnName = "trxSizes")
+    private long trxSizes;
 
     @DatabaseField(canBeNull = false, columnName = "dapps")
     private int dapps;
@@ -41,5 +44,13 @@ public class GlobalCategoryStats {
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
+
+    public @Nullable double getAvgFee() {
+        return safeDivision(fees, trxCount);
+    }
+
+    public @Nullable double getAvgTrxSize() {
+        return safeDivision(trxSizes, trxCount);
+    }
 
 }

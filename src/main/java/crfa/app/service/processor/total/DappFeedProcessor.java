@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
+import static crfa.app.utils.MoreMath.safeDivision;
 
 
 // DappsFeedProcessor handles top level list-dapps case
@@ -53,6 +54,7 @@ public class DappFeedProcessor implements FeedProcessor {
             var totalScriptInvocations = 0L;
             var totalVolume = 0L;
             var fees = 0L;
+            var trxSizes = 0L;
 
             var totalUniqueAccounts = new HashSet<String>();
 
@@ -79,9 +81,10 @@ public class DappFeedProcessor implements FeedProcessor {
 
                     if (scriptItem.getPurpose() == SPEND) {
                         totalVolume += loadVolume(dappFeed, hash);
-                        fees += loadFees(dappFeed, hash);
+                        fees += loadFee(dappFeed, hash);
                         totalScriptsLocked += loadAdaBalance(dappFeed, hash);
                         totalUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash));
+                        trxSizes += loadTrxSize(dappFeed, hash);
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT && scriptItem.getAssetId().isPresent()) {
                         totalScriptsLocked += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
@@ -95,6 +98,7 @@ public class DappFeedProcessor implements FeedProcessor {
             dapp.setScriptsLocked(totalScriptsLocked);
             dapp.setVolume(totalVolume);
             dapp.setFees(fees);
+            dapp.setTrxSizes(trxSizes);
             dapp.setUniqueAccounts(totalUniqueAccounts.size());
 
             dapps.add(dapp);

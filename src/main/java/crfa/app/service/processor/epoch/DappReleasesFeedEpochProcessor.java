@@ -111,6 +111,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         var totalInvocations = 0L;
         var volume = 0L;
         var fees = 0L;
+        var trxSizes = 0L;
         var uniqueAccounts = new HashSet<String>();
 
         for (val scriptItem : dappReleaseItem.getScripts()) {
@@ -121,7 +122,8 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
             if (scriptItem.getPurpose() == SPEND) {
                 inflowsOutflows += loadAdaBalance(dappFeed, hash, epochNo);
                 volume += loadVolume(dappFeed, hash, epochNo);
-                fees += loadFees(dappFeed, hash, epochNo);
+                fees += loadFee(dappFeed, hash, epochNo);
+                trxSizes += loadTrxSize(dappFeed, hash, epochNo);
                 uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
             }
 
@@ -135,6 +137,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         dappReleaseEpoch.setUniqueAccounts(uniqueAccounts.size());
         dappReleaseEpoch.setVolume(volume);
         dappReleaseEpoch.setFees(fees);
+        dappReleaseEpoch.setTrxSizes(trxSizes);
 
         return dappReleaseEpoch;
     }
