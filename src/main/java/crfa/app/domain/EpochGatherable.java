@@ -2,29 +2,46 @@ package crfa.app.domain;
 
 import io.micronaut.core.annotation.Nullable;
 
+import static crfa.app.utils.MoreMath.safeAdd;
+import static crfa.app.utils.MoreMath.safeDivision;
+
 public interface EpochGatherable {
 
    int getEpochNo();
 
    @Nullable
-   Long getVolume();
+   Long getSpendVolume();
 
    @Nullable
-   Long getFees();
+   Long getSpendTrxFees();
 
-   @Nullable
+    @Nullable
+   Long getSpendTrxSizes();
+
+    @Nullable
    Long getInflowsOutflows();
 
    @Nullable
-   Integer getUniqueAccounts();
+   Integer getSpendUniqueAccounts();
 
    @Nullable
-   Long getScriptInvocationsCount();
+   Long getSpendTransactions();
 
-   boolean isClosedEpoch();
+    @Nullable
+    Long getMintTransactions();
 
-   @javax.annotation.Nullable Double getAvgFee();
+    boolean isClosedEpoch();
 
-    @javax.annotation.Nullable Double getAvgTrxSize();
+   @Nullable default Double getAvgTrxFee() {
+       return safeDivision(getSpendTrxFees(), getSpendTransactions());
+   }
+
+  @Nullable default Double getAvgTrxSize() {
+       return safeDivision(getSpendTrxSizes(), getSpendTransactions());
+   }
+
+   default Long getTransactions() {
+       return safeAdd(getMintTransactions(), getSpendTransactions());
+   }
 
 }

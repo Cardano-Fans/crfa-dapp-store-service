@@ -52,8 +52,8 @@ public class DappsScriptsResource {
     private DappReleaseResult getDappReleaseResult(DAppRelease dAppRelease) {
         val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
 
-        val scriptInvocationsCount = dAppRelease.getScriptInvocationsCount();
-        val uniqueAccounts = dAppRelease.getUniqueAccounts();
+        val scriptInvocationsCount = dAppRelease.getSpendTransactions();
+        val uniqueAccounts = dAppRelease.getSpendUniqueAccounts();
 
         val maxReleaseVersion = releaseVersionsCache.getIfPresent(dAppRelease.getDappId());
 
@@ -74,11 +74,11 @@ public class DappsScriptsResource {
                 .updateTime(dAppRelease.getUpdateTime())
                 .releaseNumber(dAppRelease.getReleaseNumber())
                 .transactionsCount(scriptInvocationsCount)
-                .scriptsLocked(dAppRelease.getScriptsLocked())
+                .scriptsLocked(dAppRelease.getBalance())
                 .trxCount(scriptInvocationsCount)
-                .volume(dAppRelease.getVolume())
-                .fees(dAppRelease.getFees())
-                .avgFee(dAppRelease.getAvgFee())
+                .volume(dAppRelease.getSpendVolume())
+                .fees(dAppRelease.getSpendTrxFees() + 0)
+                .avgTrxFee(dAppRelease.getAvgTrxFee())
                 .avgTrxSize(dAppRelease.getAvgTrxSize())
                 .uniqueAccounts(uniqueAccounts)
                 .latestVersion(isLastVersion)
@@ -95,7 +95,7 @@ public class DappsScriptsResource {
                     return DAppScriptItemResult.builder()
                             .dappId(dappScriptItem.getDappId())
                             .hash(dappScriptItem.getHash())
-                            .scriptsLocked(dappScriptItem.getScriptsLocked())
+                            .scriptsLocked(dappScriptItem.getBalance())
                             .scriptType(dappScriptItem.getScriptType())
                             .mintPolicyID(dappScriptItem.getMintPolicyID())
                             .version(dappScriptItem.getVersion())
@@ -104,11 +104,11 @@ public class DappsScriptsResource {
                             .name(dappScriptItem.getName())
                             .hash(dappScriptItem.getHash())
                             .dappId(dappScriptItem.getDappId())
-                            .trxCount(dappScriptItem.getScriptInvocationsCount())
+                            .trxCount(dappScriptItem.getTransactions())
                             .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                             .volume(dappScriptItem.getVolume())
-                            .fees(dappScriptItem.getFees())
-                            .avgFee(dappScriptItem.getAvgFee())
+                            .fees(dappScriptItem.getTrxFees())
+                            .avgTrxFee(dappScriptItem.getAvgTrxFee())
                             .avgTrxSize(dappScriptItem.getAvgTrxSize())
                             .plutusVersion(dappScriptItem.getPlutusVersion())
                             .epochLevelData(dappService.getAllEpochLevelData(dappScriptItem, false))

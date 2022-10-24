@@ -32,10 +32,11 @@ public class DappScriptsRepository {
 
             val statementBuilder = dbManager.getDappScriptItems().queryBuilder();
 
-            return statementBuilder
-                    .orderBy(decomposedSortBy, decomposedSortOrder)
-                    .where().eq("release_key", releaseKey)
-                    .query();
+            decomposedSortBy.forEach(column -> statementBuilder.orderBy(column, decomposedSortOrder));
+
+            statementBuilder.where().eq("release_key", releaseKey);
+
+            return statementBuilder.query();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);
@@ -47,22 +48,6 @@ public class DappScriptsRepository {
             QueryBuilder<DappScriptItem, String> statementBuilder = dbManager.getDappScriptItems().queryBuilder();
 
             return statementBuilder
-                    .query();
-        } catch (SQLException e) {
-            log.error("db error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<DappScriptItem> listDappScriptItems(SortBy sortBy, SortOrder sortOrder) {
-        try {
-            val decomposedSortBy = repositoryColumnConverter.decomposeSortBy(sortBy);
-            val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
-
-            val statementBuilder = dbManager.getDappScriptItems().queryBuilder();
-
-            return statementBuilder
-                    .orderBy(decomposedSortBy, decomposedSortOrder)
                     .query();
         } catch (SQLException e) {
             log.error("db error", e);

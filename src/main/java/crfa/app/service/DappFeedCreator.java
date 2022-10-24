@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 
 import static crfa.app.domain.InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 import static crfa.app.domain.InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
-import static crfa.app.utils.MoreMaps.addMaps;
 
 @Singleton
 @Slf4j
@@ -43,43 +42,44 @@ public class DappFeedCreator {
 
         val dataPointers = dataPointsLoader.load(dappSearchResult, injestionMode);
 
-        val mintPolicyCounts = scrollsOnChainDataService.mintScriptsCount(dataPointers.mintPolicyIds);
-        val scriptHashesCount = scrollsOnChainDataService.scriptHashesCount(dataPointers.scriptHashes);
+        val mintPolicyCounts = scrollsOnChainDataService.mintTransactionsCount(dataPointers.mintPolicyIds);
+        val spendTransactionsCount = scrollsOnChainDataService.spendTransactionsCount(dataPointers.scriptHashes);
 
-        val scriptLockedPerContractAddr = scrollsOnChainDataService.scriptLocked(dataPointers.scriptHashes);
-        val volumePerContract = scrollsOnChainDataService.volume(dataPointers.scriptHashes);
+        val spendAdaBalance = scrollsOnChainDataService.balance(dataPointers.scriptHashes);
+        val spendVolume = scrollsOnChainDataService.spendVolume(dataPointers.scriptHashes);
         val tokenHoldersAssetIdToAdaBalance = loadTokenHoldersBalance(dataPointers.assetIdToTokenHolders);
-        val fees = scrollsOnChainDataService.fees(dataPointers.scriptHashes);
-        val uniqueAccounts = scrollsOnChainDataService.uniqueAccounts(dataPointers.scriptHashes);
-        val trxSizes = scrollsOnChainDataService.trxSizes(dataPointers.scriptHashes);
+        val spendFees = scrollsOnChainDataService.spendFees(dataPointers.scriptHashes);
+        val spendUniqueAccounts = scrollsOnChainDataService.spendUniqueAccounts(dataPointers.scriptHashes);
+        val spendTrxSizes = scrollsOnChainDataService.spendTrxSizes(dataPointers.scriptHashes);
 
-        val uniqueAccountsMerge = uniqueAccountsUnion(uniqueAccounts, dataPointers.assetIdToTokenHolders);
+        val uniqueAccountsMerge = uniqueAccountsUnion(spendUniqueAccounts, dataPointers.assetIdToTokenHolders);
 
         if (injestionMode == WITHOUT_EPOCHS_ONLY_AGGREGATES) {
             return DappFeed.builder()
                     .dappSearchResult(dappSearchResult)
 
                     // for all epochs - aggregates
-                    .getAdaBalance(scriptLockedPerContractAddr)
-                    .volume(volumePerContract)
-                    .fees(fees)
-                    .trxSizes(trxSizes)
-                    .invocationsCount(addMaps(mintPolicyCounts, scriptHashesCount))
+                    .balance(spendAdaBalance)
+                    .spendVolume(spendVolume)
+                    .spendTrxFees(spendFees)
+                    .spendTrxSizes(spendTrxSizes)
+                    .spendTransactionsCount(spendTransactionsCount)
+                    .mintTransactionsCount(mintPolicyCounts)
                     .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
-                    .uniqueAccounts(uniqueAccountsMerge)
+                    .spendUniqueAccounts(uniqueAccountsMerge)
                     .tokenHoldersAddresses(dataPointers.assetIdToTokenHolders)
                     .build();
         } else {
             val isCurrentEpochAndAggregates = injestionMode == CURRENT_EPOCH_AND_AGGREGATES;
 
-            val scriptLockedPerContractWithEpoch = scrollsOnChainDataService.scriptLockedWithEpochs(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val volumePerContractWithEpoch = scrollsOnChainDataService.volumeEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintScriptsCountWithEpochs(dataPointers.mintPolicyIds, isCurrentEpochAndAggregates);
-            val scriptHashesCountWithEpoch = scrollsOnChainDataService.scriptHashesCountWithEpochs(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+            val scriptLockedPerContractWithEpoch = scrollsOnChainDataService.balanceWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+            val volumePerContractWithEpoch = scrollsOnChainDataService.spendVolumeEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+            val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintTransactionsCountWithEpoch(dataPointers.mintPolicyIds, isCurrentEpochAndAggregates);
+            val spendTransactionsCountWithEpoch = scrollsOnChainDataService.spendTransactionsCountEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
             val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch, isCurrentEpochAndAggregates);
-            val uniqueAccountsWithEpoch = scrollsOnChainDataService.uniqueAccountsEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val feesWithEpoch = scrollsOnChainDataService.feesEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val trxSizesWithEpoch = scrollsOnChainDataService.trxSizesEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+            val uniqueAccountsWithEpoch = scrollsOnChainDataService.spendUniqueAccountsWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+            val feesWithEpoch = scrollsOnChainDataService.spendFeesEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+            val trxSizesWithEpoch = scrollsOnChainDataService.spendTrxSizesWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
 
             val uniqueAccountsMergeEpoch = uniqueAccountsUnionEpoch(uniqueAccountsWithEpoch, dataPointers.assetIdToTokenHoldersWithEpoch);
 
@@ -87,23 +87,25 @@ public class DappFeedCreator {
                     .dappSearchResult(dappSearchResult)
 
                     // for all epochs - aggregates
-                    .getAdaBalance(scriptLockedPerContractAddr)
-                    .volume(volumePerContract)
-                    .fees(fees)
-                    .trxSizes(trxSizes)
-                    .invocationsCount(addMaps(mintPolicyCounts, scriptHashesCount))
-                    .uniqueAccounts(uniqueAccountsMerge)
+                    .balance(spendAdaBalance)
+                    .spendVolume(spendVolume)
+                    .spendTrxFees(spendFees)
+                    .spendTrxSizes(spendTrxSizes)
+                    .mintTransactionsCount(mintPolicyCounts)
+                    .spendTransactionsCount(spendTransactionsCount)
+                    .spendUniqueAccounts(uniqueAccountsMerge)
                     .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
                     .tokenHoldersAddresses(dataPointers.assetIdToTokenHolders)
 
                     // epoch level
-                    .scriptLockedEpoch(scriptLockedPerContractWithEpoch)
-                    .invocationsCountEpoch(addMaps(mintPolicyCountsWithEpoch, scriptHashesCountWithEpoch))
+                    .balanceEpoch(scriptLockedPerContractWithEpoch)
+                    .mintTransactionsCountEpoch(mintPolicyCountsWithEpoch)
+                    .spendTransactionCountEpoch(spendTransactionsCountWithEpoch)
                     .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
-                    .volumeEpoch(volumePerContractWithEpoch)
-                    .feesEpoch(feesWithEpoch)
-                    .trxSizesEpoch(trxSizesWithEpoch)
-                    .uniqueAccountsEpoch(uniqueAccountsMergeEpoch)
+                    .spendVolumeEpoch(volumePerContractWithEpoch)
+                    .spendTrxFeesEpoch(feesWithEpoch)
+                    .spendTrxSizesEpoch(trxSizesWithEpoch)
+                    .spendUniqueAccountsEpoch(uniqueAccountsMergeEpoch)
                     .tokenHoldersAddressesEpoch(dataPointers.assetIdToTokenHoldersWithEpoch)
                     .build();
         }
@@ -116,7 +118,7 @@ public class DappFeedCreator {
                     val assetId = entry.getKey();
                     val tokenHolderAddresses = entry.getValue();
 
-                    val balanceMap = scrollsOnChainDataService.scriptLocked(tokenHolderAddresses);
+                    val balanceMap = scrollsOnChainDataService.balance(tokenHolderAddresses);
                     val adaBalance = balanceMap.values().stream().reduce(0L, Long::sum);
 
                     return new AbstractMap.SimpleEntry<>(assetId, adaBalance);

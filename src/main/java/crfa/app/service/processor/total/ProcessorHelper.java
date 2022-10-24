@@ -8,24 +8,32 @@ import java.util.Set;
 @Slf4j
 public class ProcessorHelper {
 
-    public static long loadInvocations(DappFeed dappFeed, String hash) {
-        return dappFeed.getInvocationsCount().computeIfAbsent(hash, h -> {
-            log.warn("Unable to find total invocations for hash:{}", h);
+    public static long loadMintTransactionsCount(DappFeed dappFeed, String hash) {
+        return dappFeed.getMintTransactionsCount().computeIfAbsent(hash, h -> {
+            log.warn("Unable to find mint transactions count for hash:{}", h);
 
             return 0L;
         });
     }
 
-    public static long loadAdaBalance(DappFeed dappFeed, String hash) {
-        return dappFeed.getGetAdaBalance().computeIfAbsent(hash, h -> {
-            log.warn("Unable to find scriptsLocked for hash:{}", h);
+    public static long loadSpendTransactionsCount(DappFeed dappFeed, String hash) {
+        return dappFeed.getSpendTransactionsCount().computeIfAbsent(hash, h -> {
+            log.warn("Unable to find spend transactions count for hash:{}", h);
 
             return 0L;
         });
     }
 
-    public static Set<String> loadUniqueAccounts(DappFeed dappFeed, String hash) {
-        return dappFeed.getUniqueAccounts().computeIfAbsent(hash, h -> {
+    public static long loadBalance(DappFeed dappFeed, String hash) {
+        return dappFeed.getBalance().computeIfAbsent(hash, h -> {
+            log.warn("Unable to find balance for hash:{}", h);
+
+            return 0L;
+        });
+    }
+
+    public static Set<String> loadSpendUniqueAccounts(DappFeed dappFeed, String hash) {
+        return dappFeed.getSpendUniqueAccounts().computeIfAbsent(hash, h -> {
             log.warn("Unable to find unique addresses for hash:{}", h);
 
             return Set.of();
@@ -39,22 +47,22 @@ public class ProcessorHelper {
         });
     }
 
-    public static long loadVolume(DappFeed dappFeed, String hash) {
-        return dappFeed.getVolume().computeIfAbsent(hash, h -> {
+    public static long loadSpendVolume(DappFeed dappFeed, String hash) {
+        return dappFeed.getSpendVolume().computeIfAbsent(hash, h -> {
             log.warn("Unable to load volume for hash:{}", h);
             return 0L;
         });
     }
 
-    public static long loadFee(DappFeed dappFeed, String hash) {
-        return dappFeed.getFees().computeIfAbsent(hash, h -> {
+    public static long loadSpendTrxFee(DappFeed dappFeed, String hash) {
+        return dappFeed.getSpendTrxFees().computeIfAbsent(hash, h -> {
             log.warn("Unable to fees for hash:{}", h);
             return 0L;
         });
     }
 
-    public static long loadTrxSize(DappFeed dappFeed, String hash) {
-        return dappFeed.getTrxSizes().computeIfAbsent(hash, h -> {
+    public static long loadSpendTrxSize(DappFeed dappFeed, String hash) {
+        return dappFeed.getSpendTrxSizes().computeIfAbsent(hash, h -> {
             log.warn("Unable to load trx size for hash:{}", h);
             return 0L;
         });

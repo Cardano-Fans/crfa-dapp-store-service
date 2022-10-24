@@ -22,26 +22,32 @@ public class GlobalStats {
     @DatabaseField(canBeNull = false, columnName = "id", id = true)
     private String id;
 
-    @DatabaseField(canBeNull = false, columnName = "total_scripts_locked")
-    private long totalScriptsLocked;
+    @DatabaseField(canBeNull = false, columnName = "balance")
+    private long balance;
 
-    @DatabaseField(canBeNull = false, columnName = "total_trx_count")
-    private long totalTrxCount;
+    @DatabaseField(canBeNull = false, columnName = "spend_transactions")
+    private long spendTransactions;
 
-    @DatabaseField(canBeNull = false, columnName = "total_volume")
-    private long totalVolume;
+    @DatabaseField(canBeNull = false, columnName = "mint_transactions")
+    private long mintTransactions;
 
-    @DatabaseField(canBeNull = false, columnName = "total_fees")
-    private long totalFees;
+    @DatabaseField(canBeNull = false, columnName = "transactions")
+    private long transactions;
 
-    @DatabaseField(canBeNull = false, columnName = "total_trx_sizes")
-    private long totalTrxSizes;
+    @DatabaseField(canBeNull = false, columnName = "spend_volume")
+    private long spendVolume;
 
-    @DatabaseField(canBeNull = false, columnName = "total_unique_accounts")
-    private long totalUniqueAccounts;
+    @DatabaseField(canBeNull = false, columnName = "spend_trx_fees")
+    private long spendTrxFees;
 
-    @DatabaseField(canBeNull = false, columnName = "total_dapps")
-    private int totalDapps;
+    @DatabaseField(canBeNull = false, columnName = "spend_trx_sizes")
+    private long spendTrxSizes;
+
+    @DatabaseField(canBeNull = false, columnName = "spend_unique_accounts")
+    private long spendUniqueAccounts;
+
+    @DatabaseField(canBeNull = false, columnName = "dapps")
+    private int dapps;
 
     @DatabaseField(canBeNull = false, columnName = "ada_price_eur")
     private BigDecimal adaPriceEUR;
@@ -52,12 +58,16 @@ public class GlobalStats {
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
-    public @Nullable Double getAvgFee() {
-        return safeDivision(totalFees, totalTrxCount);
+    public @Nullable Double getAvgTrxFee() {
+        return safeDivision(spendTrxFees, spendTransactions);
     }
 
     public @Nullable Double getAvgTrxSize() {
-        return safeDivision(totalTrxSizes, totalTrxCount);
+        return safeDivision(spendTrxSizes, spendTransactions);
+    }
+
+    public Long getTransactionsCount() {
+        return spendTransactions + mintTransactions;
     }
 
 }

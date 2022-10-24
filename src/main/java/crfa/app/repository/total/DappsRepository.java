@@ -32,14 +32,14 @@ public class DappsRepository {
         return listDapps().stream().map(DApp::getCategory).collect(toSet());
     }
 
-    public Long totalScriptsLocked() {
+    public Long balance() {
         val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
-                    .filter(dApp -> dApp.getScriptsLocked() != null)
-                    .mapToLong(DApp::getScriptsLocked)
+                    .filter(dApp -> dApp.getBalance() != null)
+                    .mapToLong(DApp::getBalance)
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -47,13 +47,14 @@ public class DappsRepository {
         }
     }
 
-    public Long totalScriptInvocations() {
+    public Long spendTransactions() {
         val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
-                    .mapToLong(DApp::getScriptInvocationsCount)
+                    .filter(dApp -> dApp.getSpendTransactions() != null)
+                    .mapToLong(DApp::getSpendTransactions)
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -61,14 +62,14 @@ public class DappsRepository {
         }
     }
 
-    public Long totalTrxSizes() {
+    public Long mintTransactions() {
         val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
-                    .filter(dApp -> dApp.getTrxSizes() != null)
-                    .mapToLong(DApp::getTrxSizes)
+                    .filter(dApp -> dApp.getMintTransactions() != null)
+                    .mapToLong(DApp::getMintTransactions)
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -76,14 +77,14 @@ public class DappsRepository {
         }
     }
 
-    public Long volume() {
+    public Long spendTrxSizes() {
         val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
-                    .filter(dApp -> dApp.getVolume() != null)
-                    .mapToLong(DApp::getVolume)
+                    .filter(dApp -> dApp.getSpendTrxSizes() != null)
+                    .mapToLong(DApp::getSpendTrxSizes)
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -91,14 +92,29 @@ public class DappsRepository {
         }
     }
 
-    public Long fees() {
+    public Long spendVolume() {
         val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
-                    .filter(dApp -> dApp.getFees() != null)
-                    .mapToLong(DApp::getFees)
+                    .filter(dApp -> dApp.getSpendVolume() != null)
+                    .mapToLong(DApp::getSpendVolume)
+                    .sum();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Long spendTrxFees() {
+        val statementBuilder = dbManager.getdAppDao().queryBuilder();
+
+        try {
+            return statementBuilder.query()
+                    .stream()
+                    .filter(dApp -> dApp.getSpendTrxFees() != null)
+                    .mapToLong(DApp::getSpendTrxFees)
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -131,9 +147,9 @@ public class DappsRepository {
         try {
             val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
-            return statementBuilder
-                    .orderBy(decomposedSortBy, decomposedSortOrder)
-                    .query();
+            decomposedSortBy.forEach(column -> statementBuilder.orderBy(column, decomposedSortOrder));
+
+            return statementBuilder.query();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);

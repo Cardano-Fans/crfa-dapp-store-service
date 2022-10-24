@@ -21,36 +21,46 @@ public class GlobalCategoryStats {
     @DatabaseField(canBeNull = false, columnName = "category_type", id = true)
     private String categoryType;
 
-    @DatabaseField(canBeNull = false, columnName = "scripts_locked")
-    private long scriptsLocked;
+    @DatabaseField(canBeNull = false, columnName = "balance")
+    private long balance;
 
-    @DatabaseField(canBeNull = false, columnName = "trx_count")
-    private long trxCount;
+    @DatabaseField(canBeNull = false, columnName = "spend_transactions")
+    private long spendTransactions;
 
-    @DatabaseField(canBeNull = false, columnName = "volume")
-    private long volume;
+    @DatabaseField(canBeNull = false, columnName = "mint_transactions")
+    private long mintTransactions;
 
-    @DatabaseField(canBeNull = false, columnName = "fees")
-    private long fees;
+    @DatabaseField(canBeNull = false, columnName = "transactions")
+    private long transactions;
 
-    @DatabaseField(canBeNull = false, columnName = "trxSizes")
-    private long trxSizes;
+    @DatabaseField(canBeNull = false, columnName = "spend_volume")
+    private long spendVolume;
+
+    @DatabaseField(canBeNull = false, columnName = "spend_trx_fees")
+    private long spendTrxFees;
+
+    @DatabaseField(canBeNull = false, columnName = "spend_trx_sizes")
+    private long spendTrxSizes;
 
     @DatabaseField(canBeNull = false, columnName = "dapps")
     private int dapps;
 
-//    @DatabaseField(canBeNull = false, columnName = "unique_accounts")
-//    private long uniqueAccounts;
+//    @DatabaseField(canBeNull = false, columnName = "spend_unique_accounts")
+//    private long spendUniqueAccounts;
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
-    public @Nullable double getAvgFee() {
-        return safeDivision(fees, trxCount);
+    public @Nullable Double getAvgTrxFee() {
+        return safeDivision(spendTrxFees, spendTransactions);
     }
 
-    public @Nullable double getAvgTrxSize() {
-        return safeDivision(trxSizes, trxCount);
+    public @Nullable Double getAvgTrxSize() {
+        return safeDivision(spendTrxSizes, spendTransactions);
+    }
+
+    public Long getTransactionsCount() {
+        return spendTransactions + mintTransactions;
     }
 
 }

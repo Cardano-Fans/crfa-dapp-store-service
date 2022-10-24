@@ -96,21 +96,22 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
         dappScriptItem.setId(generateKey(epochNo, hash));
         dappScriptItem.setHash(hash);
-        dappScriptItem.setScriptInvocationsCount(loadInvocations(dappFeed, hash, epochNo));
 
         if (scriptItem.getPurpose() == SPEND) {
             dappScriptItem.setScriptType(ScriptType.SPEND);
-            dappScriptItem.setInflowsOutflows(loadAdaBalance(dappFeed, hash, epochNo));
-            dappScriptItem.setVolume(loadVolume(dappFeed, hash, epochNo));
-            dappScriptItem.setFees(loadFee(dappFeed, hash, epochNo));
+            dappScriptItem.setTransactions(loadSpendTransactionsCount(dappFeed, hash, epochNo));
+            dappScriptItem.setInflowsOutflows(loadBalance(dappFeed, hash, epochNo));
+            dappScriptItem.setVolume(loadSpendVolume(dappFeed, hash, epochNo));
+            dappScriptItem.setTrxFees(loadSpendTrxFee(dappFeed, hash, epochNo));
             dappScriptItem.setTrxSizes(loadTrxSize(dappFeed, hash, epochNo));
 
-            allUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
+            allUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash, epochNo));
         }
 
         if (scriptItem.getPurpose() == MINT) {
             dappScriptItem.setScriptType(ScriptType.MINT);
             dappScriptItem.setMintPolicyID(scriptItem.getMintPolicyID());
+            dappScriptItem.setTransactions(loadMintTransactionsCount(dappFeed, hash, epochNo));
 
             if (scriptItem.getAssetId().isPresent()) {
                 val assetId = scriptItem.getAssetId().get();

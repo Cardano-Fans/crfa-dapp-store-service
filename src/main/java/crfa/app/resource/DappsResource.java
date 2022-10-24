@@ -33,11 +33,11 @@ public class DappsResource {
 
         return dappsRepository.findById(id)
                 .map(dapp -> {
-                    val scriptInvocationsCount = dapp.getScriptInvocationsCount();
-                    val scriptsLocked = dapp.getScriptsLocked();
-                    val volume = dapp.getVolume();
-                    val fees = dapp.getFees();
-                    val uniqueAccounts = dapp.getUniqueAccounts();
+                    val transactions = dapp.getTransactionsCount();
+                    val balance = dapp.getBalance();
+                    val volume = dapp.getSpendVolume();
+                    val fees = dapp.getSpendTrxFees();
+                    val uniqueAccounts = dapp.getSpendUniqueAccounts();
 
                     val dAppType = dapp.getDAppType();
 
@@ -50,32 +50,32 @@ public class DappsResource {
                             .link(dapp.getLink())
                             .name(dapp.getName())
                             .twitter(dapp.getTwitter())
-                            .scriptsLocked(scriptsLocked)
+                            .scriptsLocked(balance)
                             .volume(volume)
-                            .fees(fees)
-                            .avgFee(dapp.getAvgFee())
+                            .trxFees(fees)
+                            .avgTrxFee(dapp.getAvgTrxFee())
                             .avgTrxSize(dapp.getAvgTrxSize())
                             .uniqueAccounts(uniqueAccounts)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
-                            .trxCount(scriptInvocationsCount)
+                            .trxCount(transactions)
                             .updateTime(dapp.getUpdateTime())
                             .epochLevelData(dappService.getAllEpochLevelData(dapp, true))
                             .build();
                 });
     }
 
-                                      @Get(uri = "/list-dapps", produces = "application/json")
+    @Get(uri = "/list-dapps", produces = "application/json")
     public List<DappResult> listDapps(@QueryValue Optional<SortBy> sortBy,
                                       @QueryValue Optional<SortOrder> sortOrder) {
          return dappsRepository.listDapps(sortBy.orElse(SCRIPTS_INVOKED), sortOrder.orElse(DESC))
                 .stream()
                  .map(dapp -> {
-                    val scriptInvocationsCount = dapp.getScriptInvocationsCount();
-                    val scriptsLocked = dapp.getScriptsLocked();
-                    val volume = dapp.getVolume();
-                    val fees = dapp.getFees();
-                    val uniqueAccounts = dapp.getUniqueAccounts();
+                    val transactions = dapp.getTransactionsCount();
+                    val balance = dapp.getBalance();
+                    val volume = dapp.getSpendVolume();
+                    val fees = dapp.getSpendTrxFees();
+                    val uniqueAccounts = dapp.getSpendUniqueAccounts();
 
                     return DappResult.builder()
                             .id(dapp.getId())
@@ -86,15 +86,15 @@ public class DappsResource {
                             .link(dapp.getLink())
                             .name(dapp.getName())
                             .twitter(dapp.getTwitter())
-                            .scriptsLocked(scriptsLocked)
+                            .scriptsLocked(balance)
                             .volume(volume)
-                            .fees(fees)
+                            .trxFees(fees)
                             .avgTrxSize(dapp.getAvgTrxSize())
-                            .avgFee(dapp.getAvgFee())
+                            .avgTrxFee(dapp.getAvgTrxFee())
                             .uniqueAccounts(uniqueAccounts)
                             .lastVersionContractsOpenSourcedLink(dapp.getLastVersionOpenSourceLink())
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
-                            .trxCount(scriptInvocationsCount)
+                            .trxCount(transactions)
                             .updateTime(dapp.getUpdateTime())
                             .epochLevelData(dappService.getAllEpochLevelData(dapp, false))
                             .build();

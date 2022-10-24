@@ -107,37 +107,49 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
             dappReleaseEpoch.setAuditor(audit.getAuditor());
         });
 
+        var mintTransactionsCount = 0L;
+
         var inflowsOutflows = 0L;
-        var totalInvocations = 0L;
-        var volume = 0L;
-        var fees = 0L;
-        var trxSizes = 0L;
+        var spendTransactionsCount = 0L;
+        var spendVolume = 0L;
+        var spendTrxFees = 0L;
+        var spendTrxSizes = 0L;
         var uniqueAccounts = new HashSet<String>();
 
         for (val scriptItem : dappReleaseItem.getScripts()) {
             val hash = scriptItem.getUnifiedHash();
 
-            totalInvocations += loadInvocations(dappFeed, hash, epochNo);
-
             if (scriptItem.getPurpose() == SPEND) {
-                inflowsOutflows += loadAdaBalance(dappFeed, hash, epochNo);
-                volume += loadVolume(dappFeed, hash, epochNo);
-                fees += loadFee(dappFeed, hash, epochNo);
-                trxSizes += loadTrxSize(dappFeed, hash, epochNo);
-                uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
+                spendTransactionsCount += loadSpendTransactionsCount(dappFeed, hash, epochNo);
+                inflowsOutflows += loadBalance(dappFeed, hash, epochNo);
+                spendVolume += loadSpendVolume(dappFeed, hash, epochNo);
+                spendTrxFees += loadSpendTrxFee(dappFeed, hash, epochNo);
+                spendTrxSizes += loadTrxSize(dappFeed, hash, epochNo);
+
+                uniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash, epochNo));
             }
 
-            if (scriptItem.getPurpose() == MINT && scriptItem.getAssetId().isPresent()) {
-                inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().orElseThrow(), epochNo);
+            if (scriptItem.getPurpose() == MINT) {
+                mintTransactionsCount += loadMintTransactionsCount(dappFeed, hash, epochNo);
+
+                if (scriptItem.getAssetId().isPresent()) {
+                    inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().orElseThrow(), epochNo);
+                }
             }
         }
 
-        dappReleaseEpoch.setScriptInvocationsCount(totalInvocations);
+        dappReleaseEpoch.setMintTransactions(mintTransactionsCount);
+
+        dappReleaseEpoch.setSpendTransactions(spendTransactionsCount);
         dappReleaseEpoch.setInflowsOutflows(inflowsOutflows);
-        dappReleaseEpoch.setUniqueAccounts(uniqueAccounts.size());
-        dappReleaseEpoch.setVolume(volume);
-        dappReleaseEpoch.setFees(fees);
-        dappReleaseEpoch.setTrxSizes(trxSizes);
+        dappReleaseEpoch.setSpendVolume(spendVolume);
+        dappReleaseEpoch.setSpendTrxFees(spendTrxFees);
+        dappReleaseEpoch.setSpendTrxSizes(spendTrxSizes);
+
+        dappReleaseEpoch.setTransactions(mintTransactionsCount + spendTransactionsCount);
+
+        // TODO do not materialise but store in db stable
+        dappReleaseEpoch.setSpendUniqueAccounts(uniqueAccounts.size());
 
         return dappReleaseEpoch;
     }

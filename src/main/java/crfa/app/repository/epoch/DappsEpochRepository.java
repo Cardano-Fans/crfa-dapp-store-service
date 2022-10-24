@@ -20,14 +20,14 @@ public class DappsEpochRepository {
     @Inject
     private DbManager dbManager;
 
-    public Long volume() {
-        QueryBuilder<DApp, String> statementBuilder = dbManager.getdAppDao().queryBuilder();
+    public Long spendVolume() {
+        val statementBuilder = dbManager.getdAppDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
-                    .filter(dApp -> dApp.getVolume() != null)
-                    .mapToLong(DApp::getVolume)
+                    .filter(dApp -> dApp.getSpendVolume() != null)
+                    .mapToLong(DApp::getSpendVolume)
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -37,7 +37,7 @@ public class DappsEpochRepository {
 
     public List<DAppEpoch> findByDappId(String dappId) {
         try {
-            QueryBuilder<DAppEpoch, String> statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+            val statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
 
             statementBuilder
                     .where().eq("dapp_id", dappId);
@@ -60,7 +60,7 @@ public class DappsEpochRepository {
                     .query()
                     .stream()
                     .filter(dAppEpoch -> dAppEpoch.getInflowsOutflows() != null)
-                    .mapToLong(dappEpoch -> dappEpoch.getInflowsOutflows().longValue())
+                    .mapToLong(dappEpoch -> dappEpoch.getInflowsOutflows())
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -68,7 +68,7 @@ public class DappsEpochRepository {
         }
     }
 
-    public long totalScriptInvocations(int epochNo) {
+    public long spendTransactions(int epochNo) {
         try {
             val statementBuilder = dbManager.getdAppEpochDao()
                 .queryBuilder();
@@ -78,8 +78,8 @@ public class DappsEpochRepository {
                 .eq("epoch_no", epochNo)
                 .query()
                 .stream()
-                .filter(dAppEpoch -> dAppEpoch.getScriptInvocationsCount() != null)
-                .mapToLong(dappEpoch -> dappEpoch.getScriptInvocationsCount().longValue())
+                .filter(dAppEpoch -> dAppEpoch.getSpendTransactions() != null)
+                .mapToLong(dappEpoch -> dappEpoch.getSpendTransactions())
                 .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -87,7 +87,7 @@ public class DappsEpochRepository {
         }
     }
 
-    public long volume(int epochNo) {
+    public long mintTransactions(int epochNo) {
         try {
             val statementBuilder = dbManager.getdAppEpochDao()
                     .queryBuilder();
@@ -97,8 +97,8 @@ public class DappsEpochRepository {
                     .eq("epoch_no", epochNo)
                     .query()
                     .stream()
-                    .filter(dAppEpoch -> dAppEpoch.getVolume() != null)
-                    .mapToLong(dappEpoch -> dappEpoch.getVolume().longValue())
+                    .filter(dAppEpoch -> dAppEpoch.getMintTransactions() != null)
+                    .mapToLong(dappEpoch -> dappEpoch.getMintTransactions())
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -106,7 +106,7 @@ public class DappsEpochRepository {
         }
     }
 
-    public long fees(int epochNo) {
+    public long spendVolume(int epochNo) {
         try {
             val statementBuilder = dbManager.getdAppEpochDao()
                     .queryBuilder();
@@ -116,8 +116,8 @@ public class DappsEpochRepository {
                     .eq("epoch_no", epochNo)
                     .query()
                     .stream()
-                    .filter(dAppEpoch -> dAppEpoch.getFees() != null)
-                    .mapToLong(dappEpoch -> dappEpoch.getFees().longValue())
+                    .filter(dAppEpoch -> dAppEpoch.getSpendVolume() != null)
+                    .mapToLong(dappEpoch -> dappEpoch.getSpendVolume())
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);
@@ -125,7 +125,7 @@ public class DappsEpochRepository {
         }
     }
 
-    public long trxSizes(int epochNo) {
+    public long spendFees(int epochNo) {
         try {
             val statementBuilder = dbManager.getdAppEpochDao()
                     .queryBuilder();
@@ -135,8 +135,27 @@ public class DappsEpochRepository {
                     .eq("epoch_no", epochNo)
                     .query()
                     .stream()
-                    .filter(dAppEpoch -> dAppEpoch.getTrxSizes() != null)
-                    .mapToLong(dappEpoch -> dappEpoch.getTrxSizes().longValue()).sum();
+                    .filter(dAppEpoch -> dAppEpoch.getSpendTrxFees() != null)
+                    .mapToLong(dappEpoch -> dappEpoch.getSpendTrxFees())
+                    .sum();
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long spendTrxSizes(int epochNo) {
+        try {
+            val statementBuilder = dbManager.getdAppEpochDao()
+                    .queryBuilder();
+
+            return statementBuilder
+                    .where()
+                    .eq("epoch_no", epochNo)
+                    .query()
+                    .stream()
+                    .filter(dAppEpoch -> dAppEpoch.getSpendTrxSizes() != null)
+                    .mapToLong(dappEpoch -> dappEpoch.getSpendTrxSizes()).sum();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);

@@ -56,7 +56,7 @@ public class DappReleaseResult {
     Long fees;
 
     @Nullable
-    Double avgFee;
+    Double avgTrxFee;
 
     @Nullable
     Double avgTrxSize;

@@ -20,7 +20,6 @@ import java.util.Optional;
 import static crfa.app.domain.EraName.ALONZO;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
-import static crfa.app.utils.MoreMath.safeDivision;
 
 @Singleton
 @Slf4j
@@ -99,11 +98,13 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         dapp.setTwitter(dappSearchItem.getTwitter());
         dapp.setClosedEpoch(isClosedEpoch);
 
-        var totalInflowsOutflows = 0L;
-        var totalScriptInvocations = 0L;
-        var totalVolume = 0L;
-        var totalFees = 0L;
-        var totalTrxSizes = 0L;
+        var mintTransactionsCount = 0L;
+
+        var inflowsOutflows = 0L;
+        var spendTransactionsCount = 0L;
+        var spendVolume = 0L;
+        var spendTrxFees = 0L;
+        var spendTrxSizes = 0L;
         var totalUniqueAccounts = new HashSet<String>();
 
         val maxVersion = maxReleaseCache.getIfPresent(dappId);
@@ -127,30 +128,37 @@ public class DappFeedEpochProcessor implements FeedProcessor {
 
                 val hash = scriptItem.getUnifiedHash();
 
-                totalScriptInvocations += loadInvocations(dappFeed, hash, epochNo);
-
                 if (scriptItem.getPurpose() == Purpose.SPEND) {
-                    totalVolume += loadVolume(dappFeed, hash, epochNo);
-                    totalFees += loadFee(dappFeed, hash, epochNo);
-                    totalInflowsOutflows += loadAdaBalance(dappFeed, hash, epochNo);
-                    totalTrxSizes += loadTrxSize(dappFeed, hash, epochNo);
+                    spendTransactionsCount += loadSpendTransactionsCount(dappFeed, hash, epochNo);
+                    spendVolume += loadSpendVolume(dappFeed, hash, epochNo);
+                    inflowsOutflows += loadBalance(dappFeed, hash, epochNo);
+                    spendTrxFees += loadSpendTrxFee(dappFeed, hash, epochNo);
+                    spendTrxSizes += loadTrxSize(dappFeed, hash, epochNo);
 
-                    totalUniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash, epochNo));
+                    totalUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash, epochNo));
                 }
 
-                // wing riders case
-                if (scriptItem.getPurpose() == MINT && scriptItem.getAssetId().isPresent()) {
-                    totalInflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().get(), epochNo);
+                if (scriptItem.getPurpose() == MINT) {
+                    mintTransactionsCount += loadMintTransactionsCount(dappFeed, hash, epochNo);
+
+                    // wing riders case
+                    if (scriptItem.getAssetId().isPresent()) {
+                        inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().get(), epochNo);
+                    }
                 }
             }
+            dapp.setMintTransactions(mintTransactionsCount);
 
-            dapp.setScriptInvocationsCount(totalScriptInvocations);
-            dapp.setInflowsOutflows(totalInflowsOutflows);
-            dapp.setVolume(totalVolume);
-            dapp.setFees(totalFees);
-            dapp.setTrxSizes(totalTrxSizes);
+            dapp.setInflowsOutflows(inflowsOutflows);
+            dapp.setSpendTransactions(spendTransactionsCount);
+            dapp.setSpendVolume(spendVolume);
+            dapp.setSpendTrxFees(spendTrxFees);
+            dapp.setSpendTrxSizes(spendTrxSizes);
 
-            dapp.setUniqueAccounts(totalUniqueAccounts.size());
+            dapp.setTransactions(mintTransactionsCount + spendTransactionsCount);
+
+            // to do - store in separate db table
+            dapp.setSpendUniqueAccounts(totalUniqueAccounts.size());
 
             val accounts = context.getUniqueAccountsEpoch().getOrDefault(epochNo, new HashSet<>());
             accounts.addAll(totalUniqueAccounts);

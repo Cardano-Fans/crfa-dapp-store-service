@@ -46,7 +46,7 @@ public class DappReleaseRepository {
 
     public Optional<DAppRelease> findById(String id) {
         try {
-            QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
+            val statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
 
             statementBuilder
                     .where().eq("id", id);
@@ -63,11 +63,10 @@ public class DappReleaseRepository {
         val decomposedSortOrder = repositoryColumnConverter.decomposeSortOrder(sortOrder);
 
         try {
-            QueryBuilder<DAppRelease, String> statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
+            val statementBuilder = dbManager.getdAppReleasesDao().queryBuilder();
+            decomposedSortBy.forEach(column -> statementBuilder.orderBy(column, decomposedSortOrder));
 
-            return statementBuilder
-                    .orderBy(decomposedSortBy, decomposedSortOrder)
-                    .query();
+            return statementBuilder.query();
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);

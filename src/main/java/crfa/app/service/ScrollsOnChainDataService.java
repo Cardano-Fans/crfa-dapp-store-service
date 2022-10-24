@@ -26,7 +26,7 @@ public class ScrollsOnChainDataService {
     @Inject
     private RedissonClient redissonClient;
 
-    public Map<String, Long> mintScriptsCount(Collection<String> mintPolicyIds) {
+    public Map<String, Long> mintTransactionsCount(Collection<String> mintPolicyIds) {
         log.info("loading mint policy ids counts...");
 
         val m = new HashMap<String, Long>();
@@ -50,7 +50,7 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<EpochKey<String>, Long> mintScriptsCountWithEpochs(Collection<String> mintPolicyIds, boolean currentEpochOnly) {
+    public Map<EpochKey<String>, Long> mintTransactionsCountWithEpoch(Collection<String> mintPolicyIds, boolean currentEpochOnly) {
         log.info("loading mint policy ids counts on epoch level...");
 
         val m = new HashMap<EpochKey<String>, Long>();
@@ -77,8 +77,8 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<String, Long> scriptHashesCount(Collection<String> scriptHashes) {
-        log.info("loading scriptHashes counts...");
+    public Map<String, Long> spendTransactionsCount(Collection<String> scriptHashes) {
+        log.info("loading spend transactions count...");
 
         val m = new HashMap<String, Long>();
 
@@ -99,8 +99,8 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<EpochKey<String>, Long> scriptHashesCountWithEpochs(Collection<String> scriptHashes, boolean currentEpochOnly) {
-        log.info("loading scriptHashes counts on epoch level...");
+    public Map<EpochKey<String>, Long> spendTransactionsCountEpoch(Collection<String> scriptHashes, boolean currentEpochOnly) {
+        log.info("loading spend transactions count on epoch level...");
 
         val m = new HashMap<EpochKey<String>, Long>();
 
@@ -129,8 +129,8 @@ public class ScrollsOnChainDataService {
         return m;
     }
 
-    public Map<String, Long> scriptLocked(Collection<String> hashes) {
-        log.info("loading scripts locked...");
+    public Map<String, Long> balance(Collection<String> hashes) {
+        log.info("loading spend script balance...");
 
         val lockedPerHash = new HashMap<String, Long>();
 
@@ -155,11 +155,11 @@ public class ScrollsOnChainDataService {
         return lockedPerHash;
     }
 
-    public Map<EpochKey<String>, Long> scriptLockedWithEpochs(Collection<String> hashes,
-                                                              boolean currentEpochOnly) {
-        log.info("loading script locked on epoch level...");
+    public Map<EpochKey<String>, Long> balanceWithEpoch(Collection<String> hashes,
+                                                        boolean currentEpochOnly) {
+        log.info("loading balance on epoch level...");
 
-        val lockedPerAddress = new HashMap<EpochKey<String>, Long>();
+        val balanceMap = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c2";
 
@@ -168,8 +168,6 @@ public class ScrollsOnChainDataService {
         val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
 
         for(val epochNo : epochs) {
-            log.debug("scriptLockedWithEpochs - processing epochNo:{}", epochNo);
-
             hashes.forEach(hash -> {
                 val key = format("%s.%s.%d", collection, hash, epochNo);
 
@@ -180,18 +178,18 @@ public class ScrollsOnChainDataService {
 
                     val resultAda = result / ONE_MLN;
 
-                    lockedPerAddress.put(new EpochKey<>(epochNo, hash), resultAda);
+                    balanceMap.put(new EpochKey<>(epochNo, hash), resultAda);
                 } else {
-                    lockedPerAddress.put(new EpochKey<>(epochNo, hash), 0L);
+                    balanceMap.put(new EpochKey<>(epochNo, hash), 0L);
                 }
             });
         }
 
-        return lockedPerAddress;
+        return balanceMap;
     }
 
-    public Map<String, Long> volume(Collection<String> hashes) {
-        log.info("loading volume data...");
+    public Map<String, Long> spendVolume(Collection<String> hashes) {
+        log.info("loading spend volume data...");
 
         val volumePerHash = new HashMap<String, Long>();
 
@@ -216,11 +214,11 @@ public class ScrollsOnChainDataService {
         return volumePerHash;
     }
 
-    public Map<EpochKey<String>, Long> volumeEpochLevel(Collection<String> hashes,
-                                                        boolean currentEpochOnly) {
-        log.info("loading volume data on epoch level...");
+    public Map<EpochKey<String>, Long> spendVolumeEpochLevel(Collection<String> hashes,
+                                                             boolean currentEpochOnly) {
+        log.info("loading spend volume data on epoch level...");
 
-        val volumePerHash = new HashMap<EpochKey<String>, Long>();
+        val volumeMap = new HashMap<EpochKey<String>, Long>();
 
         val collection = "c12";
 
@@ -239,26 +237,24 @@ public class ScrollsOnChainDataService {
 
                     val resultAda = result / ONE_MLN;
 
-                    volumePerHash.put(new EpochKey<>(epochNo, hash), resultAda);
+                    volumeMap.put(new EpochKey<>(epochNo, hash), resultAda);
                 } else {
-                    volumePerHash.put(new EpochKey<>(epochNo, hash), 0L);
+                    volumeMap.put(new EpochKey<>(epochNo, hash), 0L);
                 }
             });
         }
 
-        return volumePerHash;
+        return volumeMap;
     }
 
-    public Map<String, Long> fees(Collection<String> hashes) {
-        log.info("loading fees data...");
+    public Map<String, Long> spendFees(Collection<String> hashes) {
+        log.info("loading spend fees data...");
 
-        val feesPerHash = new HashMap<String, Long>();
+        val feesMap = new HashMap<String, Long>();
 
         val collection = "c13";
 
         hashes.forEach(hash -> {
-            log.debug("Loading fees per hash:{}", hash);
-
             val key = String.format("%s.%s", collection, hash);
 
             val r = redissonClient.getAtomicLong(key);
@@ -266,24 +262,20 @@ public class ScrollsOnChainDataService {
             if (r.isExists()) {
                 val result = r.get();
 
-                log.debug("fee for hash:{}, ada:{}", hash, result);
-
                 val resultADA = result / ONE_MLN;
 
-                log.debug("fee for hash:{}, ada:{}", hash, resultADA);
-
-                feesPerHash.put(hash, resultADA);
+                feesMap.put(hash, resultADA);
             } else {
-                feesPerHash.put(hash, 0L);
+                feesMap.put(hash, 0L);
             }
         });
 
-        return feesPerHash;
+        return feesMap;
     }
 
-    public Map<EpochKey<String>, Long> feesEpochLevel(Collection<String> hashes,
-                                                        boolean currentEpochOnly) {
-        log.info("loading fees on epoch level...");
+    public Map<EpochKey<String>, Long> spendFeesEpochLevel(Collection<String> hashes,
+                                                           boolean currentEpochOnly) {
+        log.info("loading spend fees on epoch level...");
 
         val feesPerEpoch = new HashMap<EpochKey<String>, Long>();
 
@@ -314,7 +306,7 @@ public class ScrollsOnChainDataService {
         return feesPerEpoch;
     }
 
-    public Map<String, Long> trxSizes(Collection<String> hashes) {
+    public Map<String, Long> spendTrxSizes(Collection<String> hashes) {
         log.info("loading trx sizes data...");
 
         val trxSizesPerHash = new HashMap<String, Long>();
@@ -340,8 +332,8 @@ public class ScrollsOnChainDataService {
         return trxSizesPerHash;
     }
 
-    public Map<EpochKey<String>, Long> trxSizesEpochLevel(Collection<String> hashes,
-                                                          boolean currentEpochOnly) {
+    public Map<EpochKey<String>, Long> spendTrxSizesWithEpoch(Collection<String> hashes,
+                                                              boolean currentEpochOnly) {
         log.info("loading trx sizes on epoch level...");
 
         val feesPerEpoch = new HashMap<EpochKey<String>, Long>();
@@ -371,8 +363,8 @@ public class ScrollsOnChainDataService {
         return feesPerEpoch;
     }
 
-    public Map<String, Set<String>> uniqueAccounts(Collection<String> hashes) {
-        log.info("loading uniqueAccounts...");
+    public Map<String, Set<String>> spendUniqueAccounts(Collection<String> hashes) {
+        log.info("loading spend uniqueAccounts...");
 
         val uniqueAccountsPerHash = new HashMap<String, Set<String>>();
 
@@ -397,8 +389,8 @@ public class ScrollsOnChainDataService {
         return uniqueAccountsPerHash;
     }
 
-    public Map<EpochKey<String>, Set<String>> uniqueAccountsEpoch(Collection<String> hashes,
-                                                                  boolean currentEpochOnly) {
+    public Map<EpochKey<String>, Set<String>> spendUniqueAccountsWithEpoch(Collection<String> hashes,
+                                                                           boolean currentEpochOnly) {
         log.info("loading uniqueAccounts on epoch level...");
 
         val uniqueAccountsPerAddress = new HashMap<EpochKey<String>, Set<String>>();

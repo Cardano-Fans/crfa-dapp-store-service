@@ -41,21 +41,22 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                     val hash = scriptItem.getUnifiedHash();
                     newDappReleaseItem.setHash(hash);
                     newDappReleaseItem.setScriptType(scriptItem.getPurpose() == SPEND ? ScriptType.SPEND : ScriptType.MINT);
-                    newDappReleaseItem.setScriptInvocationsCount(loadInvocations(dappFeed, hash));
 
                     if (scriptItem.getPurpose() == SPEND) {
                         newDappReleaseItem.setScriptType(ScriptType.SPEND);
-                        newDappReleaseItem.setScriptsLocked(loadAdaBalance(dappFeed, hash));
-                        newDappReleaseItem.setVolume(loadVolume(dappFeed, hash));
-                        newDappReleaseItem.setFees(loadFee(dappFeed, hash));
-                        newDappReleaseItem.setTrxSizes(loadTrxSize(dappFeed, hash));
+                        newDappReleaseItem.setBalance(loadBalance(dappFeed, hash));
+                        newDappReleaseItem.setVolume(loadSpendVolume(dappFeed, hash));
+                        newDappReleaseItem.setTrxFees(loadSpendTrxFee(dappFeed, hash));
+                        newDappReleaseItem.setTrxSizes(loadSpendTrxSize(dappFeed, hash));
+                        newDappReleaseItem.setTransactions(loadSpendTransactionsCount(dappFeed, hash));
 
-                        newDappReleaseItem.setUniqueAccounts(loadUniqueAccounts(dappFeed, hash).size());
+                        newDappReleaseItem.setUniqueAccounts(loadSpendUniqueAccounts(dappFeed, hash).size());
                     }
                     if (scriptItem.getPurpose() == MINT) {
-                        val mintPolicyID = scriptItem.getMintPolicyID();
                         newDappReleaseItem.setScriptType(ScriptType.MINT);
+                        val mintPolicyID = scriptItem.getMintPolicyID();
                         newDappReleaseItem.setMintPolicyID(mintPolicyID);
+                        newDappReleaseItem.setTransactions(loadMintTransactionsCount(dappFeed, hash));
 
                         // e.g. wing riders
                         if (scriptItem.getAssetId().isPresent()) {
@@ -63,7 +64,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
                             // in case of purpouse = MINT there is no way we could have any script balance to add, so we only take tokens balance (ADA)
 
                             // ???????????????
-                            newDappReleaseItem.setScriptsLocked(loadTokensBalance(dappFeed, assetId));
+                            newDappReleaseItem.setBalance(loadTokensBalance(dappFeed, assetId));
                         }
                     }
 

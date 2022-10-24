@@ -28,7 +28,6 @@ public class GlobalStatsProcessor {
     @Inject
     private AdaPriceRepository adaPriceRepository;
 
-
     public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
         val b = GlobalStats.builder();
 
@@ -38,15 +37,20 @@ public class GlobalStatsProcessor {
         b.adaPriceEUR(priceForCurrency("EUR"));
         b.adaPriceUSD(priceForCurrency("USD"));
 
-        b.totalScriptsLocked(dappsRepository.totalScriptsLocked());
-        b.totalTrxCount(dappsRepository.totalScriptInvocations());
-        b.totalVolume(dappsRepository.volume());
-        b.totalFees(dappsRepository.fees());
-        b.totalTrxSizes(dappsRepository.totalTrxSizes());
+        val spendTransactions = dappsRepository.spendTransactions();
+        val mintTransactions = dappsRepository.mintTransactions();
 
-        b.totalDapps(totalDapps());
+        b.balance(dappsRepository.balance());
+        b.spendTransactions(spendTransactions);
+        b.mintTransactions(mintTransactions);
+        b.spendVolume(dappsRepository.spendVolume());
+        b.spendTrxFees(dappsRepository.spendTrxFees());
+        b.spendTrxSizes(dappsRepository.spendTrxSizes());
+        b.transactions(spendTransactions + mintTransactions);
 
-        b.totalUniqueAccounts(context.getUniqueAccounts().size());
+        b.dapps(dapps());
+
+        b.spendUniqueAccounts(context.getUniqueAccounts().size());
 
         globalStatsRepository.upsert(b.build());
     }
@@ -58,7 +62,7 @@ public class GlobalStatsProcessor {
                 .orElseThrow();
     }
 
-    private int totalDapps() {
+    private int dapps() {
         return dappsRepository.listDapps(SCRIPTS_INVOKED, DESC).size();
     }
 

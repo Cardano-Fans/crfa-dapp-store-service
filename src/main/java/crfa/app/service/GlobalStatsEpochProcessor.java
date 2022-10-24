@@ -38,15 +38,20 @@ public class GlobalStatsEpochProcessor {
             b.epochNo(currentEpochNo);
             b.updateTime(new Date());
 
-            b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(currentEpochNo));
-            b.totalTrxCount(dappsEpochRepository.totalScriptInvocations(currentEpochNo));
-            b.totalVolume(dappsEpochRepository.volume(currentEpochNo));
+            val spendTransactions = dappsEpochRepository.spendTransactions(currentEpochNo);
+            val mintTransactions = dappsEpochRepository.mintTransactions(currentEpochNo);
 
-            b.totalTrxSizes(dappsEpochRepository.fees(currentEpochNo));
-            b.totalFees(dappsEpochRepository.trxSizes(currentEpochNo));
+            b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(currentEpochNo));
+            b.spendTransactions(spendTransactions);
+            b.mintTransactions(mintTransactions);
+            b.spendVolume(dappsEpochRepository.spendVolume(currentEpochNo));
+
+            b.spendTrxSizes(dappsEpochRepository.spendTrxSizes(currentEpochNo));
+            b.spendTrxFees(dappsEpochRepository.spendFees(currentEpochNo));
+            b.transactions(mintTransactions + spendTransactions);
 
             Optional.ofNullable(context.getUniqueAccountsEpoch().get(currentEpochNo)).ifPresent(uniqueAccounts -> {
-                b.totalUniqueAccounts(uniqueAccounts.size());
+                b.spendUniqueAccounts(uniqueAccounts.size());
             });
 
             globalStatsEpochRepository.upsert(b.build());
@@ -60,14 +65,14 @@ public class GlobalStatsEpochProcessor {
             b.updateTime(new Date());
 
             b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(epochNo));
-            b.totalTrxCount(dappsEpochRepository.totalScriptInvocations(epochNo));
-            b.totalVolume(dappsEpochRepository.volume(epochNo));
+            b.spendTransactions(dappsEpochRepository.spendTransactions(epochNo));
+            b.spendVolume(dappsEpochRepository.spendVolume(epochNo));
 
-            b.totalTrxSizes(dappsEpochRepository.trxSizes(epochNo));
-            b.totalFees(dappsEpochRepository.fees(epochNo));
+            b.spendTrxSizes(dappsEpochRepository.spendTrxSizes(epochNo));
+            b.spendTrxFees(dappsEpochRepository.spendFees(epochNo));
 
             Optional.ofNullable(context.getUniqueAccountsEpoch().get(epochNo)).ifPresent(uniqueAccounts -> {
-                b.totalUniqueAccounts(uniqueAccounts.size());
+                b.spendUniqueAccounts(uniqueAccounts.size());
             });
 
             globalStatsEpochRepository.upsert(b.build());

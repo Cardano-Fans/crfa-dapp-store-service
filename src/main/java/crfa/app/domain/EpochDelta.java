@@ -12,10 +12,12 @@ public class EpochDelta {
 
     int fromEpoch;
     int toEpoch;
+
     Long volumeDiff;
     Double volumeDiffPerc;
-    Long feesDiff;
-    Double feesDiffPerc;
+
+    Long trxFeesDiff;
+    Double trxFeesDiffPerc;
 
     Double avgFeesDiff;
     Double avgFeesDiffPerc;

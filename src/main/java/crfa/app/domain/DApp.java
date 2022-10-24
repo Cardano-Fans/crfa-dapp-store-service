@@ -45,29 +45,34 @@ public class DApp {
     @DatabaseField(columnName = "sub_category")
     String subCategory; // e.g. LENDING_DAPP
 
-    @DatabaseField(columnName = "scripts_locked")
+    @DatabaseField(columnName = "balance")
     @Nullable
-    Long scriptsLocked;
+    Long balance;
 
-    @DatabaseField(columnName = "volume")
+    @DatabaseField(columnName = "spend_volume")
     @Nullable
-    Long volume;
+    Long spendVolume;
 
-    @DatabaseField(columnName = "fees")
+    @DatabaseField(columnName = "spend_trx_fees")
     @Nullable
-    Long fees;
+    Long spendTrxFees;
 
-    @DatabaseField(columnName = "trx_sizes")
+    @DatabaseField(columnName = "spend_trx_sizes")
     @Nullable
-    Long trxSizes;
+    Long spendTrxSizes;
 
-    @DatabaseField(columnName = "unique_accounts")
+    @DatabaseField(columnName = "spend_unique_accounts")
     @Nullable
-    Integer uniqueAccounts;
+    Integer spendUniqueAccounts;
 
-    // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "script_invocations")
-    Long scriptInvocationsCount;
+    @DatabaseField(canBeNull = false, columnName = "spend_transactions")
+    @Nullable Long spendTransactions;
+
+    @DatabaseField(canBeNull = false, columnName = "mint_transactions")
+    @Nullable Long mintTransactions;
+
+    @DatabaseField(canBeNull = false, columnName = "transactions")
+    @Nullable Long transactions;
 
     @Nullable
     @DatabaseField(columnName = "last_version_audit_link")
@@ -80,12 +85,16 @@ public class DApp {
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
-    public @Nullable Double getAvgFee() {
-        return safeDivision(fees, scriptInvocationsCount);
+    public @Nullable Double getAvgTrxFee() {
+        return safeDivision(spendTrxFees, spendTransactions);
     }
 
     public @Nullable Double getAvgTrxSize() {
-        return safeDivision(trxSizes, scriptInvocationsCount);
+        return safeDivision(spendTrxSizes, spendTransactions);
+    }
+
+    public Long getTransactionsCount() {
+        return spendTransactions + mintTransactions;
     }
 
 }

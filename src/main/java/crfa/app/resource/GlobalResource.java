@@ -37,15 +37,16 @@ public class GlobalResource {
         return globalStatsRepository.findGlobalStats().map(globalStats -> {
             val b = GlobalStatsResult.builder();
 
-            b.totalScriptsLocked(globalStats.getTotalScriptsLocked());
-            b.trxCount(globalStats.getTotalTrxCount());
-            b.volume(globalStats.getTotalVolume());
-            b.totalDappsCount(globalStats.getTotalDapps());
-            b.fees(globalStats.getTotalFees());
-            b.avgFee(globalStats.getAvgFee());
+            b.totalScriptsLocked(globalStats.getBalance());
+            b.balance(globalStats.getBalance());
+            b.trxCount(globalStats.getSpendTransactions() + globalStats.getMintTransactions());
+            b.volume(globalStats.getSpendVolume() + 0);
+            b.totalDappsCount(globalStats.getDapps());
+            b.trxFees(globalStats.getSpendTrxFees() + 0);
+            b.avgTrxFee(globalStats.getAvgTrxFee());
             b.avgTrxSize(globalStats.getAvgTrxSize());
 
-            b.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
+            b.totalUniqueAccounts(globalStats.getSpendUniqueAccounts());
 
             b.adaPriceEUR(globalStats.getAdaPriceEUR());
             b.adaPriceUSD(globalStats.getAdaPriceUSD());
@@ -59,13 +60,13 @@ public class GlobalResource {
         return globalStatsEpochRepository.listGlobalStats().stream().map(globalStats -> {
             val b = GlobalStatsEpochResult.builder();
 
+            b.trxCount(globalStats.getTransactionsCount());
             b.inflowsOutflows(globalStats.getInflowsOutflows());
-            b.trxCount(globalStats.getTotalTrxCount());
-            b.volume(globalStats.getTotalVolume());
-            b.fees(globalStats.getTotalFees());
-            b.avgFee(globalStats.getAvgFee());
+            b.volume(globalStats.getSpendVolume() + 0);
+            b.fees(globalStats.getSpendTrxFees() + 0);
+            b.avgTrxFee(globalStats.getAvgTrxFee());
             b.avgTrxSize(globalStats.getAvgTrxSize());
-            b.totalUniqueAccounts(globalStats.getTotalUniqueAccounts());
+            b.totalUniqueAccounts(globalStats.getSpendUniqueAccounts());
 
             return new AbstractMap.SimpleEntry<>(globalStats.getEpochNo(), b.build());
         }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
@@ -76,13 +77,15 @@ public class GlobalResource {
         return globalCategoryStatsRepository.listGlobalStats().stream().map(globalStats -> {
             val b = GlobalCategoryStatsResult.builder();
 
-            b.trxCount(globalStats.getTrxCount());
-            b.volume(globalStats.getVolume());
-            b.fees(globalStats.getFees());
-            b.avgFee(globalStats.getAvgFee());
-            b.scriptsLocked(globalStats.getScriptsLocked());
+            b.balance(globalStats.getBalance());
+            b.trxCount(globalStats.getTransactionsCount());
+            b.volume(globalStats.getSpendVolume() + 0);
+            b.fees(globalStats.getSpendTrxFees() + 0);
+            b.avgTrxFee(globalStats.getAvgTrxFee());
             b.avgTrxSize(globalStats.getAvgTrxSize());
             b.dapps(globalStats.getDapps());
+
+            //TODO unique accounts
 
             return new AbstractMap.SimpleEntry<>(globalStats.getCategoryType(), b.build());
         }).collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));

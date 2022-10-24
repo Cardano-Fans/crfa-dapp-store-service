@@ -52,30 +52,26 @@ public class DappScriptItemEpoch implements EpochGatherable {
 
     @DatabaseField(columnName = "volume")
     @Nullable
-    Long volume;
+    Long volume; // ADA
 
-    @DatabaseField(columnName = "fees")
+    @DatabaseField(columnName = "trx_fees")
     @Nullable
-    Long fees;
+    Long trxFees; // ADA
 
     @DatabaseField(columnName = "trx_sizes")
     @Nullable
-    Long trxSizes;
+    Long trxSizes; // bytes
 
     @DatabaseField(columnName = "inflows_outflows")
     @Nullable
-    Long inflowsOutflows; // for mint scripts we don't have scripts locked value
+    Long inflowsOutflows; // ADA
 
     @DatabaseField(columnName = "unique_accounts")
     @Nullable
     Integer uniqueAccounts;
 
-    // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "script_invocations", index = true)
-    Long scriptInvocationsCount;
-
-    @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
-    Date updateTime;
+    @DatabaseField(canBeNull = false, columnName = "transactions", index = true)
+    Long transactions;
 
     @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
     boolean closedEpoch;
@@ -83,12 +79,49 @@ public class DappScriptItemEpoch implements EpochGatherable {
     @DatabaseField(columnName = "plutus_version")
     int plutusVersion;
 
-    public @Nullable Double getAvgFee() {
-        return safeDivision(fees, scriptInvocationsCount);
+    @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
+    Date updateTime;
+
+    @Override
+    public @Nullable Long getSpendVolume() {
+        return scriptType == ScriptType.SPEND ? this.volume : 0L;
+    }
+
+    @Override
+    public Long getSpendTrxFees() {
+        return scriptType == ScriptType.SPEND ? this.trxFees : 0L;
+    }
+
+    @Override
+    public Long getSpendTrxSizes() {
+        return scriptType == ScriptType.SPEND ? this.trxSizes : 0L;
+    }
+
+    @Override
+    public Integer getSpendUniqueAccounts() {
+        return scriptType == ScriptType.SPEND ? this.uniqueAccounts : 0;
+    }
+
+    @Override
+    public Long getSpendTransactions() {
+        return scriptType == ScriptType.SPEND ? transactions : 0;
+    }
+
+    @Override
+    public Long getMintTransactions() {
+        return scriptType == ScriptType.MINT ? transactions : 0;
+    }
+
+    public @Nullable Double getAvgTrxFee() {
+        return safeDivision(trxFees, transactions);
     }
 
     public @Nullable Double getAvgTrxSize() {
-        return safeDivision(trxSizes, scriptInvocationsCount);
+        return safeDivision(trxSizes, transactions);
+    }
+
+    public Long getTransactionsCount() {
+        return transactions;
     }
 
 }

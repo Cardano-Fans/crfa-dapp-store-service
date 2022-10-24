@@ -8,8 +8,6 @@ import lombok.*;
 
 import java.util.Date;
 
-import static crfa.app.utils.MoreMath.safeDivision;
-
 // table to represent dApp release
 
 @Builder
@@ -69,28 +67,30 @@ public class DAppReleaseEpoch implements EpochGatherable {
     @Nullable
     Long inflowsOutflows;
 
-    @DatabaseField(columnName = "unique_accounts")
+    @DatabaseField(columnName = "spend_unique_accounts")
     @Nullable
-    Integer uniqueAccounts;
+    Integer spendUniqueAccounts;
 
-    // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "script_invocations")
-    Long scriptInvocationsCount;
+    @DatabaseField(canBeNull = false, columnName = "spend_transactions")
+    Long spendTransactions;
 
-    @DatabaseField(columnName = "volume")
+    @DatabaseField(canBeNull = false, columnName = "mint_transactions")
+    Long mintTransactions;
+
+    @DatabaseField(canBeNull = false, columnName = "transactions")
+    Long transactions;
+
+    @DatabaseField(columnName = "spend_volume")
     @Nullable
-    Long volume;
+    Long spendVolume;
 
-    @DatabaseField(columnName = "fees")
+    @DatabaseField(columnName = "spend_trx_fees")
     @Nullable
-    Long fees;
+    Long spendTrxFees;
 
-    @DatabaseField(columnName = "trx_sizes")
+    @DatabaseField(columnName = "spend_trx_sizes")
     @Nullable
-    Long trxSizes;
-
-    @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
-    Date updateTime;
+    Long spendTrxSizes;
 
     @DatabaseField(columnName = "audit_auditor")
     @Nullable
@@ -111,16 +111,11 @@ public class DAppReleaseEpoch implements EpochGatherable {
     @DatabaseField(canBeNull = false, columnName = "closed_epoch", defaultValue = "false")
     boolean closedEpoch;
 
+    @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
+    Date updateTime;
+
     public boolean isLatestVersion(float maxReleaseVersion) {
         return Float.compare(maxReleaseVersion, releaseNumber) == 0;
-    }
-
-    public @Nullable Double getAvgFee() {
-        return safeDivision(fees, scriptInvocationsCount);
-    }
-
-    public @Nullable Double getAvgTrxSize() {
-        return safeDivision(trxSizes, scriptInvocationsCount);
     }
 
 }

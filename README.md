@@ -5,11 +5,8 @@
 
 ## TODO
 Shorter term:
-- crfa-dapp-store: all stats per category + all stats per sub category
+- crfa-dapp-store: all stats per category + all stats per sub category + those on epoch level
 - crfa-dapp-store: pool ticker for a script address using blockfrost
-
-- crfa-dapp-store: set(tx size) by script addr - total size shows by how many bytes ledger grows
-- crfa-dapp-store: set(avg tx size) by script addr, this allows us to see is script / dapp is a storage guzzler, e.g. does not use Plutus V2 or uses unoptimised code
 
 Optimisations:
 - consider using bloom filters instead of HashSet (memory optimisation only)
@@ -17,6 +14,7 @@ Optimisations:
 
 Longer term:
 - scrolls: adjusted volume so we don't include returning transaction
+- fix for transaction size, actually mints do not count in size calculation
 - top 25 / 100 resource hogs, which dapps use the most expensive and most size intensive scripts?
 - top 25 / 100 script addresses / dapps in terms of dapp volume?
 - top 25 / 100 script addresses / dapps in terms of dapp avg transaction fee?

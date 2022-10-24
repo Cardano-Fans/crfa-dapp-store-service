@@ -16,7 +16,6 @@ import java.util.Optional;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
-import static crfa.app.utils.MoreMath.safeDivision;
 
 @Slf4j
 @Singleton
@@ -59,36 +58,46 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                     dappRelease.setAuditor(audit.getAuditor());
                 });
 
-                var totalScriptsLocked = 0L;
-                var totalInvocations = 0L;
-                var volume = 0L;
-                var fees = 0L;
-                var trxSizes = 0L;
-                var uniqueAccounts = new HashSet<String>();
+                var balance = 0L;
+
+                var spendTransactions = 0L;
+                var spendVolume = 0L;
+                var spendTrxFees = 0L;
+                var spendTrxSizes = 0L;
+                var spendUniqueAccounts = new HashSet<String>();
+
+                var mintTransactions = 0L;
 
                 for (val scriptItem : dappReleaseItem.getScripts()) {
                     val hash = scriptItem.getUnifiedHash();
 
-                    totalInvocations += loadInvocations(dappFeed, hash);
-
                     if (scriptItem.getPurpose() == SPEND) {
-                        volume += loadVolume(dappFeed, hash);
-                        fees += loadFee(dappFeed, hash);
-                        totalScriptsLocked += loadAdaBalance(dappFeed, hash);
-                        trxSizes += loadTrxSize(dappFeed, hash);
-                        uniqueAccounts.addAll(loadUniqueAccounts(dappFeed, hash));
+                        balance += loadBalance(dappFeed, hash);
+
+                        spendVolume += loadSpendVolume(dappFeed, hash);
+                        spendTrxFees += loadSpendTrxFee(dappFeed, hash);
+                        spendTrxSizes += loadSpendTrxSize(dappFeed, hash);
+                        spendTransactions += loadSpendTransactionsCount(dappFeed, hash);
+                        spendUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash));
                     }
-                    if (scriptItem.getPurpose() == MINT && scriptItem.getAssetId().isPresent()) {
-                        totalScriptsLocked += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
+                    if (scriptItem.getPurpose() == MINT) {
+                        mintTransactions += loadMintTransactionsCount(dappFeed, hash);
+
+                        if (scriptItem.getAssetId().isPresent()) {
+                            balance += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
+                        }
                     }
                 }
 
-                dappRelease.setScriptInvocationsCount(totalInvocations);
-                dappRelease.setScriptsLocked(totalScriptsLocked);
-                dappRelease.setUniqueAccounts(uniqueAccounts.size());
-                dappRelease.setVolume(volume);
-                dappRelease.setFees(fees);
-                dappRelease.setTrxSizes(trxSizes);
+                dappRelease.setMintTransactions(mintTransactions);
+
+                dappRelease.setBalance(balance);
+                dappRelease.setSpendTransactions(spendTransactions);
+                dappRelease.setSpendUniqueAccounts(spendUniqueAccounts.size());
+                dappRelease.setSpendVolume(spendVolume);
+                dappRelease.setSpendTrxFees(spendTrxFees);
+                dappRelease.setSpendTrxSizes(spendTrxSizes);
+                dappRelease.setTransactions(mintTransactions + spendTransactions);
 
                 dappReleases.add(dappRelease);
             });

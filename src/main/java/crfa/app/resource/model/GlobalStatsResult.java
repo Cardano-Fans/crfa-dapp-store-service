@@ -2,6 +2,7 @@ package crfa.app.resource.model;
 
 import lombok.*;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 
 @Builder
@@ -11,18 +12,21 @@ import java.math.BigDecimal;
 @ToString
 public class GlobalStatsResult {
 
+    @Deprecated
     Long totalScriptsLocked;
+
+    Long balance;
 
     // unified for transactionsCount and scriptInvocationsCount
     Long trxCount;
 
     Long volume;
 
-    Long fees;
+    Long trxFees;
 
-    Double avgFee;
+    @Nullable Double avgTrxFee;
 
-    Double avgTrxSize;
+    @Nullable Double avgTrxSize;
 
     long totalDappsCount; // regardless if this is mint or spend; all dapp types
 

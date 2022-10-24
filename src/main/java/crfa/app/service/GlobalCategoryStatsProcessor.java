@@ -32,13 +32,21 @@ public class GlobalCategoryStatsProcessor {
                     .filter(dApp -> dApp.getCategory().equalsIgnoreCase(cat))
                     .collect(Collectors.toSet());
 
+            val spendTransactions = dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getSpendTransactions).sum();
+            val mintTransactions = dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getMintTransactions).sum();
+
             b.categoryType(cat);
             b.updateTime(new Date());
-            b.scriptsLocked(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getScriptsLocked).sum());
-            b.trxCount(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getScriptInvocationsCount).sum());
-            b.fees(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getFees).sum());
-            b.trxSizes(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getTrxSizes).sum());
-            b.volume(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getVolume).sum());
+            b.balance(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getBalance).sum());
+            b.spendTransactions(spendTransactions);
+            b.mintTransactions(mintTransactions);
+            b.transactions(mintTransactions + spendTransactions);
+            b.spendTrxFees(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getSpendTrxFees).sum());
+            b.spendTrxSizes(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getSpendTrxSizes).sum());
+            b.spendVolume(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getSpendVolume).sum());
+
+            // TODO unique accounts
+
             b.dapps(dappPerCat.size());
 
             globalStatsRepository.upsert(b.build());

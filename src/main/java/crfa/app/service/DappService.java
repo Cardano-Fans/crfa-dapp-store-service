@@ -55,13 +55,13 @@ public class DappService {
             val epochNo = epochGatherable.getEpochNo();
 
             epochLevelStats.put(epochNo, EpochLevelStats.builder()
-                    .volume(epochGatherable.getVolume())
-                    .fees(epochGatherable.getFees())
-                    .avgFee(epochGatherable.getAvgFee())
+                    .volume(epochGatherable.getSpendVolume())
+                    .fees(epochGatherable.getSpendTrxFees())
+                    .avgTrxFee(epochGatherable.getAvgTrxFee())
                     .avgTrxSize(epochGatherable.getAvgTrxSize())
                     .inflowsOutflows(epochGatherable.getInflowsOutflows())
-                    .uniqueAccounts(epochGatherable.getUniqueAccounts())
-                    .trxCount(epochGatherable.getScriptInvocationsCount())
+                    .uniqueAccounts(epochGatherable.getSpendUniqueAccounts())
+                    .trxCount(epochGatherable.getTransactions())
                     .closed(epochGatherable.isClosedEpoch())
                     .build()
             );
@@ -161,7 +161,7 @@ public class DappService {
             if (hasSpend) {
                 val volumeDiff = safeSubtraction(nextStats.getVolume(), prevStats.getVolume());
                 val feesDiff = safeSubtraction(nextStats.getFees(), prevStats.getFees());
-                val avgFeesDiff = safeSubtraction(nextStats.getAvgFee(), prevStats.getAvgFee());
+                val avgFeesDiff = safeSubtraction(nextStats.getAvgTrxFee(), prevStats.getAvgTrxFee());
                 val inflowsOutflowsDiff = safeSubtraction(nextStats.getInflowsOutflows(), prevStats.getInflowsOutflows());
                 val uniqueAccountsDiff = safeSubtraction(nextStats.getUniqueAccounts(), prevStats.getUniqueAccounts());
                 val trxCountDiff = safeSubtraction(nextStats.getTrxCount(), prevStats.getTrxCount());
@@ -169,7 +169,7 @@ public class DappService {
 
                 val volumeDiffPerc = safeMultiplication(safeDivision(volumeDiff, prevStats.getVolume()), (double) 100);
                 val feesDiffPerc = safeMultiplication(safeDivision(feesDiff, prevStats.getFees()), (double) 100);
-                val avgFeesDiffPerc = safeMultiplication(safeDivision(avgFeesDiff, prevStats.getAvgFee()), (double) 100);
+                val avgFeesDiffPerc = safeMultiplication(safeDivision(avgFeesDiff, prevStats.getAvgTrxFee()), (double) 100);
                 val inflowsOutflowsDiffPerc = safeMultiplication(safeDivision(inflowsOutflowsDiff, prevStats.getInflowsOutflows()), (double) 100);
                 val uniqueAccountsDiffPerc = safeMultiplication(safeDivision(uniqueAccountsDiff, prevStats.getUniqueAccounts()), (double) 100);
                 val trxCountDiffPerc = safeMultiplication(safeDivision(trxCountDiff, prevStats.getTrxCount()), (double) 100);
@@ -209,6 +209,8 @@ public class DappService {
                 val activityDiffPerc = Stream.of(trxCountDiffPerc).filter(Objects::nonNull).mapToDouble(Double::doubleValue).average().getAsDouble();
 
                 return EpochDelta.builder()
+                        .fromEpoch(prevEpoch)
+                        .toEpoch(nextEpoch)
                         .trxCountDiff(trxCountDiff)
                         .trxCountDiffPerc(trxCountDiffPerc)
                         .activityDiffPerc(activityDiffPerc)

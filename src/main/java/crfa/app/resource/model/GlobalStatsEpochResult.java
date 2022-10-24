@@ -2,6 +2,8 @@ package crfa.app.resource.model;
 
 import lombok.*;
 
+import javax.annotation.Nullable;
+
 @Builder
 @Getter
 @AllArgsConstructor
@@ -18,9 +20,9 @@ public class GlobalStatsEpochResult {
 
     Long fees;
 
-    Double avgFee;
+    @Nullable Double avgTrxFee;
 
-    Double avgTrxSize;
+    @Nullable Double avgTrxSize;
 
     long totalUniqueAccounts;
 

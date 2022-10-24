@@ -9,7 +9,7 @@ import lombok.*;
 @Setter
 public class GlobalCategoryStatsResult {
 
-    private long scriptsLocked;
+    private long balance;
 
     private long trxCount;
 
@@ -17,13 +17,14 @@ public class GlobalCategoryStatsResult {
 
     private long fees;
 
-    private double avgFee;
+    private Double avgTrxFee;
 
-    private double avgTrxSize;
+    private Double avgTrxSize;
 
     private int dapps;
 
-//    @DatabaseField(canBeNull = false, columnName = "unique_accounts")
-//    private long uniqueAccounts;
+//  TODO
+//  @DatabaseField(canBeNull = false, columnName = "spend_unique_accounts")
+//  private long spendUniqueAccounts;
 
 }

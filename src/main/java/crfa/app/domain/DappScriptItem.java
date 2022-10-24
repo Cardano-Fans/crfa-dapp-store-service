@@ -44,13 +44,13 @@ public class DappScriptItem {
     @Nullable
     String mintPolicyID;
 
-    @DatabaseField(columnName = "scripts_locked")
+    @DatabaseField(columnName = "balance") // balance in ADA
     @Nullable
-    Long scriptsLocked; // for mint scripts we don't have scripts locked value // ADA
+    Long balance; // ADA
 
     // total number of all script innovations belonging to this dApp
-    @DatabaseField(canBeNull = false, columnName = "script_invocations")
-    Long scriptInvocationsCount;
+    @DatabaseField(canBeNull = false, columnName = "transactions")
+    Long transactions;
 
     @DatabaseField(columnName = "unique_accounts")
     @Nullable
@@ -60,13 +60,13 @@ public class DappScriptItem {
     @Nullable
     Long volume; // ADA
 
-    @DatabaseField(columnName = "fees")
+    @DatabaseField(columnName = "trx_fees")
     @Nullable
-    Long fees; // ADA
+    Long trxFees; // ADA
 
     @DatabaseField(columnName = "trx_sizes")
     @Nullable
-    Long trxSizes;
+    Long trxSizes; // bytes
 
     @DatabaseField(columnName = "plutus_version")
     int plutusVersion;
@@ -74,12 +74,16 @@ public class DappScriptItem {
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
-    public @Nullable Double getAvgFee() {
-        return safeDivision(fees, scriptInvocationsCount);
+    public @Nullable Double getAvgTrxFee() {
+        return safeDivision(trxFees, transactions);
     }
 
     public @Nullable Double getAvgTrxSize() {
-        return safeDivision(trxSizes, scriptInvocationsCount);
+        return safeDivision(trxSizes, transactions);
+    }
+
+    public Long getTransactionsCount() {
+        return transactions;
     }
 
 }

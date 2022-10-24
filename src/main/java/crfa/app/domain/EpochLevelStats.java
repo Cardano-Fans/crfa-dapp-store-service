@@ -15,7 +15,7 @@ public final class EpochLevelStats {
     Long fees;
 
     @Nullable
-    Double avgFee;
+    Double avgTrxFee;
 
     @Nullable
     Double avgTrxSize;

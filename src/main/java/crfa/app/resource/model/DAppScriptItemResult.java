@@ -26,9 +26,6 @@ public class DAppScriptItemResult {
 
     int version;
 
-//    @Nullable
-//    String contractAddress;
-
     @Nullable
     String mintPolicyID;
 
@@ -50,7 +47,7 @@ public class DAppScriptItemResult {
     Long fees;
 
     @Nullable
-    Double avgFee;
+    Double avgTrxFee;
 
     @Nullable
     Double avgTrxSize;

@@ -40,10 +40,10 @@ public class DappResult {
     Long volume;
 
     @Nullable
-    Long fees;
+    Long trxFees;
 
     @Nullable
-    Double avgFee;
+    Double avgTrxFee;
 
     @Nullable
     Double avgTrxSize;

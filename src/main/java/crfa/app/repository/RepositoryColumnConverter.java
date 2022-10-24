@@ -4,36 +4,35 @@ import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import jakarta.inject.Singleton;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static crfa.app.domain.SortBy.*;
 
 @Singleton
 public class RepositoryColumnConverter {
 
-    public String decomposeSortBy(SortBy sby) {
-        var columnName = "";
+    public List<String> decomposeSortBy(SortBy sby) {
+        var columnNames = new ArrayList<String>();
 
         if (sby == SCRIPTS_INVOKED) {
-            columnName = "script_invocations";
+            columnNames.add("transactions");
         }
         if (sby == SCRIPTS_LOCKED) {
-            columnName = "scripts_locked";
+            columnNames.add("balance");
         }
         if (sby == FULL_NAME) {
-            columnName = "full_name";
+            columnNames.add("full_name");
         }
         if (sby == RELEASE_NUMBER) {
-            columnName = "release_number";
+            columnNames.add("release_number");
         }
 
-        if (!columnName.isBlank()) {
-            return columnName;
-        }
-
-        throw new RuntimeException("mapping failed");
+        return columnNames;
     }
 
     public Boolean decomposeSortOrder(SortOrder so) {
-        return so == SortOrder.ASC ? true : false;
+        return so == SortOrder.ASC;
     }
 
 }

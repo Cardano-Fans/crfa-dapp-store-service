@@ -4,8 +4,7 @@ import javax.annotation.Nullable;
 
 public class MoreMath {
 
-    @Nullable
-    public static Double safeSubtraction(@Nullable Double a, @Nullable Double b) {
+    public static @Nullable Double safeSubtraction(@Nullable Double a, @Nullable Double b) {
         if (a == null || b == null) {
             return null;
         }
@@ -13,8 +12,7 @@ public class MoreMath {
         return a - b;
     }
 
-    @Nullable
-    public static Long safeSubtraction(@Nullable Long a, @Nullable Long b) {
+    public static @Nullable Long safeSubtraction(@Nullable Long a, @Nullable Long b) {
         if (a == null || b == null) {
             return null;
         }
@@ -22,7 +20,7 @@ public class MoreMath {
         return a - b;
     }
 
-    public static Integer safeSubtraction(@Nullable Integer a, @Nullable Integer b) {
+    public static @Nullable Integer safeSubtraction(@Nullable Integer a, @Nullable Integer b) {
         if (a == null || b == null) {
             return null;
         }
@@ -30,8 +28,7 @@ public class MoreMath {
         return a - b;
     }
 
-    @Nullable
-    public static Double safeDivision(@Nullable Double a, @Nullable Double b) {
+    public static @Nullable Double safeDivision(@Nullable Double a, @Nullable Double b) {
         if (a == null || b == null) {
             return null;
         }
@@ -42,7 +39,7 @@ public class MoreMath {
         return a / b;
     }
 
-    public static Double safeDivision(@Nullable Long a, @Nullable Long b) {
+    public static @Nullable Double safeDivision(@Nullable Long a, @Nullable Long b) {
         if (a == null || b == null) {
             return null;
         }
@@ -53,7 +50,7 @@ public class MoreMath {
         return a.doubleValue() / b.doubleValue();
     }
 
-    public static Double safeDivision(@Nullable Integer a, @Nullable Integer b) {
+    public static @Nullable Double safeDivision(@Nullable Integer a, @Nullable Integer b) {
         if (a == null || b == null) {
             return null;
         }
@@ -64,7 +61,11 @@ public class MoreMath {
         return a.doubleValue() / b.doubleValue();
     }
 
-    public static Double safeMultiplication(@Nullable Double a, @Nullable Double b) {
+    public static Long safeAdd(@Nullable Long a, @Nullable Long b) {
+        return (a == null ? 0 : a) + (b == null ? 0 : b);
+    }
+
+    public static @Nullable Double safeMultiplication(@Nullable Double a, @Nullable Double b) {
         if (a == null || b == null) {
             return null;
         }
