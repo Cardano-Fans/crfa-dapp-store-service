@@ -34,49 +34,36 @@ public class GlobalStatsEpochProcessor {
         val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
         if (injestCurrentEpochOnly) {
-            val b = GlobalStatsEpoch.builder();
-            b.epochNo(currentEpochNo);
-            b.updateTime(new Date());
-
-            val spendTransactions = dappsEpochRepository.spendTransactions(currentEpochNo);
-            val mintTransactions = dappsEpochRepository.mintTransactions(currentEpochNo);
-
-            b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(currentEpochNo));
-            b.spendTransactions(spendTransactions);
-            b.mintTransactions(mintTransactions);
-            b.spendVolume(dappsEpochRepository.spendVolume(currentEpochNo));
-
-            b.spendTrxSizes(dappsEpochRepository.spendTrxSizes(currentEpochNo));
-            b.spendTrxFees(dappsEpochRepository.spendFees(currentEpochNo));
-            b.transactions(mintTransactions + spendTransactions);
-
-            Optional.ofNullable(context.getUniqueAccountsEpoch().get(currentEpochNo)).ifPresent(uniqueAccounts -> {
-                b.spendUniqueAccounts(uniqueAccounts.size());
-            });
-
-            globalStatsEpochRepository.upsert(b.build());
-
-            return;
+            globalStatsEpochRepository.upsert(createStats(context, currentEpochNo));
+        } else {
+            for (val epochNo : epochs) {
+                globalStatsEpochRepository.upsert(createStats(context, epochNo));
+            }
         }
+    }
 
-        for (val epochNo : epochs) {
-            val b = GlobalStatsEpoch.builder();
-            b.epochNo(epochNo);
-            b.updateTime(new Date());
+    private GlobalStatsEpoch createStats(FeedProcessingContext context, int epochNo) {
+        val b = GlobalStatsEpoch.builder();
+        b.epochNo(epochNo);
+        b.updateTime(new Date());
 
-            b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(epochNo));
-            b.spendTransactions(dappsEpochRepository.spendTransactions(epochNo));
-            b.spendVolume(dappsEpochRepository.spendVolume(epochNo));
+        val spendTransactions = dappsEpochRepository.spendTransactions(epochNo);
+        val mintTransactions = dappsEpochRepository.mintTransactions(epochNo);
 
-            b.spendTrxSizes(dappsEpochRepository.spendTrxSizes(epochNo));
-            b.spendTrxFees(dappsEpochRepository.spendFees(epochNo));
+        b.inflowsOutflows(dappsEpochRepository.inflowsOutflows(epochNo));
+        b.spendTransactions(spendTransactions);
+        b.mintTransactions(mintTransactions);
+        b.spendVolume(dappsEpochRepository.spendVolume(epochNo));
 
-            Optional.ofNullable(context.getUniqueAccountsEpoch().get(epochNo)).ifPresent(uniqueAccounts -> {
-                b.spendUniqueAccounts(uniqueAccounts.size());
-            });
+        b.spendTrxSizes(dappsEpochRepository.spendTrxSizes(epochNo));
+        b.spendTrxFees(dappsEpochRepository.spendFees(epochNo));
+        b.transactions(mintTransactions + spendTransactions);
 
-            globalStatsEpochRepository.upsert(b.build());
-        }
+        Optional.ofNullable(context.getUniqueAccountsEpoch().get(epochNo)).ifPresent(uniqueAccounts -> {
+            b.spendUniqueAccounts(uniqueAccounts.size());
+        });
+
+        return b.build();
     }
 
 }

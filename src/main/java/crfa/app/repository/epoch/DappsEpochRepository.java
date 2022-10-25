@@ -1,7 +1,5 @@
 package crfa.app.repository.epoch;
 
-import com.j256.ormlite.stmt.QueryBuilder;
-import crfa.app.domain.DApp;
 import crfa.app.domain.DAppEpoch;
 import crfa.app.repository.DbManager;
 import jakarta.inject.Inject;
@@ -20,14 +18,26 @@ public class DappsEpochRepository {
     @Inject
     private DbManager dbManager;
 
+    public List<DAppEpoch> list(int epochNo) {
+        try {
+            val statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
+
+            return statementBuilder.where()
+            .eq("epoch_no", epochNo)
+            .query();
+        } catch (SQLException e) {
+            throw new RuntimeException("db error", e);
+        }
+    }
+
     public Long spendVolume() {
-        val statementBuilder = dbManager.getdAppDao().queryBuilder();
+        val statementBuilder = dbManager.getdAppEpochDao().queryBuilder();
 
         try {
             return statementBuilder.query()
                     .stream()
                     .filter(dApp -> dApp.getSpendVolume() != null)
-                    .mapToLong(DApp::getSpendVolume)
+                    .mapToLong(DAppEpoch::getSpendVolume)
                     .sum();
         } catch (SQLException e) {
             log.error("db error", e);

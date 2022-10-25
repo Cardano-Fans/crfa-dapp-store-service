@@ -7,11 +7,15 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-public class GlobalCategoryStatsResult {
+public class GlobalCategoryEpochStatsResult {
 
-    private String category;
+    private String id;
 
-    private long balance;
+    private int epochNo;
+
+    private String categoryType;
+
+    private long inflowsOutflows;
 
     private long trxCount;
 

@@ -40,10 +40,10 @@ public class GlobalCategoryStatsProcessor {
             b.balance(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getBalance).sum());
             b.spendTransactions(spendTransactions);
             b.mintTransactions(mintTransactions);
-            b.transactions(mintTransactions + spendTransactions);
             b.spendTrxFees(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getSpendTrxFees).sum());
             b.spendTrxSizes(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getSpendTrxSizes).sum());
             b.spendVolume(dappPerCat.stream().filter(Objects::nonNull).mapToLong(DApp::getSpendVolume).sum());
+            b.transactions(mintTransactions + spendTransactions);
 
             // TODO unique accounts
 

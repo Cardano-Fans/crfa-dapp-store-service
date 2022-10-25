@@ -1,5 +1,6 @@
 package crfa.app.repository;
 
+import crfa.app.domain.GlobalCategoryEpochStats;
 import crfa.app.domain.GlobalCategoryStats;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -11,14 +12,14 @@ import java.util.List;
 
 @Singleton
 @Slf4j
-public class GlobalCategoryStatsRepository {
+public class GlobalCategoryStatsEpochRepository {
 
     @Inject
     private DbManager dbManager;
 
-    public List<GlobalCategoryStats> list() {
+    public List<GlobalCategoryEpochStats> list() {
         try {
-            val statementBuilder = dbManager.getGlobalCategoryStatsDao().queryBuilder();
+            val statementBuilder = dbManager.getGlobalCategoryStatsEpochDao().queryBuilder();
 
             return statementBuilder
                     .query()
@@ -30,9 +31,9 @@ public class GlobalCategoryStatsRepository {
         }
     }
 
-    public void upsert(GlobalCategoryStats stats) {
+    public void upsert(GlobalCategoryEpochStats stats) {
         try {
-            dbManager.getGlobalCategoryStatsDao().createOrUpdate(stats);
+            dbManager.getGlobalCategoryStatsEpochDao().createOrUpdate(stats);
         } catch (SQLException e) {
             log.error("db error", e);
             throw new RuntimeException(e);

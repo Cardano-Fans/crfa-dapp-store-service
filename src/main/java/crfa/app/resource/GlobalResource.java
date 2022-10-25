@@ -1,8 +1,10 @@
 package crfa.app.resource;
 
+import crfa.app.repository.GlobalCategoryStatsEpochRepository;
 import crfa.app.repository.GlobalCategoryStatsRepository;
 import crfa.app.repository.GlobalStatsEpochRepository;
 import crfa.app.repository.GlobalStatsRepository;
+import crfa.app.resource.model.GlobalCategoryEpochStatsResult;
 import crfa.app.resource.model.GlobalCategoryStatsResult;
 import crfa.app.resource.model.GlobalStatsEpochResult;
 import crfa.app.resource.model.GlobalStatsResult;
@@ -31,6 +33,9 @@ public class GlobalResource {
 
     @Inject
     private GlobalCategoryStatsRepository globalCategoryStatsRepository;
+
+    @Inject
+    private GlobalCategoryStatsEpochRepository globalCategoryStatsEpochRepository;
 
     @Get(uri = "/stats", produces = "application/json")
     public Optional<GlobalStatsResult> globalStats() {
@@ -74,7 +79,7 @@ public class GlobalResource {
 
     @Get(uri = "/stats/category", produces = "application/json")
     public Map<String, GlobalCategoryStatsResult> globalCategoryStats() {
-        return globalCategoryStatsRepository.listGlobalStats().stream().map(globalStats -> {
+        return globalCategoryStatsRepository.list().stream().map(globalStats -> {
             val b = GlobalCategoryStatsResult.builder();
 
             b.balance(globalStats.getBalance());
@@ -89,6 +94,29 @@ public class GlobalResource {
 
             return new AbstractMap.SimpleEntry<>(globalStats.getCategoryType(), b.build());
         }).collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+    }
+
+    @Get(uri = "/stats/category/epochs", produces = "application/json")
+    public Map<String, GlobalCategoryEpochStatsResult> globalCategoryStatsEpochs() {
+
+        return globalCategoryStatsEpochRepository.list().stream().map(globalCategoryStats -> {
+            val b = GlobalCategoryEpochStatsResult.builder();
+
+            b.id(globalCategoryStats.getId());
+            b.epochNo(globalCategoryStats.getEpochNo());
+            b.categoryType(globalCategoryStats.getCategoryType());
+            b.inflowsOutflows(globalCategoryStats.getInflowsOutflows());
+            b.trxCount(globalCategoryStats.getTransactionsCount());
+            b.volume(globalCategoryStats.getSpendVolume() + 0);
+            b.fees(globalCategoryStats.getSpendTrxFees() + 0);
+            b.avgTrxFee(globalCategoryStats.getAvgTrxFee());
+            b.avgTrxSize(globalCategoryStats.getAvgTrxSize());
+            b.dapps(globalCategoryStats.getDapps());
+
+            //TODO unique accounts
+
+            return new AbstractMap.SimpleEntry<>(globalCategoryStats.getId(), b.build());
+        }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
 }

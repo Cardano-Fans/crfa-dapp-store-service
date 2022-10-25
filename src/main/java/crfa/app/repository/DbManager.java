@@ -43,6 +43,7 @@ public class DbManager {
     private Dao<GlobalStatsEpoch, Integer> globalStatsEpochDao;
 
     private Dao<GlobalCategoryStats, String> globalCategoryStatsDao;
+    private Dao<GlobalCategoryEpochStats, String> globalCategoryStatsEpochDao;
 
     @EventListener
     public void onStartup(ServerStartupEvent event) throws SQLException {
@@ -69,6 +70,7 @@ public class DbManager {
         this.globalStatsEpochDao = DaoManager.createDao(connectionSource, GlobalStatsEpoch.class);
 
         this.globalCategoryStatsDao = DaoManager.createDao(connectionSource, GlobalCategoryStats.class);
+        this.globalCategoryStatsEpochDao = DaoManager.createDao(connectionSource, GlobalCategoryEpochStats.class);
 
         createDbsIfNecessary();
     }
@@ -113,6 +115,10 @@ public class DbManager {
         return globalCategoryStatsDao;
     }
 
+    public Dao<GlobalCategoryEpochStats, String> getGlobalCategoryStatsEpochDao() {
+        return globalCategoryStatsEpochDao;
+    }
+
     public Dao<GlobalStatsEpoch, Integer> getGlobalStatsEpochDao() {
         return globalStatsEpochDao;
     }
@@ -142,6 +148,7 @@ public class DbManager {
         TableUtils.createTableIfNotExists(this.connectionSource, GlobalStatsEpoch.class);
 
         TableUtils.createTableIfNotExists(this.connectionSource, GlobalCategoryStats.class);
+        TableUtils.createTableIfNotExists(this.connectionSource, GlobalCategoryEpochStats.class);
     }
 
     // TODO optimise this by moving responsibility to db engine via SQL delete statement
