@@ -20,7 +20,7 @@ public class ScriptStats {
     @DatabaseField(canBeNull = false, columnName = "count")
     private Long count;
 
-    @DatabaseField(canBeNull = false, columnName = "script_type")
+    @DatabaseField(canBeNull = false, columnName = "script_type", index = true)
     private ScriptType scriptType;
 
     @DatabaseField(canBeNull = false, columnName = "type", index = true)

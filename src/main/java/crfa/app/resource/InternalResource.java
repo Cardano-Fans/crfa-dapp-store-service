@@ -2,9 +2,12 @@ package crfa.app.resource;
 
 import crfa.app.domain.InjestionMode;
 import crfa.app.domain.ScriptStats;
+import crfa.app.domain.ScriptStatsType;
+import crfa.app.domain.ScriptType;
 import crfa.app.repository.total.ScriptHashesStatsRepository;
 import crfa.app.service.DappFeedCreator;
 import crfa.app.service.DappIngestionService;
+import crfa.app.service.ScriptHashesService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Controller;
@@ -18,7 +21,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static crfa.app.domain.ScriptStatsType.DB_SYNC;
 import static java.util.stream.Collectors.toMap;
 
 @Controller("/internal")
@@ -34,9 +36,12 @@ public class InternalResource {
     @Inject
     private DappFeedCreator dappFeedCreator;
 
-    @Get(uri = "/scriptStats", produces = "application/json")
-    public Map<String, Long> scriptStats() {
-        return scriptHashesStatsRepository.listScriptStatsOrderedByTransactionCount(DB_SYNC)
+    @Inject
+    private ScriptHashesService scriptHashesService;
+
+    @Get(uri = "/scriptStats/{type}/{scriptType}", produces = "application/json")
+    public Map<String, Long> scriptStats(ScriptStatsType type, ScriptType scriptType) {
+        return scriptHashesStatsRepository.listScriptStatsOrderedByTransactionCount(type, scriptType)
                 .stream()
                 .collect(toMap(ScriptStats::getScriptHash, ScriptStats::getCount))
                 .entrySet()
@@ -76,6 +81,15 @@ public class InternalResource {
         dappIngestionService.process(dataFeed, injestionMode);
 
         log.info("dapps update completed, mode:{}", injestionMode);
+
+        return HttpResponse.status(HttpStatus.OK);
+    }
+
+    @Post(value = "/rebuildScriptStats", consumes = "application/json", produces = "application/json")
+    public HttpResponse<?> rebuildScriptStats() {
+        log.info("rebuilding script stats...");
+        scriptHashesService.ingestAll();
+        log.info("rebuilding script stats completed.");
 
         return HttpResponse.status(HttpStatus.OK);
     }

@@ -470,4 +470,26 @@ public class ScrollsOnChainDataService {
         return tokenHoldersPerEpoch;
     }
 
+    public Set<String> listSpendScriptHashes() {
+        val result = new HashSet<String>();
+
+        val collection = "c3";
+
+        redissonClient.getKeys().getKeysByPattern(collection + ".*")
+                .forEach(hash -> result.add(hash.replace(collection + ".", "")));
+
+        return result;
+    }
+
+    public Set<String> listMintScriptHashes() {
+        val result = new HashSet<String>();
+
+        val collection = "c5";
+
+        redissonClient.getKeys().getKeysByPattern(collection + ".*")
+                .forEach(hash -> result.add(hash.replace(collection + ".", "")));
+
+        return result;
+    }
+
 }
