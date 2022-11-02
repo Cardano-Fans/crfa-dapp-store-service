@@ -2,10 +2,13 @@ package crfa.app.service;
 
 import crfa.app.domain.EpochKey;
 import crfa.app.domain.Eras;
+import crfa.app.domain.PoolError;
+import io.vavr.control.Either;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 
@@ -387,6 +390,37 @@ public class ScrollsOnChainDataService {
         });
 
         return uniqueAccountsPerHash;
+    }
+
+    public Map<String, Either<PoolError, String>> poolHexes(Collection<String> hashes) {
+        log.info("loading pool hex, hashes size:{}", hashes.size());
+
+        val poolHexByHash = new HashMap<String,  Either<PoolError, String>>();
+
+        for (val hash : hashes) {
+            if (hash.length() < 100) {
+                poolHexByHash.put(hash, Either.left(PoolError.NOT_STAKED));
+                continue;
+            }
+
+            val stakingPart = StringUtils.right( hash, 56);
+
+            val collection = "c17";
+
+            val key = format("%s.%s", collection, stakingPart);
+
+            val poolRScored = redissonClient.<String>getScoredSortedSet(key, new StringCodec());
+
+            val maybePool = poolRScored.valueRangeReversed(0, MAX_VALUE).stream().findFirst();
+
+            if (maybePool.isPresent()) {
+                poolHexByHash.put(hash, Either.right(maybePool.orElseThrow()));
+            } else {
+                poolHexByHash.put(hash, Either.left(PoolError.NOT_FOUND));
+            }
+        }
+
+        return poolHexByHash;
     }
 
     public Map<EpochKey<String>, Set<String>> spendUniqueAccountsWithEpoch(Collection<String> hashes,

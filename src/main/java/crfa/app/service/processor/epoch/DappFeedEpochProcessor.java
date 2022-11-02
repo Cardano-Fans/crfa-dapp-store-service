@@ -143,7 +143,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
 
                     // wing riders case
                     if (scriptItem.getAssetId().isPresent()) {
-                        inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().get(), epochNo);
+                        inflowsOutflows += loadTokensBalance(dappFeed, scriptItem.getAssetId().orElseThrow(), epochNo);
                     }
                 }
             }

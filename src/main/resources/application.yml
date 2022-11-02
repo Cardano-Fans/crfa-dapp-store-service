@@ -23,8 +23,9 @@ dbPath-dapps: crfa-dapp-store-dapps-dev.db
 #redis-host: localhost
 redis-host: kajka.lan
 
+blockfrost-projectId: mainnetS6e1C6yuxQNHOX8SwVNHPvomtpOdD5Iu
+
 jackson:
   serialization-inclusion: NON_ABSENT # Omit null and Optional.empty(), but include empty collections
   serialization:
     indent-output: true # Pretty-print JSON
-

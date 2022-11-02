@@ -7,10 +7,7 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static crfa.app.domain.InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
@@ -66,8 +63,8 @@ public class DataPointsLoader {
         });
 
         return DataPointers.builder()
-                .mintPolicyIds(mintPolicyIds)
-                .scriptHashes(scriptHashes)
+                .mintPolicyIds(mintPolicyIds.stream().filter(Objects::nonNull).toList())
+                .scriptHashes(scriptHashes.stream().filter(Objects::nonNull).toList())
                 .assetIdToTokenHolders(assetIdToTokenHolders)
                 .assetIdToTokenHoldersWithEpoch(assetIdToTokenHoldersWithEpoch)
                 .build();

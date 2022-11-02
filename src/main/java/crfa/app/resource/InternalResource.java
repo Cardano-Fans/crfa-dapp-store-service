@@ -7,6 +7,7 @@ import crfa.app.domain.ScriptType;
 import crfa.app.repository.total.ScriptHashesStatsRepository;
 import crfa.app.service.DappFeedCreator;
 import crfa.app.service.DappIngestionService;
+import crfa.app.service.PoolService;
 import crfa.app.service.ScriptHashesService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -39,6 +40,9 @@ public class InternalResource {
     @Inject
     private ScriptHashesService scriptHashesService;
 
+    @Inject
+    private PoolService poolService;
+
     @Get(uri = "/scriptStats/{type}/{scriptType}", produces = "application/json")
     public Map<String, Long> scriptStats(ScriptStatsType type, ScriptType scriptType) {
         return scriptHashesStatsRepository.listScriptStatsOrderedByTransactionCount(type, scriptType)
@@ -68,7 +72,7 @@ public class InternalResource {
         return HttpResponse.status(HttpStatus.OK);
     }
 
-    @Post(value = "/rebuildDbPartial", consumes = "application/json", produces = "application/json")
+    @Post(value = "/rebuildDbPartially", consumes = "application/json", produces = "application/json")
     public HttpResponse<?> rebuildDbPartial() {
         val injestionMode = InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
 
@@ -85,11 +89,20 @@ public class InternalResource {
         return HttpResponse.status(HttpStatus.OK);
     }
 
-    @Post(value = "/rebuildScriptStats", consumes = "application/json", produces = "application/json")
+    @Post(value = "/rebuildScriptStatsDb", consumes = "application/json", produces = "application/json")
     public HttpResponse<?> rebuildScriptStats() {
         log.info("rebuilding script stats...");
         scriptHashesService.ingestAll();
         log.info("rebuilding script stats completed.");
+
+        return HttpResponse.status(HttpStatus.OK);
+    }
+
+    @Post(value = "/rebuildPoolsDb", consumes = "application/json", produces = "application/json")
+    public HttpResponse<?> rebuildPoolsDb() {
+        log.info("rebuilding pools db...");
+        poolService.updatePools();
+        log.info("rebuilding pools db completed.");
 
         return HttpResponse.status(HttpStatus.OK);
     }

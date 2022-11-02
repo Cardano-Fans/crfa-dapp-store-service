@@ -2,6 +2,7 @@ package crfa.app.service.processor.total;
 
 import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.domain.*;
+import crfa.app.repository.PoolRepository;
 import crfa.app.repository.total.DappsRepository;
 import crfa.app.service.DappService;
 import crfa.app.service.processor.FeedProcessor;
@@ -29,6 +30,9 @@ public class DappFeedProcessor implements FeedProcessor {
 
     @Inject
     private DappsRepository dappsRepository;
+
+    @Inject
+    private PoolRepository poolRepository;
 
     @Override
     public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
@@ -91,7 +95,7 @@ public class DappFeedProcessor implements FeedProcessor {
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         minTransactionsCount += loadMintTransactionsCount(dappFeed, hash);
                         if (scriptItem.getAssetId().isPresent()) {
-                            balance += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
+                            balance += loadTokensBalance(dappFeed, scriptItem.getAssetId().orElseThrow());
                         }
                     }
 

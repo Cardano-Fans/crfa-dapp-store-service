@@ -1,6 +1,7 @@
 package crfa.app.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Value;
 import jakarta.inject.Singleton;
@@ -19,13 +20,12 @@ public class AppFactory {
 
     @Singleton
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        return new ObjectMapper().registerModule(new Jdk8Module());
     }
 
     @Singleton
     public RedissonClient redisClient() {
         Config config = new Config();
-
                 config.useSingleServer()
                 .setAddress(String.format("redis://%s:%d", redisHost, redisPort));
 

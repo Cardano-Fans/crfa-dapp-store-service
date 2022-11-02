@@ -1,17 +1,17 @@
 package crfa.app.service.processor.total;
 
 import crfa.app.domain.*;
+import crfa.app.repository.PoolRepository;
 import crfa.app.repository.total.DappReleaseRepository;
 import crfa.app.service.processor.FeedProcessor;
+import crfa.app.utils.Json;
+import io.vavr.control.Either;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.domain.Purpose.SPEND;
@@ -24,6 +24,12 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
 
     @Inject
     private DappReleaseRepository dappReleaseRepository;
+
+    @Inject
+    private PoolRepository poolRepository;
+
+    @Inject
+    private Json json;
 
     @Override
     public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
@@ -68,6 +74,8 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
 
                 var mintTransactions = 0L;
 
+                var pools = new LinkedHashSet<Optional<Either<PoolError, String>>>();
+
                 for (val scriptItem : dappReleaseItem.getScripts()) {
                     val hash = scriptItem.getUnifiedHash();
 
@@ -79,12 +87,13 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                         spendTrxSizes += loadSpendTrxSize(dappFeed, hash);
                         spendTransactions += loadSpendTransactionsCount(dappFeed, hash);
                         spendUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash));
+                        pools.add(loadPoolHex(dappFeed, hash));
                     }
                     if (scriptItem.getPurpose() == MINT) {
                         mintTransactions += loadMintTransactionsCount(dappFeed, hash);
 
                         if (scriptItem.getAssetId().isPresent()) {
-                            balance += loadTokensBalance(dappFeed, scriptItem.getAssetId().get());
+                            balance += loadTokensBalance(dappFeed, scriptItem.getAssetId().orElseThrow());
                         }
                     }
                 }

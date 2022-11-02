@@ -10,6 +10,7 @@ import crfa.app.resource.model.DAppScriptItemResult;
 import crfa.app.resource.model.DappReleaseResult;
 import crfa.app.resource.model.DappScriptsResult;
 import crfa.app.service.DappService;
+import crfa.app.utils.Json;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
@@ -33,6 +34,9 @@ public class DappsScriptsResource {
 
     @Inject
     private DappService dappService;
+
+    @Inject
+    private Json json;
 
     @Get(uri = "/by-release-key/{releaseKey}", produces = "application/json")
     public Optional<DappScriptsResult> listScriptsResponse(@PathVariable String releaseKey,
@@ -105,6 +109,7 @@ public class DappsScriptsResource {
                             .hash(dappScriptItem.getHash())
                             .dappId(dappScriptItem.getDappId())
                             .trxCount(dappScriptItem.getTransactions())
+                            .poolData(json.read(dappScriptItem.getPool()))
                             .uniqueAccounts(dappScriptItem.getUniqueAccounts())
                             .volume(dappScriptItem.getVolume())
                             .fees(dappScriptItem.getTrxFees())

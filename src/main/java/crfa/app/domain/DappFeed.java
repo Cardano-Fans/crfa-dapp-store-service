@@ -1,6 +1,7 @@
 package crfa.app.domain;
 
 import crfa.app.client.metadata.DappSearchItem;
+import io.vavr.control.Either;
 import lombok.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class DappFeed {
     Map<String, Long> spendVolume;
     Map<String, Long> spendTrxFees;
     Map<String, Long> spendTrxSizes;
+    Map<String, Either<PoolError, String>> poolHexes;
 
     // script type = SPEND on epoch level
     Map<String, Long> tokenHoldersBalance;

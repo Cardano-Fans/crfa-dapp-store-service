@@ -114,7 +114,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
             dappScriptItem.setTransactions(loadMintTransactionsCount(dappFeed, hash, epochNo));
 
             if (scriptItem.getAssetId().isPresent()) {
-                val assetId = scriptItem.getAssetId().get();
+                val assetId = scriptItem.getAssetId().orElseThrow();
                 // in case of purpouse = MINT there is no way we could have any script balance to add, so we only take tokens balance (ADA)
                 dappScriptItem.setInflowsOutflows(dappScriptItem.getInflowsOutflows() == null ? 0 : dappScriptItem.getInflowsOutflows() + loadTokensBalance(dappFeed, assetId, epochNo));
             }

@@ -51,6 +51,7 @@ public class DappFeedCreator {
         val spendFees = scrollsOnChainDataService.spendFees(dataPointers.scriptHashes);
         val spendUniqueAccounts = scrollsOnChainDataService.spendUniqueAccounts(dataPointers.scriptHashes);
         val spendTrxSizes = scrollsOnChainDataService.spendTrxSizes(dataPointers.scriptHashes);
+        val poolHexes = scrollsOnChainDataService.poolHexes(dataPointers.scriptHashes);
 
         val uniqueAccountsMerge = uniqueAccountsUnion(spendUniqueAccounts, dataPointers.assetIdToTokenHolders);
 
@@ -64,6 +65,7 @@ public class DappFeedCreator {
                     .spendTrxFees(spendFees)
                     .spendTrxSizes(spendTrxSizes)
                     .spendTransactionsCount(spendTransactionsCount)
+                    .poolHexes(poolHexes)
                     .mintTransactionsCount(mintPolicyCounts)
                     .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
                     .spendUniqueAccounts(uniqueAccountsMerge)
@@ -91,6 +93,7 @@ public class DappFeedCreator {
                     .spendVolume(spendVolume)
                     .spendTrxFees(spendFees)
                     .spendTrxSizes(spendTrxSizes)
+                    .poolHexes(poolHexes)
                     .mintTransactionsCount(mintPolicyCounts)
                     .spendTransactionsCount(spendTransactionsCount)
                     .spendUniqueAccounts(uniqueAccountsMerge)

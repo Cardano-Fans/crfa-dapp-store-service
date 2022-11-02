@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 @Builder
@@ -45,6 +46,9 @@ public class DAppScriptItemResult {
 
     @Nullable
     Long fees;
+
+    @Nullable
+    Map<String, ?> poolData;
 
     @Nullable
     Double avgTrxFee;

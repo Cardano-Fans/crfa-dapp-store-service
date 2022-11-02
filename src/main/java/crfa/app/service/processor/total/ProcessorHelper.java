@@ -1,8 +1,11 @@
 package crfa.app.service.processor.total;
 
 import crfa.app.domain.DappFeed;
+import crfa.app.domain.PoolError;
+import io.vavr.control.Either;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -59,6 +62,12 @@ public class ProcessorHelper {
             log.warn("Unable to fees for hash:{}", h);
             return 0L;
         });
+    }
+
+    public static Optional<Either<PoolError, String>> loadPoolHex(DappFeed dappFeed, String hash) {
+        return Optional.ofNullable(dappFeed.getPoolHexes().computeIfAbsent(hash, h -> {
+            return null;
+        }));
     }
 
     public static long loadSpendTrxSize(DappFeed dappFeed, String hash) {

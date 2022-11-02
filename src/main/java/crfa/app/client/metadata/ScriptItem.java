@@ -28,9 +28,6 @@ public class ScriptItem {
 
     Purpose purpose;
 
-//    @Deprecated
-//    String contractAddress;
-
     @Nullable
     String scriptHash;
 

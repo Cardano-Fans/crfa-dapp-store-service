@@ -3,7 +3,7 @@ plugins {
     id("io.micronaut.application") version "3.5.0"
 }
 
-version = "1.0.0"
+version = "1.0.1"
 
 group = "crfa.app"
 
@@ -29,6 +29,8 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     implementation("commons-io:commons-io:2.11.0")
+
+    implementation 'io.blockfrost:blockfrost-java:0.1.1'
 
     implementation('com.j256.ormlite:ormlite-jdbc:6.1')
 

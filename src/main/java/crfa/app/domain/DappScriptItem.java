@@ -64,6 +64,9 @@ public class DappScriptItem {
     @Nullable
     Long trxFees; // ADA
 
+    @DatabaseField(columnName = "pool_data")
+    String pool; // pool data as json
+
     @DatabaseField(columnName = "trx_sizes")
     @Nullable
     Long trxSizes; // bytes
