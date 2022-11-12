@@ -77,6 +77,6 @@ public class PoolService {
 
     @EventListener
     public void onStartup(ServerStartupEvent event) {
-        updatePools();
+        //updatePools();
     }
 }

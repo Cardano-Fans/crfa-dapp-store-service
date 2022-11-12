@@ -50,8 +50,7 @@ public class GlobalResource {
             b.trxFees(globalStats.getSpendTrxFees() + 0);
             b.avgTrxFee(globalStats.getAvgTrxFee());
             b.avgTrxSize(globalStats.getAvgTrxSize());
-
-            b.totalUniqueAccounts(globalStats.getSpendUniqueAccounts());
+            b.totalUniqueAccounts(globalStats.getSpendUniqueAccounts() + 0);
 
             b.adaPriceEUR(globalStats.getAdaPriceEUR());
             b.adaPriceUSD(globalStats.getAdaPriceUSD());
@@ -71,7 +70,7 @@ public class GlobalResource {
             b.fees(globalStats.getSpendTrxFees() + 0);
             b.avgTrxFee(globalStats.getAvgTrxFee());
             b.avgTrxSize(globalStats.getAvgTrxSize());
-            b.totalUniqueAccounts(globalStats.getSpendUniqueAccounts());
+            b.totalUniqueAccounts(globalStats.getSpendUniqueAccounts() + 0);
 
             return new AbstractMap.SimpleEntry<>(globalStats.getEpochNo(), b.build());
         }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
@@ -88,9 +87,9 @@ public class GlobalResource {
             b.fees(globalStats.getSpendTrxFees() + 0);
             b.avgTrxFee(globalStats.getAvgTrxFee());
             b.avgTrxSize(globalStats.getAvgTrxSize());
-            b.dapps(globalStats.getDapps());
+            b.uniqueAccounts(globalStats.getSpendUniqueAccounts() + 0);
 
-            //TODO unique accounts
+            b.dapps(globalStats.getDapps());
 
             return new AbstractMap.SimpleEntry<>(globalStats.getCategoryType(), b.build());
         }).collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
@@ -111,6 +110,7 @@ public class GlobalResource {
             b.fees(globalCategoryStats.getSpendTrxFees() + 0);
             b.avgTrxFee(globalCategoryStats.getAvgTrxFee());
             b.avgTrxSize(globalCategoryStats.getAvgTrxSize());
+            b.uniqueAccounts(globalCategoryStats.getSpendUniqueAccounts() + 0);
             b.dapps(globalCategoryStats.getDapps());
 
             //TODO unique accounts

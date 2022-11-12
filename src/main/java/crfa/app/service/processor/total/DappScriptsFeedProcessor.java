@@ -33,7 +33,7 @@ public class DappScriptsFeedProcessor implements FeedProcessor {
     private Json json;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val dappScriptItems = new ArrayList<DappScriptItem>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> { // looping over dapps

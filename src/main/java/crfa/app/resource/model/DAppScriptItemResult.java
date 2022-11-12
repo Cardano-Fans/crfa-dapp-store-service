@@ -58,6 +58,6 @@ public class DAppScriptItemResult {
 
     int plutusVersion;
 
-    Optional<EpochLevelData> epochLevelData;
+    Optional<EpochLevelDataResult> epochLevelData;
 
 }

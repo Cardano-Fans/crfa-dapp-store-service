@@ -65,6 +65,22 @@ public class DApp {
     @Nullable
     Integer spendUniqueAccounts;
 
+    @DatabaseField(columnName = "spend_unique_accounts_last_epoch")
+    @Nullable
+    Integer spendUniqueAccounts_lastEpoch;
+
+    @DatabaseField(columnName = "spend_unique_accounts_six_epochs_ago")
+    @Nullable
+    Integer spendUniqueAccounts_six_epochs_ago;
+
+    @DatabaseField(columnName = "spend_unique_accounts_eighteen_epochs_ago")
+    @Nullable
+    Integer spendUniqueAccounts_eighteen_epochs_ago;
+
+    @DatabaseField(columnName = "spend_unique_accounts_all")
+    @Nullable
+    Integer spendUniqueAccounts_all;
+
     @DatabaseField(canBeNull = false, columnName = "spend_transactions")
     @Nullable Long spendTransactions;
 

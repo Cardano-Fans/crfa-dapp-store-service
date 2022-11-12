@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.domain.EraName.MARY;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
@@ -38,7 +38,11 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
     }
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
+            return;
+        }
+
         val dappReleases = new ArrayList<DAppReleaseEpoch>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
@@ -53,7 +57,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
                     return;
                 }
 
-                for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+                for (val epochNo : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo)) {
                     val isClosedEpoch = epochNo < currentEpochNo;
                     val dappItemEpoch = createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, epochNo);
                     dappReleases.add(dappItemEpoch);

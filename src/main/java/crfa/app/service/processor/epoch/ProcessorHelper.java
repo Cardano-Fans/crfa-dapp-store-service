@@ -35,7 +35,7 @@ public class ProcessorHelper {
 
     public static Set<String> loadSpendUniqueAccounts(DappFeed dappFeed, String hash, int epochNo) {
         return dappFeed.getSpendUniqueAccountsEpoch().computeIfAbsent(new EpochKey<>(epochNo, hash), hashEpochKey -> {
-            log.warn("Unable to find unique addresses for hashEpochKey:{}", hashEpochKey);
+            //log.warn("Unable to find unique addresses for hashEpochKey:{}", hashEpochKey);
 
             return Set.of();
         });

@@ -3,6 +3,7 @@ package crfa.app.service;
 import crfa.app.domain.EpochKey;
 import crfa.app.domain.Eras;
 import crfa.app.domain.PoolError;
+import crfa.app.domain.SnapshotType;
 import io.vavr.control.Either;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -15,8 +16,7 @@ import org.redisson.client.codec.StringCodec;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static crfa.app.domain.EraName.ALONZO;
-import static crfa.app.domain.EraName.MARY;
+import static crfa.app.domain.SnapshotType.ALL;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.String.format;
 
@@ -62,7 +62,7 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALL.startEpoch(currentEpochNo), currentEpochNo);
 
         for (val epochNo : epochs) {
             mintPolicyIds.forEach(hash -> {
@@ -111,7 +111,7 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
 
         for (val epochNo : epochs) {
             scriptHashes.forEach(hash -> {
@@ -168,7 +168,7 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
 
         for(val epochNo : epochs) {
             hashes.forEach(hash -> {
@@ -227,9 +227,9 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
 
-        for(val epochNo : epochs) {
+        for (val epochNo : epochs) {
             hashes.forEach(hash -> {
                 val key = format("%s.%s.%d", collection, hash, epochNo);
 
@@ -286,7 +286,7 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
 
         for (val epochNo : epochs) {
             hashes.forEach(hash -> {
@@ -345,7 +345,7 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
 
         for (val epochNo : epochs) {
             hashes.forEach(hash -> {
@@ -433,7 +433,7 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(ALONZO, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
 
         for (val epochNo : epochs) {
             log.debug("Unique hashes - processing epochNo:{}", epochNo);
@@ -487,7 +487,7 @@ public class ScrollsOnChainDataService {
 
         val currentEpochNo = currentEpoch().orElseThrow();
 
-        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(MARY, currentEpochNo);
+        val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
 
         val tokenHoldersPerEpoch = new HashMap<Integer, Set<String>>();
 
@@ -503,6 +503,17 @@ public class ScrollsOnChainDataService {
 
         return tokenHoldersPerEpoch;
     }
+
+//    public Set<String> sunion(String hash, int fromEpoch, int toEpoch) {
+//        val collection = "c10";
+//
+//        val key = format("%s.%s.%d", collection, hash, fromEpoch);
+//
+//        val a = redissonClient.getScoredSortedSet(key, new StringCodec());
+//        val b = redissonClient.getScoredSortedSet(key, new StringCodec());
+//
+//        a.readUnion(b);
+//    }
 
     public Set<String> listSpendScriptHashes() {
         val result = new HashSet<String>();
@@ -527,3 +538,6 @@ public class ScrollsOnChainDataService {
     }
 
 }
+
+
+// 127.0.0.1:6379> sunion "c10.119068a7a3f008803edac87af1619860f2cdcde40c26987325ace138ad81728e7ed4cf324e1323135e7e6d931f01e30792d9cdf17129cb806d.373" "c10.119068a7a3f008803edac87af1619860f2cdcde40c26987325ace138ad81728e7ed4cf324e1323135e7e6d931f01e30792d9cdf17129cb806d.372"

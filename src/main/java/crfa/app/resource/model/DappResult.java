@@ -62,6 +62,6 @@ public class DappResult {
 
     Date updateTime;
 
-    Optional<EpochLevelData> epochLevelData;
+    Optional<EpochLevelDataResult> epochLevelData;
 
 }

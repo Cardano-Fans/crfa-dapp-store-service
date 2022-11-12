@@ -32,7 +32,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
     private Json json;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         val dappReleases = new ArrayList<DAppRelease>();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {

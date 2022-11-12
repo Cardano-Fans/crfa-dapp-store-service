@@ -3,7 +3,6 @@ package crfa.app.jobs;
 import crfa.app.domain.InjestionMode;
 import crfa.app.service.DappFeedCreator;
 import crfa.app.service.DappIngestionService;
-import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ public class FullDappIngestionJob {
     @Inject
     private DappFeedCreator dappFeedCreator;
 
-    @Scheduled(cron = "0 30 4 1/1 * ?") // every day at 4.30 AM
+    //@Scheduled(cron = "0 30 4 1/1 * ?") // every day at 4.30 AM
     public void onScheduled() {
         val injestionMode = InjestionMode.FULL;
 

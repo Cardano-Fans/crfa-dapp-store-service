@@ -4,6 +4,9 @@ import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.total.DappsRepository;
 import crfa.app.resource.model.DappResult;
+import crfa.app.resource.model.EpochLevelDataResult;
+import crfa.app.resource.model.EpochLevelResult;
+import crfa.app.resource.model.EpochLevelStatsResult;
 import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -41,6 +44,33 @@ public class DappsResource {
 
                     val dAppType = dapp.getDAppType();
 
+                    val epochLevelDataResult = dappService.getAllEpochLevelData(dapp)
+                            .map(e -> EpochLevelDataResult.builder()
+                                    .lastMonthDeltaWithOnlyClosedEpochs(e.getLastMonthDeltaWithOnlyClosedEpochs().map(d -> EpochLevelResult.builder()
+                                            .from(d.getFrom().getStartEpoch())
+                                            .to(d.getTo().getEndEpoch())
+                                            .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                            .activityDiffPerc(d.activityDiffPerc())
+                                            .build()))
+                                    .lastQuarterDeltaWithOnlyClosedEpochs(e.getLastQuarterDeltaWithOnlyClosedEpochs().map(d -> {
+                                        return EpochLevelResult.builder()
+                                                .from(d.getFrom().getStartEpoch())
+                                                .to(d.getTo().getEndEpoch())
+                                                .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                                .activityDiffPerc(d.activityDiffPerc())
+                                                .build();
+                                    }))
+                                    .lastEpochDeltaWithOnlyClosedEpochs(e.getLastEpochDeltaWithOnlyClosedEpochs().map(d -> {
+                                        return EpochLevelResult.builder()
+                                                .from(d.getFrom().getStartEpoch())
+                                                .to(d.getTo().getEndEpoch())
+                                                .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                                .activityDiffPerc(d.activityDiffPerc())
+                                                .build();
+                                    }))
+                                    .epochData(e.getEpochData())
+                                    .build());
+
                     return DappResult.builder()
                             .category(dapp.getCategory())
                             .subCategory(dapp.getSubCategory())
@@ -60,7 +90,7 @@ public class DappsResource {
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
                             .trxCount(transactions)
                             .updateTime(dapp.getUpdateTime())
-                            .epochLevelData(dappService.getAllEpochLevelData(dapp, true))
+                            .epochLevelData(epochLevelDataResult)
                             .build();
                 });
     }
@@ -76,6 +106,32 @@ public class DappsResource {
                     val volume = dapp.getSpendVolume();
                     val fees = dapp.getSpendTrxFees();
                     val uniqueAccounts = dapp.getSpendUniqueAccounts();
+
+                    val epochLevelDataResult = dappService.getAllEpochLevelData(dapp)
+                            .map(e -> EpochLevelDataResult.builder()
+                                    .lastMonthDeltaWithOnlyClosedEpochs(e.getLastMonthDeltaWithOnlyClosedEpochs().map(d -> EpochLevelResult.builder()
+                                            .from(d.getFrom().getStartEpoch())
+                                            .to(d.getTo().getEndEpoch())
+                                            .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                            .activityDiffPerc(d.activityDiffPerc())
+                                            .build()))
+                                    .lastQuarterDeltaWithOnlyClosedEpochs(e.getLastQuarterDeltaWithOnlyClosedEpochs().map(d -> {
+                                        return EpochLevelResult.builder()
+                                                .from(d.getFrom().getStartEpoch())
+                                                .to(d.getTo().getEndEpoch())
+                                                .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                                .activityDiffPerc(d.activityDiffPerc())
+                                                .build();
+                                    }))
+                                    .lastEpochDeltaWithOnlyClosedEpochs(e.getLastEpochDeltaWithOnlyClosedEpochs().map(d -> {
+                                        return EpochLevelResult.builder()
+                                                .from(d.getFrom().getStartEpoch())
+                                                .to(d.getTo().getEndEpoch())
+                                                .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                                .activityDiffPerc(d.activityDiffPerc())
+                                                .build();
+                                    }))
+                                    .build());
 
                     return DappResult.builder()
                             .id(dapp.getId())
@@ -96,7 +152,7 @@ public class DappsResource {
                             .lastVersionContractsAuditedLink(dapp.getLastVersionAuditLink())
                             .trxCount(transactions)
                             .updateTime(dapp.getUpdateTime())
-                            .epochLevelData(dappService.getAllEpochLevelData(dapp, false))
+                            .epochLevelData(epochLevelDataResult)
                             .build();
                 }).toList();
     }

@@ -23,14 +23,12 @@ public class GlobalCategoryEpochStatsResult {
 
     private long fees;
 
+    private long uniqueAccounts;
+
     private Double avgTrxFee;
 
     private Double avgTrxSize;
 
     private int dapps;
-
-//  TODO
-//  @DatabaseField(canBeNull = false, columnName = "spend_unique_accounts")
-//  private long spendUniqueAccounts;
 
 }

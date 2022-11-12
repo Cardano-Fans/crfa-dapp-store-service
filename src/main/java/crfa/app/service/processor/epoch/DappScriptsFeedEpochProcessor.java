@@ -16,9 +16,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 
-import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.domain.EraName.MARY;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.domain.Purpose.SPEND;
+import static crfa.app.domain.SnapshotType.ALL;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 import static java.lang.String.format;
 
@@ -39,7 +40,11 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
     }
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
+            return;
+        }
+
         val dappScriptItems = new ArrayList<DappScriptItemEpoch>();
         val currentEpochNo = dappService.currentEpoch();
 
@@ -54,7 +59,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
                         return;
                     }
 
-                    for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+                    for (val epochNo : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo)) {
                         val isClosedEpoch = epochNo < currentEpochNo;
                         val dappItemEpoch = createDappItemEpoch(dappFeed, isClosedEpoch, dappSearchItem, dappReleaseItem, scriptItem, epochNo);
                         dappScriptItems.add(dappItemEpoch);

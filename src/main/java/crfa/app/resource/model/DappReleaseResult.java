@@ -74,6 +74,6 @@ public class DappReleaseResult {
 
     boolean latestVersion;
 
-    Optional<EpochLevelData> epochLevelData;
+    Optional<EpochLevelDataResult> epochLevelData;
 
 }

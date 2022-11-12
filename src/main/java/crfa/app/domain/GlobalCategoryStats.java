@@ -45,8 +45,8 @@ public class GlobalCategoryStats {
     @DatabaseField(canBeNull = false, columnName = "dapps")
     private int dapps;
 
-//    @DatabaseField(canBeNull = false, columnName = "spend_unique_accounts")
-//    private long spendUniqueAccounts;
+    @DatabaseField(canBeNull = false, columnName = "spend_unique_accounts")
+    private long spendUniqueAccounts;
 
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;

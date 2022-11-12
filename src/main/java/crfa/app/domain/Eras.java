@@ -25,13 +25,17 @@ public class Eras {
         return ContiguousSet.create(Range.closed(fromEpochNo, toEpochNo), DiscreteDomain.integers());
     }
 
+    public static Set<Integer> epochsBetween(int fromEpochNo, int toEpochNo) {
+        return ContiguousSet.create(Range.closed(fromEpochNo, toEpochNo), DiscreteDomain.integers());
+    }
+
     private static Range<Integer> allEpochNumbersBetween(EraName fromEra, int toEpochNo) {
         int fromEpochNo = epochForEra(fromEra);
 
         return Range.closed(fromEpochNo, toEpochNo);
     }
 
-    private static int epochForEra(EraName eraName) {
+    public static int epochForEra(EraName eraName) {
         if (eraName == SHELLEY) {
             return 208;
         }

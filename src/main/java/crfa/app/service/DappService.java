@@ -7,18 +7,18 @@ import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.repository.epoch.DappScriptsEpochRepository;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappReleaseRepository;
-import crfa.app.utils.MoreOptionals;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.val;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
 import static crfa.app.domain.SortOrder.ASC;
-import static crfa.app.utils.MoreMath.*;
 
 @Singleton
 public class DappService {
@@ -48,17 +48,18 @@ public class DappService {
 
         return releaseVersionsCache;
     }
-    public Map<Integer, EpochLevelStats> gatherEpochLevelData(Collection<? extends EpochGatherable> it) {
+    public Map<Integer, EpochLevelStats> gatherEpochLevelStats(Collection<? extends EpochGatherable> it) {
         val epochLevelStats = new HashMap<Integer, EpochLevelStats>();
 
         it.forEach(epochGatherable -> {
             val epochNo = epochGatherable.getEpochNo();
 
             epochLevelStats.put(epochNo, EpochLevelStats.builder()
+                    .startEpoch(epochNo)
+                    .endEpoch(epochNo)
                     .volume(epochGatherable.getSpendVolume())
-                    .fees(epochGatherable.getSpendTrxFees())
-                    .avgTrxFee(epochGatherable.getAvgTrxFee())
-                    .avgTrxSize(epochGatherable.getAvgTrxSize())
+                    .spendTrxFees(epochGatherable.getSpendTrxFees())
+                    .spendTrxSizes(epochGatherable.getSpendTrxSizes())
                     .inflowsOutflows(epochGatherable.getInflowsOutflows())
                     .uniqueAccounts(epochGatherable.getSpendUniqueAccounts())
                     .trxCount(epochGatherable.getTransactions())
@@ -70,159 +71,135 @@ public class DappService {
         return epochLevelStats;
     }
 
-    public Optional<EpochLevelData> getAllEpochLevelData(DApp dapp, boolean includeEpochDetails) {
+    public Optional<EpochLevelData> getAllEpochLevelData(DApp dapp) {
         val id = dapp.getId();
         var dappEpochList = dappsEpochRepository.findByDappId(id);
-        val epochData = gatherEpochLevelData(dappEpochList);
+        val epochLevelStatsMap = gatherEpochLevelStats(dappEpochList);
 
-        val hasSpend = dapp.getDAppType().hasSpend();
-
-        val one = getLastClosedEpochsDelta(epochData, 1, hasSpend); // 1 epoch
-        val six = getLastClosedEpochsDelta(epochData, 6, hasSpend); // 1 month
-        val eighten = getLastClosedEpochsDelta(epochData, (3 * 6), hasSpend); // 3 months
-
-        val b = EpochLevelData.builder()
-                .epochData(Optional.empty())
-                .lastEpochDeltaWithOnlyClosedEpochs(one)
-                .lastMonthDeltaWithOnlyClosedEpochs(six)
-                .lastQuarterDeltaWithOnlyClosedEpochs(eighten);
-
-        if (includeEpochDetails) {
-            b.epochData(Optional.of(epochData));
-        }
-
-        return Optional.of(b.build());
+        return getEpochLevelData(epochLevelStatsMap);
     }
 
-    public Optional<EpochLevelData> getAllEpochLevelData(DAppRelease dAppRelease, boolean includeEpochLevel) {
+    public Optional<EpochLevelData> getAllEpochLevelData(DAppRelease dAppRelease) {
         val releaseKey = dAppRelease.getId();
-        val epochData = gatherEpochLevelData(dappReleaseEpochRepository.findByReleaseKey(releaseKey));
+        val epochLevelStatsMap = gatherEpochLevelStats(dappReleaseEpochRepository.findByReleaseKey(releaseKey));
 
-        val hasSpend = dAppRelease.getDAppType().hasSpend();
+        return getEpochLevelData(epochLevelStatsMap);
+    }
 
-        val one = getLastClosedEpochsDelta(epochData, 1, hasSpend); // 1 epoch
-        val six = getLastClosedEpochsDelta(epochData, 6, hasSpend); // 1 month
-        val eighten = getLastClosedEpochsDelta(epochData, (3 * 6), hasSpend); // 3 months
+    private Optional<EpochLevelData> getEpochLevelData(Map<Integer, EpochLevelStats> epochData) {
+        if (epochData.isEmpty()) {
+            return Optional.empty();
+        }
+
+        val one = getLastClosedEpochsDelta(epochData, SnapshotType.ONE);
+        val six = getLastClosedEpochsDelta(epochData, SnapshotType.SIX);
+        val eighteen = getLastClosedEpochsDelta(epochData, SnapshotType.EIGHTEEN);
+
+        if (one.isEmpty()) {
+            return Optional.empty();
+        }
 
         val b = EpochLevelData.builder()
                 .epochData(Optional.empty())
                 .lastEpochDeltaWithOnlyClosedEpochs(one)
                 .lastMonthDeltaWithOnlyClosedEpochs(six)
-                .lastQuarterDeltaWithOnlyClosedEpochs(eighten);
+                .lastQuarterDeltaWithOnlyClosedEpochs(eighteen);
 
-        if (includeEpochLevel) {
-            b.epochData(Optional.of(epochData));
-        }
+        b.epochData(Optional.of(epochData));
 
         return Optional.of(b.build());
     }
 
-    public Optional<EpochLevelData> getAllEpochLevelData(DappScriptItem dappScriptItem, boolean includeEpochLevel) {
+    public Optional<EpochLevelData> getAllEpochLevelData(DappScriptItem dappScriptItem) {
         val hash = dappScriptItem.getHash();
         val dappScriptItemEpoches = dappScriptsEpochRepository.listByHash(hash);
-        val epochData = gatherEpochLevelData(dappScriptItemEpoches);
+        val epochData = gatherEpochLevelStats(dappScriptItemEpoches);
 
-        val hasSpend = dappScriptItem.getScriptType() == ScriptType.SPEND;
-
-        val one = getLastClosedEpochsDelta(epochData, 1, hasSpend); // 1 epoch
-        val six = getLastClosedEpochsDelta(epochData, 6, hasSpend); // 1 month
-        val eighten = getLastClosedEpochsDelta(epochData, (3 * 6), hasSpend); // 3 months
-
-        val b = EpochLevelData.builder()
-                .epochData(Optional.empty())
-                .lastEpochDeltaWithOnlyClosedEpochs(one)
-                .lastMonthDeltaWithOnlyClosedEpochs(six)
-                .lastQuarterDeltaWithOnlyClosedEpochs(eighten);
-
-        if (includeEpochLevel) {
-            b.epochData(Optional.of(epochData));
-        }
-
-        return Optional.of(b.build());
+        return getEpochLevelData(epochData);
     }
 
-    public Optional<EpochDelta> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats, int epochGap, boolean hasSpend) {
-        val closedEpochsMap = stats.entrySet().stream().filter(entry -> entry.getValue().isClosed()).collect(Collectors.toMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue
-        ));
+    public Optional<EpochLevelDiff> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats,
+                                                             SnapshotType snapshotType) {
+        return accumulateStatsBetweenEpochs(stats, snapshotType)
+                .flatMap(snapshot -> {
+                    val from = stats.getOrDefault(snapshot.getStartEpoch(), EpochLevelStats.zero(snapshot.getStartEpoch(), snapshot.getEndEpoch()));
+                    val to = stats.getOrDefault(snapshot.getEndEpoch(), EpochLevelStats.zero(snapshot.getStartEpoch(), snapshot.getEndEpoch()));
 
-        val nextEpochM = closedEpochsMap.keySet().stream().max(Integer::compare);
-        val prevEpochM = nextEpochM.map(lastEpochNo -> lastEpochNo - epochGap);
+                    val epochLevel = EpochLevelDiff.builder()
+                            .from(from)
+                            .to(to)
+                            .snapshot(snapshot)
+                            .build();
 
-        var epochDelta = MoreOptionals.allOf(prevEpochM, nextEpochM, (prevEpoch, nextEpoch) -> {
-            val prevStats = closedEpochsMap.get(prevEpoch); // prev
-            val nextStats = closedEpochsMap.get(nextEpoch); // next
+                    return Optional.of(epochLevel);
+                });
+    }
 
-            if (prevStats == null || nextEpoch == null) {
-                return null;
+    public Optional<EpochLevelStats> accumulateStatsBetweenEpochs(Map<Integer, EpochLevelStats> stats,
+                                                       SnapshotType snapshotType) {
+        val closedEpochsMap = stats
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().isClosed()).collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ));
+
+        var volume = 0L;
+        var spendTrxFees = 0L;
+        var spendTrxSizes = 0L;
+        var inflowOutflows = 0L;
+        var trxCount = 0L;
+
+        val lastClosedEpoch = lastClosedEpoch(closedEpochsMap);
+
+        if (lastClosedEpoch.isEmpty()) {
+            return Optional.empty();
+        }
+        val lce = lastClosedEpoch.orElseThrow();
+
+        val lse = snapshotType.startEpoch(lce);
+
+        val epochs = Eras.epochsBetween(lse, lce);
+
+        for (val epoch : epochs) {
+            val epochStats = stats.getOrDefault(epoch, EpochLevelStats.zero(lse, lce));
+            if (epochStats.getVolume() != null) {
+                volume += epochStats.getVolume();
+            }
+            if (epochStats.getSpendTrxFees() != null) {
+                spendTrxFees += epochStats.getSpendTrxFees();
+            }
+            if (epochStats.getSpendTrxSizes() != null) {
+                spendTrxSizes += epochStats.getSpendTrxSizes();
+            }
+            if (epochStats.getInflowsOutflows() != null) {
+                inflowOutflows += epochStats.getInflowsOutflows();
             }
 
-            if (hasSpend) {
-                val volumeDiff = safeSubtraction(nextStats.getVolume(), prevStats.getVolume());
-                val feesDiff = safeSubtraction(nextStats.getFees(), prevStats.getFees());
-                val avgFeesDiff = safeSubtraction(nextStats.getAvgTrxFee(), prevStats.getAvgTrxFee());
-                val inflowsOutflowsDiff = safeSubtraction(nextStats.getInflowsOutflows(), prevStats.getInflowsOutflows());
-                val uniqueAccountsDiff = safeSubtraction(nextStats.getUniqueAccounts(), prevStats.getUniqueAccounts());
-                val trxCountDiff = safeSubtraction(nextStats.getTrxCount(), prevStats.getTrxCount());
-                val avgTrxSize = safeSubtraction(nextStats.getAvgTrxSize(), prevStats.getAvgTrxSize());
+            trxCount += epochStats.getTrxCount();
+        }
 
-                val volumeDiffPerc = safeMultiplication(safeDivision(volumeDiff, prevStats.getVolume()), (double) 100);
-                val feesDiffPerc = safeMultiplication(safeDivision(feesDiff, prevStats.getFees()), (double) 100);
-                val avgFeesDiffPerc = safeMultiplication(safeDivision(avgFeesDiff, prevStats.getAvgTrxFee()), (double) 100);
-                val inflowsOutflowsDiffPerc = safeMultiplication(safeDivision(inflowsOutflowsDiff, prevStats.getInflowsOutflows()), (double) 100);
-                val uniqueAccountsDiffPerc = safeMultiplication(safeDivision(uniqueAccountsDiff, prevStats.getUniqueAccounts()), (double) 100);
-                val trxCountDiffPerc = safeMultiplication(safeDivision(trxCountDiff, prevStats.getTrxCount()), (double) 100);
-                val avgTrxSizeDiffPerc = safeMultiplication(safeDivision(avgTrxSize, prevStats.getAvgTrxSize()), (double) 100);
-
-                val activityDiffPerc = Stream.of(volumeDiffPerc, uniqueAccountsDiffPerc, trxCountDiffPerc).filter(Objects::nonNull).mapToDouble(Double::doubleValue).average().getAsDouble();
-
-                // TODO controversial but how to solve it better?
-                if (Double.isInfinite(activityDiffPerc) || Double.isNaN(activityDiffPerc)) {
-                    return null;
-                }
-
-                return new EpochDelta(
-                        prevEpoch,
-                        nextEpoch,
-                        volumeDiff,
-                        volumeDiffPerc,
-                        feesDiff,
-                        feesDiffPerc,
-                        avgFeesDiff,
-                        avgFeesDiffPerc,
-                        inflowsOutflowsDiff,
-                        inflowsOutflowsDiffPerc,
-                        uniqueAccountsDiff,
-                        uniqueAccountsDiffPerc,
-                        trxCountDiff,
-                        trxCountDiffPerc,
-                        avgTrxSize,
-                        avgTrxSizeDiffPerc,
-                        activityDiffPerc
-                );
-            } else {
-                val trxCountDiff = safeSubtraction(nextStats.getTrxCount(), prevStats.getTrxCount());
-
-                val trxCountDiffPerc = safeMultiplication(safeDivision(trxCountDiff, prevStats.getTrxCount()), (double) 100);
-
-                val activityDiffPerc = Stream.of(trxCountDiffPerc).filter(Objects::nonNull).mapToDouble(Double::doubleValue).average().getAsDouble();
-
-                return EpochDelta.builder()
-                        .fromEpoch(prevEpoch)
-                        .toEpoch(nextEpoch)
-                        .trxCountDiff(trxCountDiff)
-                        .trxCountDiffPerc(trxCountDiffPerc)
-                        .activityDiffPerc(activityDiffPerc)
-                        .build();
-            }
-        });
-
-        return epochDelta == null ? Optional.empty() : epochDelta;
+        return Optional.of(EpochLevelStats.builder()
+                .startEpoch(lse)
+                .endEpoch(lce)
+                .closed(true)
+                .volume(volume)
+                .spendTrxFees(spendTrxFees)
+                .spendTrxSizes(spendTrxSizes)
+                .inflowsOutflows(inflowOutflows)
+                .trxCount(trxCount)
+                .uniqueAccounts(0)
+                .build());
     }
 
     public int currentEpoch() {
         return scrollsOnChainDataService.currentEpoch().orElseThrow();
+    }
+
+    public Optional<Integer> lastClosedEpoch(Map<Integer, EpochLevelStats> closedEpochsMap) {
+        // find out max epoch which is closed
+        return closedEpochsMap.keySet().stream().max(Integer::compare);
     }
 
 }

@@ -10,9 +10,10 @@ import java.util.Optional;
 @Getter
 public class EpochLevelData {
 
-    private Optional<EpochDelta> lastQuarterDeltaWithOnlyClosedEpochs;
-    private Optional<EpochDelta> lastMonthDeltaWithOnlyClosedEpochs;
-    private Optional<EpochDelta> lastEpochDeltaWithOnlyClosedEpochs;
+    private Optional<EpochLevelDiff> lastQuarterDeltaWithOnlyClosedEpochs;
+    private Optional<EpochLevelDiff> lastMonthDeltaWithOnlyClosedEpochs;
+    private Optional<EpochLevelDiff> lastEpochDeltaWithOnlyClosedEpochs;
+    //private Optional<EpochLevelDiff> allEpochDeltaWithOnlyClosedEpochs;
     private Optional<Map<Integer, EpochLevelStats>> epochData;
 
 }

@@ -35,7 +35,11 @@ public class DappFeedProcessor implements FeedProcessor {
     private PoolRepository poolRepository;
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
+            return;
+        }
+
         val dapps = new ArrayList<DApp>();
 
         val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
@@ -98,8 +102,6 @@ public class DappFeedProcessor implements FeedProcessor {
                             balance += loadTokensBalance(dappFeed, scriptItem.getAssetId().orElseThrow());
                         }
                     }
-
-                    context.getUniqueAccounts().addAll(spendUniqueAccounts);
                 }
             }
 
@@ -110,7 +112,14 @@ public class DappFeedProcessor implements FeedProcessor {
             dapp.setSpendVolume(spendVolume);
             dapp.setSpendTrxFees(spendTrxFees);
             dapp.setSpendTrxSizes(spendTrxSizes);
-            dapp.setSpendUniqueAccounts(spendUniqueAccounts.size());
+
+            dapp.setSpendUniqueAccounts(spendUniqueAccounts.size()); // ALL including current epoch
+
+//            dapp.setSpendUniqueAccounts_lastEpoch(uniqueAccounts(dappFeed, ONE));
+//            dapp.setSpendUniqueAccounts_six_epochs_ago(uniqueAccounts(dappFeed, SIX));
+//            dapp.setSpendUniqueAccounts_eighteen_epochs_ago(uniqueAccounts(dappFeed, EIGHTEEN));
+            //dapp.setSpendUniqueAccounts_all(uniqueAccounts(dappFeed, ALL));
+
             dapp.setTransactions(minTransactionsCount + spendTransactionsCount);
 
             dapps.add(dapp);
@@ -122,6 +131,33 @@ public class DappFeedProcessor implements FeedProcessor {
 
         dappsRepository.removeAllExcept(dapps);
     }
+
+//    private int uniqueAccounts(DappFeed dappFeed, SnapshotType snapshotType) {
+//        val spendUniqueAccounts = new HashSet<String>();
+//
+//        val currentEpoch = dappService.currentEpoch();
+//
+//        val startEpochNo = snapshotType.startEpoch(currentEpoch);
+//
+//        val epochs = Eras.epochsBetween(startEpochNo, currentEpoch);
+//        log.info("spendUniqueAccounts- epochs:{}", epochs);
+//
+//        for (val epochNo : epochs) {
+//            for (val dsr : dappFeed.getDappSearchResult()) {
+//                for (val r : dsr.getReleases()) {
+//                    for (val s : r.getScripts()) {
+//                        if (s.getPurpose() == SPEND) {
+//                            spendUniqueAccounts.addAll(crfa.app.service.processor.epoch.ProcessorHelper.loadSpendUniqueAccounts(dappFeed, s.getUnifiedHash(), epochNo));
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        log.info("spendUniqueAccounts - finished epochs.");
+//
+//        return spendUniqueAccounts.size();
+//    }
 
     private static boolean isLastVersion(DappReleaseItem dappReleaseItem, Float maxVersion) {
         return Optional.ofNullable(maxVersion)

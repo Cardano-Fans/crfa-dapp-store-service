@@ -18,9 +18,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static crfa.app.domain.InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
-import static crfa.app.domain.InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
-
 @Singleton
 @Slf4j
 
@@ -55,63 +52,45 @@ public class DappFeedCreator {
 
         val uniqueAccountsMerge = uniqueAccountsUnion(spendUniqueAccounts, dataPointers.assetIdToTokenHolders);
 
-        if (injestionMode == WITHOUT_EPOCHS_ONLY_AGGREGATES) {
-            return DappFeed.builder()
-                    .dappSearchResult(dappSearchResult)
+        val isCurrentEpochAndAggregates = false;
 
-                    // for all epochs - aggregates
-                    .balance(spendAdaBalance)
-                    .spendVolume(spendVolume)
-                    .spendTrxFees(spendFees)
-                    .spendTrxSizes(spendTrxSizes)
-                    .spendTransactionsCount(spendTransactionsCount)
-                    .poolHexes(poolHexes)
-                    .mintTransactionsCount(mintPolicyCounts)
-                    .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
-                    .spendUniqueAccounts(uniqueAccountsMerge)
-                    .tokenHoldersAddresses(dataPointers.assetIdToTokenHolders)
-                    .build();
-        } else {
-            val isCurrentEpochAndAggregates = injestionMode == CURRENT_EPOCH_AND_AGGREGATES;
+        val scriptLockedPerContractWithEpoch = scrollsOnChainDataService.balanceWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+        val volumePerContractWithEpoch = scrollsOnChainDataService.spendVolumeEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+        val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintTransactionsCountWithEpoch(dataPointers.mintPolicyIds, isCurrentEpochAndAggregates);
+        val spendTransactionsCountWithEpoch = scrollsOnChainDataService.spendTransactionsCountEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+        val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch, isCurrentEpochAndAggregates);
+        val uniqueAccountsWithEpoch = scrollsOnChainDataService.spendUniqueAccountsWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+        val feesWithEpoch = scrollsOnChainDataService.spendFeesEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+        val trxSizesWithEpoch = scrollsOnChainDataService.spendTrxSizesWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
 
-            val scriptLockedPerContractWithEpoch = scrollsOnChainDataService.balanceWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val volumePerContractWithEpoch = scrollsOnChainDataService.spendVolumeEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val mintPolicyCountsWithEpoch = scrollsOnChainDataService.mintTransactionsCountWithEpoch(dataPointers.mintPolicyIds, isCurrentEpochAndAggregates);
-            val spendTransactionsCountWithEpoch = scrollsOnChainDataService.spendTransactionsCountEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val tokenHoldersAssetIdToAdaBalanceWithEpoch = loadTokenHoldersBalanceWithEpoch(dataPointers.assetIdToTokenHoldersWithEpoch, scriptLockedPerContractWithEpoch, isCurrentEpochAndAggregates);
-            val uniqueAccountsWithEpoch = scrollsOnChainDataService.spendUniqueAccountsWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val feesWithEpoch = scrollsOnChainDataService.spendFeesEpochLevel(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
-            val trxSizesWithEpoch = scrollsOnChainDataService.spendTrxSizesWithEpoch(dataPointers.scriptHashes, isCurrentEpochAndAggregates);
+        val uniqueAccountsMergeEpoch = uniqueAccountsUnionEpoch(uniqueAccountsWithEpoch, dataPointers.assetIdToTokenHoldersWithEpoch);
 
-            val uniqueAccountsMergeEpoch = uniqueAccountsUnionEpoch(uniqueAccountsWithEpoch, dataPointers.assetIdToTokenHoldersWithEpoch);
+        return DappFeed.builder()
+                .dappSearchResult(dappSearchResult)
 
-            return DappFeed.builder()
-                    .dappSearchResult(dappSearchResult)
+                // for all epochs - aggregates
+                .balance(spendAdaBalance)
+                .spendVolume(spendVolume)
+                .spendTrxFees(spendFees)
+                .spendTrxSizes(spendTrxSizes)
+                .poolHexes(poolHexes)
+                .mintTransactionsCount(mintPolicyCounts)
+                .spendTransactionsCount(spendTransactionsCount)
+                .spendUniqueAccounts(uniqueAccountsMerge)
+                .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
+                .tokenHoldersAddresses(dataPointers.assetIdToTokenHolders)
 
-                    // for all epochs - aggregates
-                    .balance(spendAdaBalance)
-                    .spendVolume(spendVolume)
-                    .spendTrxFees(spendFees)
-                    .spendTrxSizes(spendTrxSizes)
-                    .poolHexes(poolHexes)
-                    .mintTransactionsCount(mintPolicyCounts)
-                    .spendTransactionsCount(spendTransactionsCount)
-                    .spendUniqueAccounts(uniqueAccountsMerge)
-                    .tokenHoldersBalance(tokenHoldersAssetIdToAdaBalance)
-                    .tokenHoldersAddresses(dataPointers.assetIdToTokenHolders)
-
-                    // epoch level
-                    .balanceEpoch(scriptLockedPerContractWithEpoch)
-                    .mintTransactionsCountEpoch(mintPolicyCountsWithEpoch)
-                    .spendTransactionCountEpoch(spendTransactionsCountWithEpoch)
-                    .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
-                    .spendVolumeEpoch(volumePerContractWithEpoch)
-                    .spendTrxFeesEpoch(feesWithEpoch)
-                    .spendTrxSizesEpoch(trxSizesWithEpoch)
-                    .spendUniqueAccountsEpoch(uniqueAccountsMergeEpoch)
-                    .tokenHoldersAddressesEpoch(dataPointers.assetIdToTokenHoldersWithEpoch)
-                    .build();
-        }
+                // epoch level
+                .balanceEpoch(scriptLockedPerContractWithEpoch)
+                .mintTransactionsCountEpoch(mintPolicyCountsWithEpoch)
+                .spendTransactionCountEpoch(spendTransactionsCountWithEpoch)
+                .tokenHoldersBalanceEpoch(tokenHoldersAssetIdToAdaBalanceWithEpoch)
+                .spendVolumeEpoch(volumePerContractWithEpoch)
+                .spendTrxFeesEpoch(feesWithEpoch)
+                .spendTrxSizesEpoch(trxSizesWithEpoch)
+                .spendUniqueAccountsEpoch(uniqueAccountsMergeEpoch)
+                .tokenHoldersAddressesEpoch(dataPointers.assetIdToTokenHoldersWithEpoch)
+                .build();
     }
 
     private Map<String, Long> loadTokenHoldersBalance(Map<String, Set<String>> assetIdToTokenHolders) {

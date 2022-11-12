@@ -74,7 +74,7 @@ public class InternalResource {
 
     @Post(value = "/rebuildDbPartially", consumes = "application/json", produces = "application/json")
     public HttpResponse<?> rebuildDbPartial() {
-        val injestionMode = InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
+        val injestionMode = InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
         log.info("Dapps update scheduled, mode:{}", injestionMode);
 

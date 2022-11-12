@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static crfa.app.domain.EraName.ALONZO;
+import static crfa.app.domain.EraName.MARY;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 
@@ -39,7 +39,11 @@ public class DappFeedEpochProcessor implements FeedProcessor {
     }
 
     @Override
-    public void process(DappFeed dappFeed, InjestionMode injestionMode, FeedProcessingContext context) {
+    public void process(DappFeed dappFeed, InjestionMode injestionMode) {
+        if (injestionMode == InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES) {
+            return;
+        }
+
         val currentEpochNo = dappService.currentEpoch();
 
         val dapps = new ArrayList<DAppEpoch>();
@@ -50,15 +54,15 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
             if (injestCurrentEpochOnly) {
-                val dappEpoch = createDappEpoch(dappFeed, false, maxReleaseCache, dappSearchItem, currentEpochNo, context);
+                val dappEpoch = createDappEpoch(dappFeed, false, maxReleaseCache, dappSearchItem, currentEpochNo);
 
                 dapps.add(dappEpoch);
                 return;
             }
 
-            for (val epochNo : Eras.epochsBetween(ALONZO, currentEpochNo)) {
+            for (val epochNo : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo)) {
                 val isClosedEpoch = epochNo < currentEpochNo;
-                val dappEpoch = createDappEpoch(dappFeed, isClosedEpoch, maxReleaseCache, dappSearchItem, epochNo, context);
+                val dappEpoch = createDappEpoch(dappFeed, isClosedEpoch, maxReleaseCache, dappSearchItem, epochNo);
 
                 dapps.add(dappEpoch);
             }
@@ -79,8 +83,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
                                              boolean isClosedEpoch,
                                              Cache<String, Float> maxReleaseCache,
                                              DappSearchItem dappSearchItem,
-                                             int epochNo,
-                                             FeedProcessingContext context) {
+                                             int epochNo) {
         val dapp = new DAppEpoch();
 
         val dappId = dappSearchItem.getId();
@@ -113,7 +116,6 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             boolean isLastVersion = isLastVersion(dappReleaseItem, maxVersion);
 
             for (val scriptItem : dappReleaseItem.getScripts()) {
-
                 Optional.ofNullable(dappReleaseItem.getContract()).ifPresent(contract -> {
                     if (isLastVersion && contract.getOpenSource() != null && contract.getOpenSource()) {
                         dapp.setLastVersionOpenSourceLink(contract.getContractLink());
@@ -159,10 +161,6 @@ public class DappFeedEpochProcessor implements FeedProcessor {
 
             // to do - store in separate db table
             dapp.setSpendUniqueAccounts(totalUniqueAccounts.size());
-
-            val accounts = context.getUniqueAccountsEpoch().getOrDefault(epochNo, new HashSet<>());
-            accounts.addAll(totalUniqueAccounts);
-            context.getUniqueAccountsEpoch().put(epochNo, accounts);
         }
 
         return dapp;

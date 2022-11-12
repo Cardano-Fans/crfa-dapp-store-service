@@ -6,9 +6,7 @@ import crfa.app.domain.SortBy;
 import crfa.app.domain.SortOrder;
 import crfa.app.repository.total.DappReleaseRepository;
 import crfa.app.repository.total.DappScriptsRepository;
-import crfa.app.resource.model.DAppScriptItemResult;
-import crfa.app.resource.model.DappReleaseResult;
-import crfa.app.resource.model.DappScriptsResult;
+import crfa.app.resource.model.*;
 import crfa.app.service.DappService;
 import crfa.app.utils.Json;
 import io.micronaut.http.annotation.Controller;
@@ -63,6 +61,33 @@ public class DappsScriptsResource {
 
         val isLastVersion = dAppRelease.isLatestVersion(maxReleaseVersion);
 
+        val epochLevelDataResult = dappService.getAllEpochLevelData(dAppRelease)
+                .map(e -> EpochLevelDataResult.builder()
+                        .lastMonthDeltaWithOnlyClosedEpochs(e.getLastMonthDeltaWithOnlyClosedEpochs().map(d -> EpochLevelResult.builder()
+                                .from(d.getFrom().getStartEpoch())
+                                .to(d.getTo().getEndEpoch())
+                                .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                .activityDiffPerc(d.activityDiffPerc())
+                                .build()))
+                        .lastQuarterDeltaWithOnlyClosedEpochs(e.getLastQuarterDeltaWithOnlyClosedEpochs().map(d -> {
+                            return EpochLevelResult.builder()
+                                    .from(d.getFrom().getStartEpoch())
+                                    .to(d.getTo().getEndEpoch())
+                                    .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                    .activityDiffPerc(d.activityDiffPerc())
+                                    .build();
+                        }))
+                        .lastEpochDeltaWithOnlyClosedEpochs(e.getLastEpochDeltaWithOnlyClosedEpochs().map(d -> {
+                            return EpochLevelResult.builder()
+                                    .from(d.getFrom().getStartEpoch())
+                                    .to(d.getTo().getEndEpoch())
+                                    .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                    .activityDiffPerc(d.activityDiffPerc())
+                                    .build();
+                        }))
+                        .epochData(e.getEpochData())
+                        .build());
+
         return DappReleaseResult.builder()
                 .category(dAppRelease.getCategory())
                 .subCategory(dAppRelease.getSubCategory())
@@ -88,7 +113,7 @@ public class DappsScriptsResource {
                 .latestVersion(isLastVersion)
                 .contractOpenSourcedLink(dAppRelease.getContractLink())
                 .contractsAuditedLink(dAppRelease.getAuditLink())
-                .epochLevelData(dappService.getAllEpochLevelData(dAppRelease, true))
+                .epochLevelData(epochLevelDataResult)
                 .build();
     }
 
@@ -96,6 +121,33 @@ public class DappsScriptsResource {
         return dappScriptItems
                 .stream()
                 .map(dappScriptItem -> {
+                    val epochLevelDataResult = dappService.getAllEpochLevelData(dappScriptItem)
+                            .map(e -> EpochLevelDataResult.builder()
+                                    .lastMonthDeltaWithOnlyClosedEpochs(e.getLastMonthDeltaWithOnlyClosedEpochs().map(d -> EpochLevelResult.builder()
+                                            .from(d.getFrom().getStartEpoch())
+                                            .to(d.getTo().getEndEpoch())
+                                            .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                            .activityDiffPerc(d.activityDiffPerc())
+                                            .build()))
+                                    .lastQuarterDeltaWithOnlyClosedEpochs(e.getLastQuarterDeltaWithOnlyClosedEpochs().map(d -> {
+                                        return EpochLevelResult.builder()
+                                                .from(d.getFrom().getStartEpoch())
+                                                .to(d.getTo().getEndEpoch())
+                                                .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                                .activityDiffPerc(d.activityDiffPerc())
+                                                .build();
+                                    }))
+                                    .lastEpochDeltaWithOnlyClosedEpochs(e.getLastEpochDeltaWithOnlyClosedEpochs().map(d -> {
+                                        return EpochLevelResult.builder()
+                                                .from(d.getFrom().getStartEpoch())
+                                                .to(d.getTo().getEndEpoch())
+                                                .snapshot(EpochLevelStatsResult.create(d.getSnapshot()))
+                                                .activityDiffPerc(d.activityDiffPerc())
+                                                .build();
+                                    }))
+                                    //.epochData(e.getEpochData())
+                                    .build());
+
                     return DAppScriptItemResult.builder()
                             .dappId(dappScriptItem.getDappId())
                             .hash(dappScriptItem.getHash())
@@ -116,7 +168,7 @@ public class DappsScriptsResource {
                             .avgTrxFee(dappScriptItem.getAvgTrxFee())
                             .avgTrxSize(dappScriptItem.getAvgTrxSize())
                             .plutusVersion(dappScriptItem.getPlutusVersion())
-                            .epochLevelData(dappService.getAllEpochLevelData(dappScriptItem, false))
+                            .epochLevelData(epochLevelDataResult)
                             .build();
                 })
                 .toList();
