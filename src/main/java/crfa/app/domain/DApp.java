@@ -77,10 +77,6 @@ public class DApp {
     @Nullable
     Integer spendUniqueAccounts_eighteen_epochs_ago;
 
-    @DatabaseField(columnName = "spend_unique_accounts_all")
-    @Nullable
-    Integer spendUniqueAccounts_all;
-
     @DatabaseField(canBeNull = false, columnName = "spend_transactions")
     @Nullable Long spendTransactions;
 

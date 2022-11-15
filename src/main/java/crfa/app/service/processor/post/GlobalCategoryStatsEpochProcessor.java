@@ -4,7 +4,7 @@ import crfa.app.domain.*;
 import crfa.app.repository.GlobalCategoryStatsEpochRepository;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappsRepository;
-import crfa.app.service.DappService;
+import crfa.app.service.ScrollsOnChainDataService;
 import crfa.app.service.processor.FeedPostProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static crfa.app.domain.EraName.MARY;
 import static crfa.app.domain.InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
 import static crfa.app.domain.Purpose.SPEND;
 import static crfa.app.service.processor.epoch.ProcessorHelper.loadSpendUniqueAccounts;
@@ -36,14 +35,14 @@ public class GlobalCategoryStatsEpochProcessor implements FeedPostProcessor {
     private DappsRepository dappsRepository;
 
     @Inject
-    private DappService dappService;
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     public void process(DappFeed dappFeed, InjestionMode injestionMode) {
         if (injestionMode == WITHOUT_EPOCHS_ONLY_AGGREGATES) {
             return;
         }
 
-        val currentEpochNo = dappService.currentEpoch();
+        val currentEpochNo = scrollsOnChainDataService.currentEpoch().orElseThrow();
 
         for (val cat: dappsRepository.allCategories()) {
             val epochs = Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);

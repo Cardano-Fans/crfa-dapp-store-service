@@ -4,7 +4,8 @@ import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.domain.*;
 import crfa.app.repository.PoolRepository;
 import crfa.app.repository.total.DappsRepository;
-import crfa.app.service.DappService;
+import crfa.app.service.DappReleaseCacheHelper;
+import crfa.app.service.ScrollsOnChainDataService;
 import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -13,10 +14,10 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.domain.Purpose.SPEND;
+import static crfa.app.domain.SnapshotType.*;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
 
 
@@ -26,10 +27,13 @@ import static crfa.app.service.processor.total.ProcessorHelper.*;
 public class DappFeedProcessor implements FeedProcessor {
 
     @Inject
-    private DappService dappService;
+    private DappReleaseCacheHelper dappReleaseCacheHelper;
 
     @Inject
     private DappsRepository dappsRepository;
+
+    @Inject
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     @Inject
     private PoolRepository poolRepository;
@@ -42,7 +46,7 @@ public class DappFeedProcessor implements FeedProcessor {
 
         val dapps = new ArrayList<DApp>();
 
-        val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
+        val maxReleaseCache = dappReleaseCacheHelper.buildMaxReleaseVersionCache();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
             val dapp = new DApp();
@@ -64,8 +68,6 @@ public class DappFeedProcessor implements FeedProcessor {
             var spendVolume = 0L;
             var spendTrxFees = 0L;
             var spendTrxSizes = 0L;
-
-            var spendUniqueAccounts = new HashSet<String>();
 
             for (val dappReleaseItem : dappSearchItem.getReleases()) {
                 val maxVersion = maxReleaseCache.getIfPresent(dapp.getId());
@@ -94,7 +96,6 @@ public class DappFeedProcessor implements FeedProcessor {
                         spendVolume += loadSpendVolume(dappFeed, hash);
                         spendTrxFees += loadSpendTrxFee(dappFeed, hash);
                         spendTrxSizes += loadSpendTrxSize(dappFeed, hash);
-                        spendUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash));
                     }
                     if (scriptItem.getPurpose() == Purpose.MINT) {
                         minTransactionsCount += loadMintTransactionsCount(dappFeed, hash);
@@ -113,12 +114,10 @@ public class DappFeedProcessor implements FeedProcessor {
             dapp.setSpendTrxFees(spendTrxFees);
             dapp.setSpendTrxSizes(spendTrxSizes);
 
-            dapp.setSpendUniqueAccounts(spendUniqueAccounts.size()); // ALL including current epoch
-
-//            dapp.setSpendUniqueAccounts_lastEpoch(uniqueAccounts(dappFeed, ONE));
-//            dapp.setSpendUniqueAccounts_six_epochs_ago(uniqueAccounts(dappFeed, SIX));
-//            dapp.setSpendUniqueAccounts_eighteen_epochs_ago(uniqueAccounts(dappFeed, EIGHTEEN));
-            //dapp.setSpendUniqueAccounts_all(uniqueAccounts(dappFeed, ALL));
+            dapp.setSpendUniqueAccounts(scrollsOnChainDataService.getDappEpochEpochSnapshot(dapp.getId(), ALL));
+            dapp.setSpendUniqueAccounts_lastEpoch(scrollsOnChainDataService.getDappEpochEpochSnapshot(dapp.getId(), ONE));
+            dapp.setSpendUniqueAccounts_six_epochs_ago(scrollsOnChainDataService.getDappEpochEpochSnapshot(dapp.getId(), SIX));
+            dapp.setSpendUniqueAccounts_eighteen_epochs_ago(scrollsOnChainDataService.getDappEpochEpochSnapshot(dapp.getId(), EIGHTEEN));
 
             dapp.setTransactions(minTransactionsCount + spendTransactionsCount);
 
@@ -131,33 +130,6 @@ public class DappFeedProcessor implements FeedProcessor {
 
         dappsRepository.removeAllExcept(dapps);
     }
-
-//    private int uniqueAccounts(DappFeed dappFeed, SnapshotType snapshotType) {
-//        val spendUniqueAccounts = new HashSet<String>();
-//
-//        val currentEpoch = dappService.currentEpoch();
-//
-//        val startEpochNo = snapshotType.startEpoch(currentEpoch);
-//
-//        val epochs = Eras.epochsBetween(startEpochNo, currentEpoch);
-//        log.info("spendUniqueAccounts- epochs:{}", epochs);
-//
-//        for (val epochNo : epochs) {
-//            for (val dsr : dappFeed.getDappSearchResult()) {
-//                for (val r : dsr.getReleases()) {
-//                    for (val s : r.getScripts()) {
-//                        if (s.getPurpose() == SPEND) {
-//                            spendUniqueAccounts.addAll(crfa.app.service.processor.epoch.ProcessorHelper.loadSpendUniqueAccounts(dappFeed, s.getUnifiedHash(), epochNo));
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        log.info("spendUniqueAccounts - finished epochs.");
-//
-//        return spendUniqueAccounts.size();
-//    }
 
     private static boolean isLastVersion(DappReleaseItem dappReleaseItem, Float maxVersion) {
         return Optional.ofNullable(maxVersion)

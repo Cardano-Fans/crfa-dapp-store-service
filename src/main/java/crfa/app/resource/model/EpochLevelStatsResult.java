@@ -18,6 +18,10 @@ public class EpochLevelStatsResult {
     Long inflowsOutflows;
 
     @Nullable
+    @Deprecated
+    Long trxFees;
+
+    @Nullable
     Long spendTrxFees;
 
     @Nullable
@@ -40,15 +44,14 @@ public class EpochLevelStatsResult {
     public static EpochLevelStatsResult create(EpochLevelStats epochLevelStats) {
         return EpochLevelStatsResult.builder()
                 .closed(epochLevelStats.isClosed())
-//                .startEpoch(epochLevelStats.getStartEpoch())
-//                .endEpoch(epochLevelStats.getEndEpoch())
                 .avgTrxFee(epochLevelStats.getAvgTrxFee())
                 .avgTrxSize(epochLevelStats.getAvgTrxSize())
                 .inflowsOutflows(epochLevelStats.getInflowsOutflows())
                 .trxCount(epochLevelStats.getTrxCount())
                 .volume(epochLevelStats.getVolume())
-                .uniqueAccounts(null) // TODO
+                .uniqueAccounts(epochLevelStats.getUniqueAccounts())
                 .spendTrxFees(epochLevelStats.getSpendTrxFees())
+                .trxFees(epochLevelStats.getSpendTrxFees()) // deprecated
                 .build();
     }
 

@@ -3,7 +3,7 @@ package crfa.app.jobs;
 import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.repository.epoch.DappScriptsEpochRepository;
 import crfa.app.repository.epoch.DappsEpochRepository;
-import crfa.app.service.DappService;
+import crfa.app.service.ScrollsOnChainDataService;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -24,13 +24,13 @@ public class EpochCloserJob {
     private DappsEpochRepository dappsEpochRepository;
 
     @Inject
-    private DappService dappService;
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     //@Scheduled(fixedDelay = "15m", initialDelay = "1m")
     @Scheduled(cron = "0 0 0 1/1 * ?") // run every day at midnight
     public void onScheduled() {
         log.info("Executing epoch closer...");
-        val epochNo = dappService.currentEpoch();
+        val epochNo = scrollsOnChainDataService.currentEpoch().orElseThrow();
 
         dappReleaseEpochRepository.closeEpochs(epochNo);
         dappScriptsEpochRepository.closeEpochs(epochNo);

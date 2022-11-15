@@ -5,7 +5,8 @@ import crfa.app.client.metadata.DappReleaseItem;
 import crfa.app.client.metadata.DappSearchItem;
 import crfa.app.domain.*;
 import crfa.app.repository.epoch.DappsEpochRepository;
-import crfa.app.service.DappService;
+import crfa.app.service.DappReleaseCacheHelper;
+import crfa.app.service.ScrollsOnChainDataService;
 import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -17,7 +18,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static crfa.app.domain.EraName.MARY;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 
@@ -28,10 +28,13 @@ import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 public class DappFeedEpochProcessor implements FeedProcessor {
 
     @Inject
-    private DappService dappService;
+    private DappReleaseCacheHelper dappReleaseCacheHelper;
 
     @Inject
     private DappsEpochRepository dappsEpochRepository;
+
+    @Inject
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     @Override
     public boolean isEpochProcessor() {
@@ -44,11 +47,11 @@ public class DappFeedEpochProcessor implements FeedProcessor {
             return;
         }
 
-        val currentEpochNo = dappService.currentEpoch();
+        val currentEpochNo = scrollsOnChainDataService.currentEpoch().orElseThrow();
 
         val dapps = new ArrayList<DAppEpoch>();
 
-        val maxReleaseCache = dappService.buildMaxReleaseVersionCache();
+        val maxReleaseCache = dappReleaseCacheHelper.buildMaxReleaseVersionCache();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
             val injestCurrentEpochOnly = injestionMode == InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;

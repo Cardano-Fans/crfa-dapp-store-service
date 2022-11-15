@@ -5,7 +5,7 @@ import crfa.app.client.metadata.DappSearchItem;
 import crfa.app.client.metadata.ScriptItem;
 import crfa.app.domain.*;
 import crfa.app.repository.epoch.DappScriptsEpochRepository;
-import crfa.app.service.DappService;
+import crfa.app.service.ScrollsOnChainDataService;
 import crfa.app.service.processor.FeedProcessor;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -16,10 +16,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 
-import static crfa.app.domain.EraName.MARY;
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.domain.Purpose.SPEND;
-import static crfa.app.domain.SnapshotType.ALL;
 import static crfa.app.service.processor.epoch.ProcessorHelper.*;
 import static java.lang.String.format;
 
@@ -32,7 +30,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
     private DappScriptsEpochRepository dappScriptsRepository;
 
     @Inject
-    private DappService dappService;
+    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     @Override
     public boolean isEpochProcessor() {
@@ -46,7 +44,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
         }
 
         val dappScriptItems = new ArrayList<DappScriptItemEpoch>();
-        val currentEpochNo = dappService.currentEpoch();
+        val currentEpochNo = scrollsOnChainDataService.currentEpoch().orElseThrow();
 
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> { // looping over dapps
             dappSearchItem.getReleases().forEach(dappReleaseItem -> { // looping over dapp releases

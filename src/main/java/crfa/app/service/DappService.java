@@ -1,12 +1,12 @@
 package crfa.app.service;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import crfa.app.domain.*;
 import crfa.app.repository.epoch.DappReleaseEpochRepository;
 import crfa.app.repository.epoch.DappScriptsEpochRepository;
 import crfa.app.repository.epoch.DappsEpochRepository;
 import crfa.app.repository.total.DappReleaseRepository;
+import crfa.app.repository.total.DappsRepository;
+import crfa.app.resource.DappsReleasesResource;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.val;
@@ -17,17 +17,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static crfa.app.domain.SortBy.SCRIPTS_INVOKED;
-import static crfa.app.domain.SortOrder.ASC;
+import static crfa.app.domain.SnapshotType.*;
 
 @Singleton
 public class DappService {
-
-    @Inject
-    private DappReleaseRepository dappReleaseRepository;
-
-    @Inject
-    private ScrollsOnChainDataService scrollsOnChainDataService;
 
     @Inject
     private DappsEpochRepository dappsEpochRepository;
@@ -38,16 +31,12 @@ public class DappService {
     @Inject
     private DappScriptsEpochRepository dappScriptsEpochRepository;
 
-    public Cache<String, Float> buildMaxReleaseVersionCache() {
-        val releaseVersionsCache = CacheBuilder.newBuilder().<String, Float>build();
+    @Inject
+    private DappsRepository dappsRepository;
 
-        dappReleaseRepository.listDappReleases(SCRIPTS_INVOKED, ASC).forEach(dAppRelease -> {
-            val dappId = dAppRelease.getDappId();
-            releaseVersionsCache.put(dappId, dappReleaseRepository.getMaxReleaseVersion(dappId));
-        });
+    @Inject
+    private DappReleaseRepository dappReleaseRepository;
 
-        return releaseVersionsCache;
-    }
     public Map<Integer, EpochLevelStats> gatherEpochLevelStats(Collection<? extends EpochGatherable> it) {
         val epochLevelStats = new HashMap<Integer, EpochLevelStats>();
 
@@ -59,6 +48,7 @@ public class DappService {
                     .endEpoch(epochNo)
                     .volume(epochGatherable.getSpendVolume())
                     .spendTrxFees(epochGatherable.getSpendTrxFees())
+                    .trxFees(epochGatherable.getSpendTrxFees())
                     .spendTrxSizes(epochGatherable.getSpendTrxSizes())
                     .inflowsOutflows(epochGatherable.getInflowsOutflows())
                     .uniqueAccounts(epochGatherable.getSpendUniqueAccounts())
@@ -76,24 +66,26 @@ public class DappService {
         var dappEpochList = dappsEpochRepository.findByDappId(id);
         val epochLevelStatsMap = gatherEpochLevelStats(dappEpochList);
 
-        return getEpochLevelData(epochLevelStatsMap);
+        return getEpochLevelData(id, Type.DAPP, epochLevelStatsMap);
     }
 
     public Optional<EpochLevelData> getAllEpochLevelData(DAppRelease dAppRelease) {
         val releaseKey = dAppRelease.getId();
         val epochLevelStatsMap = gatherEpochLevelStats(dappReleaseEpochRepository.findByReleaseKey(releaseKey));
 
-        return getEpochLevelData(epochLevelStatsMap);
+        return getEpochLevelData(dAppRelease.getId(), Type.DAPP_RELEASE, epochLevelStatsMap);
     }
 
-    private Optional<EpochLevelData> getEpochLevelData(Map<Integer, EpochLevelStats> epochData) {
+    private Optional<EpochLevelData> getEpochLevelData(String id,
+                                                       Type type,
+                                                       Map<Integer, EpochLevelStats> epochData) {
         if (epochData.isEmpty()) {
             return Optional.empty();
         }
 
-        val one = getLastClosedEpochsDelta(epochData, SnapshotType.ONE);
-        val six = getLastClosedEpochsDelta(epochData, SnapshotType.SIX);
-        val eighteen = getLastClosedEpochsDelta(epochData, SnapshotType.EIGHTEEN);
+        val one = getLastClosedEpochsDelta(id, type, epochData, ONE);
+        val six = getLastClosedEpochsDelta(id, type, epochData, SIX);
+        val eighteen = getLastClosedEpochsDelta(id, type, epochData, EIGHTEEN);
 
         if (one.isEmpty()) {
             return Optional.empty();
@@ -115,12 +107,14 @@ public class DappService {
         val dappScriptItemEpoches = dappScriptsEpochRepository.listByHash(hash);
         val epochData = gatherEpochLevelStats(dappScriptItemEpoches);
 
-        return getEpochLevelData(epochData);
+        return getEpochLevelData(dappScriptItem.getHash(), Type.DAPP_SCRIPT, epochData);
     }
 
-    public Optional<EpochLevelDiff> getLastClosedEpochsDelta(Map<Integer, EpochLevelStats> stats,
+    public Optional<EpochLevelDiff> getLastClosedEpochsDelta(String id,
+                                                             Type type,
+                                                             Map<Integer, EpochLevelStats> stats,
                                                              SnapshotType snapshotType) {
-        return accumulateStatsBetweenEpochs(stats, snapshotType)
+        return accumulateStatsBetweenEpochs(id, type, stats, snapshotType)
                 .flatMap(snapshot -> {
                     val from = stats.getOrDefault(snapshot.getStartEpoch(), EpochLevelStats.zero(snapshot.getStartEpoch(), snapshot.getEndEpoch()));
                     val to = stats.getOrDefault(snapshot.getEndEpoch(), EpochLevelStats.zero(snapshot.getStartEpoch(), snapshot.getEndEpoch()));
@@ -135,8 +129,10 @@ public class DappService {
                 });
     }
 
-    public Optional<EpochLevelStats> accumulateStatsBetweenEpochs(Map<Integer, EpochLevelStats> stats,
-                                                       SnapshotType snapshotType) {
+    public Optional<EpochLevelStats> accumulateStatsBetweenEpochs(String id,
+                                                                  Type type,
+                                                                  Map<Integer, EpochLevelStats> stats,
+                                                                  SnapshotType snapshotType) {
         val closedEpochsMap = stats
                 .entrySet()
                 .stream()
@@ -180,26 +176,65 @@ public class DappService {
             trxCount += epochStats.getTrxCount();
         }
 
+        var uniqueAccounts = 0;
+            if (Type.DAPP == type) {
+                val dapp = dappsRepository.findById(id);
+                if (snapshotType == ONE) {
+                    if (dapp.isPresent() && dapp.orElseThrow().getSpendUniqueAccounts_lastEpoch() != null) {
+                        uniqueAccounts = dapp.orElseThrow().getSpendUniqueAccounts_lastEpoch();
+                    }
+                }
+                if (snapshotType == SIX) {
+                    if (dapp.isPresent() && dapp.orElseThrow().getSpendUniqueAccounts_six_epochs_ago() != null) {
+                        uniqueAccounts = dapp.orElseThrow().getSpendUniqueAccounts_six_epochs_ago();
+                    }
+                }
+                if (snapshotType == EIGHTEEN) {
+                    if (dapp.isPresent() && dapp.orElseThrow().getSpendUniqueAccounts_eighteen_epochs_ago() != null) {
+                        uniqueAccounts = dapp.orElseThrow().getSpendUniqueAccounts_eighteen_epochs_ago();
+                    }
+                }
+            }
+            if (Type.DAPP_RELEASE == type) {
+                val dappRelease = dappReleaseRepository.findById(id);
+                if (snapshotType == ONE) {
+                    if (dappRelease.isPresent() && dappRelease.orElseThrow().getSpendUniqueAccounts_lastEpoch() != null) {
+                        uniqueAccounts = dappRelease.orElseThrow().getSpendUniqueAccounts_lastEpoch();
+                    }
+                }
+                if (snapshotType == SIX) {
+                    if (dappRelease.isPresent() && dappRelease.orElseThrow().getSpendUniqueAccounts_six_epochs_ago() != null) {
+                        uniqueAccounts = dappRelease.orElseThrow().getSpendUniqueAccounts_six_epochs_ago();
+                    }
+                }
+                if (snapshotType == EIGHTEEN) {
+                    if (dappRelease.isPresent() && dappRelease.orElseThrow().getSpendUniqueAccounts_eighteen_epochs_ago() != null) {
+                        uniqueAccounts = dappRelease.orElseThrow().getSpendUniqueAccounts_eighteen_epochs_ago();
+                    }
+                }
+            }
+
         return Optional.of(EpochLevelStats.builder()
                 .startEpoch(lse)
                 .endEpoch(lce)
                 .closed(true)
                 .volume(volume)
                 .spendTrxFees(spendTrxFees)
+                .trxFees(spendTrxFees)
                 .spendTrxSizes(spendTrxSizes)
                 .inflowsOutflows(inflowOutflows)
                 .trxCount(trxCount)
-                .uniqueAccounts(0)
+                .uniqueAccounts(uniqueAccounts)
                 .build());
     }
 
-    public int currentEpoch() {
-        return scrollsOnChainDataService.currentEpoch().orElseThrow();
-    }
-
-    public Optional<Integer> lastClosedEpoch(Map<Integer, EpochLevelStats> closedEpochsMap) {
+    private static Optional<Integer> lastClosedEpoch(Map<Integer, EpochLevelStats> closedEpochsMap) {
         // find out max epoch which is closed
         return closedEpochsMap.keySet().stream().max(Integer::compare);
+    }
+
+    private enum Type {
+        DAPP, DAPP_RELEASE, DAPP_SCRIPT
     }
 
 }

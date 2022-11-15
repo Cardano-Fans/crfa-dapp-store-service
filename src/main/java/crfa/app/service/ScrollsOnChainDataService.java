@@ -427,13 +427,20 @@ public class ScrollsOnChainDataService {
                                                                            boolean currentEpochOnly) {
         log.info("loading uniqueAccounts on epoch level...");
 
-        val uniqueAccountsPerAddress = new HashMap<EpochKey<String>, Set<String>>();
-
-        val collection = "c10";
-
         val currentEpochNo = currentEpoch().orElseThrow();
 
         val epochs = currentEpochOnly ? Set.of(currentEpochNo) : Eras.epochsBetween(SnapshotType.ALL.startEpoch(currentEpochNo), currentEpochNo);
+
+        return spendUniqueAccountsWithEpoch(hashes, epochs);
+    }
+
+    public Map<EpochKey<String>, Set<String>> spendUniqueAccountsWithEpoch(Collection<String> hashes,
+                                                                           Set<Integer> epochs) {
+        log.info("loading uniqueAccounts on epoch level for epochs");
+
+        val uniqueAccountsPerAddress = new HashMap<EpochKey<String>, Set<String>>();
+
+        val collection = "c10";
 
         for (val epochNo : epochs) {
             log.debug("Unique hashes - processing epochNo:{}", epochNo);
@@ -504,16 +511,94 @@ public class ScrollsOnChainDataService {
         return tokenHoldersPerEpoch;
     }
 
-//    public Set<String> sunion(String hash, int fromEpoch, int toEpoch) {
-//        val collection = "c10";
-//
-//        val key = format("%s.%s.%d", collection, hash, fromEpoch);
-//
-//        val a = redissonClient.getScoredSortedSet(key, new StringCodec());
-//        val b = redissonClient.getScoredSortedSet(key, new StringCodec());
-//
-//        a.readUnion(b);
-//    }
+    public int getStoreGlobalUniqueAccountsCount() {
+        val uniqueAccounts = redissonClient.getScoredSortedSet("e1", new StringCodec());
+
+        if (uniqueAccounts.isExists()) {
+            return uniqueAccounts.count(0, true, Double.MAX_VALUE, true);
+        }
+
+        log.error("e1 is not stored!!!");
+
+        return 0;
+    }
+
+    public int storeGlobalUniqueAccounts(Set<String> hashes) {
+        return sunion("e1", hashes);
+    }
+
+    public int storeDappEpochSnapshot(String dappId, Set<String> hashes, Set<Integer> epochs, SnapshotType snapshotType) {
+        return sunionEpoch(String.format("e2.%s.%s", snapshotType.name(), dappId), hashes, epochs);
+    }
+
+    public int storeDappReleaseEpochSnapshot(String id, Set<String> hashes, Set<Integer> epochs, SnapshotType snapshotType) {
+        return sunionEpoch(String.format("e3.%s.%s", snapshotType.name(), id), hashes, epochs);
+    }
+
+    public int getDappEpochEpochSnapshot(String dappId, SnapshotType snapshotType) {
+        val uniqueAccounts = redissonClient.getScoredSortedSet(String.format("e2.%s.%s", snapshotType.name(), dappId), new StringCodec());
+
+        if (uniqueAccounts.isExists()) {
+            return uniqueAccounts.count(0, true, Double.MAX_VALUE, true);
+        }
+
+        log.warn("e2 is not stored for dapp id:{}", dappId);
+
+        return 0;
+    }
+
+    public int getDappReleaseEpochSnapshot(String id, SnapshotType snapshotType) {
+        val uniqueAccounts = redissonClient.getScoredSortedSet(String.format("e3.%s.%s", snapshotType.name(), id), new StringCodec());
+
+        if (uniqueAccounts.isExists()) {
+            return uniqueAccounts.count(0, true, Double.MAX_VALUE, true);
+        }
+
+        log.warn("e3 is not stored for dapp release id:{}", id);
+
+        return 0;
+    }
+
+    private int sunion(String key, Set<String> hashes) {
+        val collection = "c9";
+
+        val uniqueAccounts = redissonClient.getScoredSortedSet(key, new StringCodec());
+
+        val hkeys = new HashSet<>();
+
+
+        for (val h : hashes) {
+            val hkey = format("%s.%s", collection, h);
+            hkeys.add(hkey);
+        }
+
+        if (hkeys.isEmpty()) {
+            return 0;
+        }
+
+        return uniqueAccounts.union(hkeys.toArray(new String[] {}));
+    }
+
+    private int sunionEpoch(String key, Set<String> hashes, Set<Integer> epochs) {
+        val collection = "c10";
+
+        val uniqueAccounts = redissonClient.getScoredSortedSet(key, new StringCodec());
+
+        val hkeys = new HashSet<>();
+
+        for (val e : epochs) {
+            for (val h : hashes) {
+                val hkey = format("%s.%s.%d", collection, h, e);
+                hkeys.add(hkey);
+            }
+        }
+
+        if (hkeys.isEmpty()) {
+            return 0;
+        }
+
+        return uniqueAccounts.union(hkeys.toArray(new String[] {}));
+    }
 
     public Set<String> listSpendScriptHashes() {
         val result = new HashSet<String>();

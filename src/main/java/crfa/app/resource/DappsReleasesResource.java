@@ -7,6 +7,7 @@ import crfa.app.resource.model.DappReleaseResult;
 import crfa.app.resource.model.EpochLevelDataResult;
 import crfa.app.resource.model.EpochLevelResult;
 import crfa.app.resource.model.EpochLevelStatsResult;
+import crfa.app.service.DappReleaseCacheHelper;
 import crfa.app.service.DappService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -32,11 +33,14 @@ public class DappsReleasesResource {
     @Inject
     private DappService dappService;
 
+    @Inject
+    private DappReleaseCacheHelper dappReleaseCacheHelper;
+
     @Deprecated
     @Get(uri = "/list-releases", produces = "application/json")
     public List<DappReleaseResult> listDappReleases(@QueryValue Optional<SortBy> sortBy,
                                                     @QueryValue Optional<SortOrder> sortOrder) {
-        val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
+        val releaseVersionsCache = dappReleaseCacheHelper.buildMaxReleaseVersionCache();
 
         return dappReleaseRepository.listDappReleases(sortBy.orElse(SCRIPTS_INVOKED), sortOrder.orElse(SortOrder.DESC))
                 .stream()

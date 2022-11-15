@@ -24,6 +24,10 @@ public final class EpochLevelStats {
     Long spendTrxFees;
 
     @Nullable
+    @Deprecated
+    Long trxFees;
+
+    @Nullable
     Long spendTrxSizes;
 
     @Nullable // - null for script based only dapps

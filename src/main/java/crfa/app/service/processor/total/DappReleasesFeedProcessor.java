@@ -3,6 +3,7 @@ package crfa.app.service.processor.total;
 import crfa.app.domain.*;
 import crfa.app.repository.PoolRepository;
 import crfa.app.repository.total.DappReleaseRepository;
+import crfa.app.service.ScrollsOnChainDataService;
 import crfa.app.service.processor.FeedProcessor;
 import crfa.app.utils.Json;
 import io.vavr.control.Either;
@@ -11,10 +12,14 @@ import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Optional;
 
 import static crfa.app.domain.Purpose.MINT;
 import static crfa.app.domain.Purpose.SPEND;
+import static crfa.app.domain.SnapshotType.*;
 import static crfa.app.service.processor.total.ProcessorHelper.*;
 
 @Slf4j
@@ -29,6 +34,9 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
     private PoolRepository poolRepository;
 
     @Inject
+    private ScrollsOnChainDataService scrollsOnChainDataService;
+
+    @Inject
     private Json json;
 
     @Override
@@ -38,6 +46,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
         dappFeed.getDappSearchResult().forEach(dappSearchItem -> {
             dappSearchItem.getReleases().forEach(dappReleaseItem -> {
                 val dappRelease = new DAppRelease();
+                val dappReleaseId = DAppRelease.createId(dappSearchItem, dappReleaseItem);
 
                 dappRelease.setDappId(dappSearchItem.getId());
                 dappRelease.setName(dappSearchItem.getName());
@@ -49,7 +58,7 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 dappRelease.setDAppType(DAppType.valueOf(dappSearchItem.getType()));
                 dappRelease.setTwitter(dappSearchItem.getTwitter());
 
-                dappRelease.setId(String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber()));
+                dappRelease.setId(dappReleaseId);
                 dappRelease.setReleaseNumber(dappReleaseItem.getReleaseNumber());
                 dappRelease.setReleaseName(dappReleaseItem.getReleaseName());
                 dappRelease.setFullName(String.format("%s - %s", dappSearchItem.getName(), dappReleaseItem.getReleaseName()));
@@ -70,7 +79,6 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                 var spendVolume = 0L;
                 var spendTrxFees = 0L;
                 var spendTrxSizes = 0L;
-                var spendUniqueAccounts = new HashSet<String>();
 
                 var mintTransactions = 0L;
 
@@ -86,7 +94,6 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
                         spendTrxFees += loadSpendTrxFee(dappFeed, hash);
                         spendTrxSizes += loadSpendTrxSize(dappFeed, hash);
                         spendTransactions += loadSpendTransactionsCount(dappFeed, hash);
-                        spendUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash));
                         pools.add(loadPoolHex(dappFeed, hash));
                     }
                     if (scriptItem.getPurpose() == MINT) {
@@ -102,7 +109,13 @@ public class DappReleasesFeedProcessor implements FeedProcessor {
 
                 dappRelease.setBalance(balance);
                 dappRelease.setSpendTransactions(spendTransactions);
-                dappRelease.setSpendUniqueAccounts(spendUniqueAccounts.size());
+
+                dappRelease.setSpendUniqueAccounts(scrollsOnChainDataService.getDappReleaseEpochSnapshot(dappReleaseId, ALL));
+
+                dappRelease.setSpendUniqueAccounts_lastEpoch(scrollsOnChainDataService.getDappReleaseEpochSnapshot(dappReleaseId, ONE));
+                dappRelease.setSpendUniqueAccounts_six_epochs_ago(scrollsOnChainDataService.getDappReleaseEpochSnapshot(dappReleaseId, SIX));
+                dappRelease.setSpendUniqueAccounts_eighteen_epochs_ago(scrollsOnChainDataService.getDappReleaseEpochSnapshot(dappReleaseId, EIGHTEEN));
+
                 dappRelease.setSpendVolume(spendVolume);
                 dappRelease.setSpendTrxFees(spendTrxFees);
                 dappRelease.setSpendTrxSizes(spendTrxSizes);

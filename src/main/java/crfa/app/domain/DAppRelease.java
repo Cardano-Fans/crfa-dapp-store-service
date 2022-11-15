@@ -3,6 +3,8 @@ package crfa.app.domain;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import crfa.app.client.metadata.DappReleaseItem;
+import crfa.app.client.metadata.DappSearchItem;
 import io.micronaut.core.annotation.Nullable;
 import lombok.*;
 
@@ -65,6 +67,18 @@ public class DAppRelease {
     @Nullable
     Integer spendUniqueAccounts;
 
+    @DatabaseField(columnName = "spend_unique_accounts_last_epoch")
+    @Nullable
+    Integer spendUniqueAccounts_lastEpoch;
+
+    @DatabaseField(columnName = "spend_unique_accounts_six_epochs_ago")
+    @Nullable
+    Integer spendUniqueAccounts_six_epochs_ago;
+
+    @DatabaseField(columnName = "spend_unique_accounts_eighteen_epochs_ago")
+    @Nullable
+    Integer spendUniqueAccounts_eighteen_epochs_ago;
+
     @DatabaseField(canBeNull = false, columnName = "spend_transactions")
     @Nullable Long spendTransactions;
 
@@ -119,6 +133,10 @@ public class DAppRelease {
 
     public Long getTransactionsCount() {
         return spendTransactions + mintTransactions;
+    }
+
+    public static String createId(DappSearchItem dappSearchItem, DappReleaseItem dappReleaseItem) {
+        return String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber());
     }
 
 }

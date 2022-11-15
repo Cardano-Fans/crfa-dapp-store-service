@@ -7,6 +7,7 @@ import crfa.app.domain.SortOrder;
 import crfa.app.repository.total.DappReleaseRepository;
 import crfa.app.repository.total.DappScriptsRepository;
 import crfa.app.resource.model.*;
+import crfa.app.service.DappReleaseCacheHelper;
 import crfa.app.service.DappService;
 import crfa.app.utils.Json;
 import io.micronaut.http.annotation.Controller;
@@ -23,6 +24,9 @@ import java.util.Optional;
 @Controller("/dapps")
 @Slf4j
 public class DappsScriptsResource {
+
+    @Inject
+    private DappReleaseCacheHelper dappReleaseCacheHelper;
 
     @Inject
     private DappReleaseRepository dappReleaseRepository;
@@ -52,7 +56,7 @@ public class DappsScriptsResource {
     }
 
     private DappReleaseResult getDappReleaseResult(DAppRelease dAppRelease) {
-        val releaseVersionsCache = dappService.buildMaxReleaseVersionCache();
+        val releaseVersionsCache = dappReleaseCacheHelper.buildMaxReleaseVersionCache();
 
         val scriptInvocationsCount = dAppRelease.getSpendTransactions();
         val uniqueAccounts = dAppRelease.getSpendUniqueAccounts();
