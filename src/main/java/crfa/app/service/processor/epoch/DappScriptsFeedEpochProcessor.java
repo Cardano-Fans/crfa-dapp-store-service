@@ -95,7 +95,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
 
         val hash = scriptItem.getUnifiedHash();
 
-        val allUniqueAccounts = new HashSet<>();
+        //val allUniqueAccounts = new HashSet<>();
 
         dappScriptItem.setId(generateKey(epochNo, hash));
         dappScriptItem.setHash(hash);
@@ -108,7 +108,7 @@ public class DappScriptsFeedEpochProcessor implements FeedProcessor {
             dappScriptItem.setTrxFees(loadSpendTrxFee(dappFeed, hash, epochNo));
             dappScriptItem.setTrxSizes(loadTrxSize(dappFeed, hash, epochNo));
 
-            allUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash, epochNo));
+            //allUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash, epochNo));
         }
 
         if (scriptItem.getPurpose() == MINT) {

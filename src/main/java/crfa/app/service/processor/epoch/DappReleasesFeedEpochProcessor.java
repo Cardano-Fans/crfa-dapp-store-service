@@ -13,7 +13,6 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.domain.Purpose.MINT;
@@ -76,12 +75,12 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
                                             DappSearchItem dappSearchItem,
                                             DappReleaseItem dappReleaseItem,
                                             int epochNo) {
-
         val dappReleaseEpoch = new DAppReleaseEpoch();
 
-        val key = String.format("%s.%.1f", dappSearchItem.getId(), dappReleaseItem.getReleaseNumber());
+        val key = DAppReleaseEpoch.createKey(dappSearchItem.getId(), dappReleaseItem.getReleaseNumber());
+        val id = DAppReleaseEpoch.createId(key, epochNo);
 
-        dappReleaseEpoch.setId(String.format("%s.%d", key, epochNo));
+        dappReleaseEpoch.setId(id);
         dappReleaseEpoch.setKey(key);
 
         dappReleaseEpoch.setDappId(dappSearchItem.getId());
@@ -117,7 +116,6 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         var spendVolume = 0L;
         var spendTrxFees = 0L;
         var spendTrxSizes = 0L;
-        var uniqueAccounts = new HashSet<String>();
 
         for (val scriptItem : dappReleaseItem.getScripts()) {
             val hash = scriptItem.getUnifiedHash();
@@ -128,8 +126,6 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
                 spendVolume += loadSpendVolume(dappFeed, hash, epochNo);
                 spendTrxFees += loadSpendTrxFee(dappFeed, hash, epochNo);
                 spendTrxSizes += loadTrxSize(dappFeed, hash, epochNo);
-
-                uniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash, epochNo));
             }
 
             if (scriptItem.getPurpose() == MINT) {
@@ -150,9 +146,7 @@ public class DappReleasesFeedEpochProcessor implements FeedProcessor {
         dappReleaseEpoch.setSpendTrxSizes(spendTrxSizes);
 
         dappReleaseEpoch.setTransactions(mintTransactionsCount + spendTransactionsCount);
-
-        // TODO do not materialise but store in db stable
-        dappReleaseEpoch.setSpendUniqueAccounts(uniqueAccounts.size());
+        dappReleaseEpoch.setSpendUniqueAccounts(scrollsOnChainDataService.getDappReleaseEpochSnapshot(id, epochNo));
 
         return dappReleaseEpoch;
     }

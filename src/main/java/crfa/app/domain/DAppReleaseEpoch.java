@@ -114,8 +114,13 @@ public class DAppReleaseEpoch implements EpochGatherable {
     @DatabaseField(canBeNull = false, columnName = "update_time", dataType = DataType.DATE_STRING)
     Date updateTime;
 
-    public boolean isLatestVersion(float maxReleaseVersion) {
-        return Float.compare(maxReleaseVersion, releaseNumber) == 0;
+
+    public static String createId(String key, int epochNo) {
+        return String.format("%s.%d", key, epochNo);
+    }
+
+    public static String createKey(String sdiId, float releaseNumber) {
+        return String.format("%s.%.1f", sdiId, releaseNumber);
     }
 
 }

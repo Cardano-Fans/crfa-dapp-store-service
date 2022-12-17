@@ -511,6 +511,10 @@ public class ScrollsOnChainDataService {
         return tokenHoldersPerEpoch;
     }
 
+    public int storeGlobalUniqueAccounts(Set<String> hashes) {
+        return sunion("e1", hashes);
+    }
+
     public int getStoreGlobalUniqueAccountsCount() {
         val uniqueAccounts = redissonClient.getScoredSortedSet("e1", new StringCodec());
 
@@ -518,21 +522,13 @@ public class ScrollsOnChainDataService {
             return uniqueAccounts.count(0, true, Double.MAX_VALUE, true);
         }
 
-        log.error("e1 is not stored!!!");
+        log.warn("e1 is not stored!!!");
 
         return 0;
     }
 
-    public int storeGlobalUniqueAccounts(Set<String> hashes) {
-        return sunion("e1", hashes);
-    }
-
     public int storeDappEpochSnapshot(String dappId, Set<String> hashes, Set<Integer> epochs, SnapshotType snapshotType) {
         return sunionEpoch(String.format("e2.%s.%s", snapshotType.name(), dappId), hashes, epochs);
-    }
-
-    public int storeDappReleaseEpochSnapshot(String id, Set<String> hashes, Set<Integer> epochs, SnapshotType snapshotType) {
-        return sunionEpoch(String.format("e3.%s.%s", snapshotType.name(), id), hashes, epochs);
     }
 
     public int getDappEpochEpochSnapshot(String dappId, SnapshotType snapshotType) {
@@ -547,6 +543,10 @@ public class ScrollsOnChainDataService {
         return 0;
     }
 
+    public int storeDappReleaseEpochSnapshot(String id, Set<String> hashes, Set<Integer> epochs, SnapshotType snapshotType) {
+        return sunionEpoch(String.format("e3.%s.%s", snapshotType.name(), id), hashes, epochs);
+    }
+
     public int getDappReleaseEpochSnapshot(String id, SnapshotType snapshotType) {
         val uniqueAccounts = redissonClient.getScoredSortedSet(String.format("e3.%s.%s", snapshotType.name(), id), new StringCodec());
 
@@ -559,13 +559,51 @@ public class ScrollsOnChainDataService {
         return 0;
     }
 
+    public int storeDappEpochSnapshot(String id, Set<String> hashes, int epoch) {
+        return sunionEpoch(String.format("e4.%s.%d", id, epoch), hashes, Set.of(epoch));
+    }
+
+    public int getDappEpochSnapshot(String id, int epochNo) {
+        val uniqueAccounts = redissonClient.getScoredSortedSet(String.format("e4.%s.%d", id, epochNo), new StringCodec());
+
+        if (uniqueAccounts.isExists()) {
+            return uniqueAccounts.count(0, true, Double.MAX_VALUE, true);
+        }
+
+        log.warn("e4 is not stored for dapp id:{} and epochNo:{}", id, epochNo);
+
+        return 0;
+    }
+
+    public int storeDappReleaseEpochSnapshot(String dappId, Set<String> hashes, int epochNo) {
+        return sunionEpoch(String.format("e5.%s.%d", dappId, epochNo), hashes, Set.of(epochNo));
+    }
+
+    public int getDappReleaseEpochSnapshot(String dappId, int epochNo) {
+        val uniqueAccounts = redissonClient.getScoredSortedSet(String.format("e5.%s.%d", dappId, epochNo), new StringCodec());
+
+        if (uniqueAccounts.isExists()) {
+            return uniqueAccounts.count(0, true, Double.MAX_VALUE, true);
+        }
+
+        log.warn("e5 is not stored for dapp dappId:{} and epochNo:{}", dappId, epochNo);
+
+        return 0;
+    }
+
+    /**
+     * Returns union of key based on the following address hashes
+     *
+     * @param key
+     * @param hashes
+     * @return
+     */
     private int sunion(String key, Set<String> hashes) {
         val collection = "c9";
 
         val uniqueAccounts = redissonClient.getScoredSortedSet(key, new StringCodec());
 
         val hkeys = new HashSet<>();
-
 
         for (val h : hashes) {
             val hkey = format("%s.%s", collection, h);
@@ -579,6 +617,14 @@ public class ScrollsOnChainDataService {
         return uniqueAccounts.union(hkeys.toArray(new String[] {}));
     }
 
+    /**
+     * Returns epoch level union for the key and following hashes and set of epochs
+     *
+     * @param key
+     * @param hashes
+     * @param epochs
+     * @return
+     */
     private int sunionEpoch(String key, Set<String> hashes, Set<Integer> epochs) {
         val collection = "c10";
 

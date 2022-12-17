@@ -15,7 +15,6 @@ import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Optional;
 
 import static crfa.app.domain.Purpose.MINT;
@@ -82,11 +81,11 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         dappsEpochRepository.removeAllExcept(dapps);
     }
 
-    private static DAppEpoch createDappEpoch(DappFeed dappFeed,
-                                             boolean isClosedEpoch,
-                                             Cache<String, Float> maxReleaseCache,
-                                             DappSearchItem dappSearchItem,
-                                             int epochNo) {
+    private DAppEpoch createDappEpoch(DappFeed dappFeed,
+                                      boolean isClosedEpoch,
+                                      Cache<String, Float> maxReleaseCache,
+                                      DappSearchItem dappSearchItem,
+                                      int epochNo) {
         val dapp = new DAppEpoch();
 
         val dappId = dappSearchItem.getId();
@@ -111,7 +110,6 @@ public class DappFeedEpochProcessor implements FeedProcessor {
         var spendVolume = 0L;
         var spendTrxFees = 0L;
         var spendTrxSizes = 0L;
-        var totalUniqueAccounts = new HashSet<String>();
 
         val maxVersion = maxReleaseCache.getIfPresent(dappId);
 
@@ -139,8 +137,6 @@ public class DappFeedEpochProcessor implements FeedProcessor {
                     inflowsOutflows += loadBalance(dappFeed, hash, epochNo);
                     spendTrxFees += loadSpendTrxFee(dappFeed, hash, epochNo);
                     spendTrxSizes += loadTrxSize(dappFeed, hash, epochNo);
-
-                    totalUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, hash, epochNo));
                 }
 
                 if (scriptItem.getPurpose() == MINT) {
@@ -162,8 +158,7 @@ public class DappFeedEpochProcessor implements FeedProcessor {
 
             dapp.setTransactions(mintTransactionsCount + spendTransactionsCount);
 
-            // to do - store in separate db table
-            dapp.setSpendUniqueAccounts(totalUniqueAccounts.size());
+            dapp.setSpendUniqueAccounts(scrollsOnChainDataService.getDappEpochSnapshot(dappId, epochNo));
         }
 
         return dapp;

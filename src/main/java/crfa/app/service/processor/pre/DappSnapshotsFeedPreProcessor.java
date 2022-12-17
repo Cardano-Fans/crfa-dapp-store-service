@@ -54,8 +54,6 @@ public class DappSnapshotsFeedPreProcessor implements FeedPreProcessor {
             scrollsOnChainDataService.storeDappEpochSnapshot(dappId, wallets, six, SIX);
             scrollsOnChainDataService.storeDappEpochSnapshot(dappId, wallets, eighteen, EIGHTEEN);
             scrollsOnChainDataService.storeDappEpochSnapshot(dappId, wallets, all, ALL);
-
-            //log.info("Stored snapshot unique accounts per dAppId:{}", dappId);
         });
     }
 

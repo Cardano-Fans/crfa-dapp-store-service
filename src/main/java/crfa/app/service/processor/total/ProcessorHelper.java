@@ -35,13 +35,13 @@ public class ProcessorHelper {
         });
     }
 
-    public static Set<String> loadSpendUniqueAccounts(DappFeed dappFeed, String hash) {
-        return dappFeed.getSpendUniqueAccounts().computeIfAbsent(hash, h -> {
-            log.warn("Unable to find unique addresses for hash:{}", h);
-
-            return Set.of();
-        });
-    }
+//    public static Set<String> loadSpendUniqueAccounts(DappFeed dappFeed, String hash) {
+//        return dappFeed.getSpendUniqueAccounts().computeIfAbsent(hash, h -> {
+//            log.warn("Unable to find unique addresses for hash:{}", h);
+//
+//            return Set.of();
+//        });
+//    }
 
     public static long loadTokensBalance(DappFeed dappFeed, String assetId) {
         return dappFeed.getTokenHoldersBalance().computeIfAbsent(assetId, aId -> {

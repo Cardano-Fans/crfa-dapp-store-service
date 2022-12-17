@@ -11,11 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.Date;
-import java.util.HashSet;
 
 import static crfa.app.domain.InjestionMode.WITHOUT_EPOCHS_ONLY_AGGREGATES;
-import static crfa.app.domain.Purpose.SPEND;
-import static crfa.app.service.processor.epoch.ProcessorHelper.loadSpendUniqueAccounts;
 
 @Singleton
 @Slf4j
@@ -67,25 +64,25 @@ public class GlobalStatsEpochProcessor implements FeedPostProcessor {
         b.spendTrxFees(dappsEpochRepository.spendFees(epochNo));
         b.transactions(mintTransactions + spendTransactions);
 
-        b.spendUniqueAccounts(uniqueAccounts(dappFeed, epochNo));
+        //b.spendUniqueAccounts(uniqueAccounts(dappFeed, epochNo));
 
         return b.build();
     }
 
-    private int uniqueAccounts(DappFeed dappFeed, int epochNo) {
-        val spendUniqueAccounts = new HashSet<String>();
-
-        for (val dsr : dappFeed.getDappSearchResult()) {
-            for (val r : dsr.getReleases()) {
-                for (val s : r.getScripts()) {
-                    if (s.getPurpose() == SPEND) {
-                        spendUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, s.getUnifiedHash(), epochNo));
-                    }
-                }
-            }
-        }
-
-        return spendUniqueAccounts.size();
-    }
+//    private int uniqueAccounts(DappFeed dappFeed, int epochNo) {
+//        val spendUniqueAccounts = new HashSet<String>();
+//
+//        for (val dsr : dappFeed.getDappSearchResult()) {
+//            for (val r : dsr.getReleases()) {
+//                for (val s : r.getScripts()) {
+//                    if (s.getPurpose() == SPEND) {
+//                        spendUniqueAccounts.addAll(loadSpendUniqueAccounts(dappFeed, s.getUnifiedHash(), epochNo));
+//                    }
+//                }
+//            }
+//        }
+//
+//        return spendUniqueAccounts.size();
+//    }
 
 }

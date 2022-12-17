@@ -57,8 +57,6 @@ public class DappReleasesSnapshotsFeedPreProcessor implements FeedPreProcessor {
             scrollsOnChainDataService.storeDappReleaseEpochSnapshot(dappReleaseId, wallets, six, SIX);
             scrollsOnChainDataService.storeDappReleaseEpochSnapshot(dappReleaseId, wallets, eighteen, EIGHTEEN);
             scrollsOnChainDataService.storeDappReleaseEpochSnapshot(dappReleaseId, wallets, all, ALL);
-
-            //log.info("Stored snapshot unique accounts per dAppId release dappReleaseId:{}", dappReleaseId);
         });
     }
 
