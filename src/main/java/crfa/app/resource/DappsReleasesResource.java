@@ -9,6 +9,7 @@ import crfa.app.resource.model.EpochLevelResult;
 import crfa.app.resource.model.EpochLevelStatsResult;
 import crfa.app.service.DappReleaseCacheHelper;
 import crfa.app.service.DappService;
+import io.micronaut.core.annotation.Blocking;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
@@ -37,6 +38,7 @@ public class DappsReleasesResource {
     private DappReleaseCacheHelper dappReleaseCacheHelper;
 
     @Deprecated
+    @Blocking
     @Get(uri = "/list-releases", produces = "application/json")
     public List<DappReleaseResult> listDappReleases(@QueryValue Optional<SortBy> sortBy,
                                                     @QueryValue Optional<SortOrder> sortOrder) {
@@ -109,6 +111,7 @@ public class DappsReleasesResource {
     }
 
     @Get(uri = "/find-release/{id}", produces = "application/json")
+    @Blocking
     public List<DappReleaseResult> findDappRelease(String id) {
         return listDappReleases(Optional.of(RELEASE_NUMBER), Optional.of(ASC))
                 .stream()

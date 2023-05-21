@@ -9,6 +9,7 @@ import crfa.app.service.DappFeedCreator;
 import crfa.app.service.DappIngestionService;
 import crfa.app.service.PoolService;
 import crfa.app.service.ScriptHashesService;
+import io.micronaut.core.annotation.Blocking;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Controller;
@@ -44,6 +45,7 @@ public class InternalResource {
     private PoolService poolService;
 
     @Get(uri = "/scriptStats/{type}/{scriptType}", produces = "application/json")
+    @Blocking
     public Map<String, Long> scriptStats(ScriptStatsType type, ScriptType scriptType) {
         return scriptHashesStatsRepository.listScriptStatsOrderedByTransactionCount(type, scriptType)
                 .stream()
@@ -56,6 +58,7 @@ public class InternalResource {
     }
 
     @Post(value = "/rebuildDb", consumes = "application/json", produces = "application/json")
+    @Blocking
     public HttpResponse<?> rebuildDb() {
         val injestionMode = InjestionMode.FULL;
 
@@ -73,6 +76,7 @@ public class InternalResource {
     }
 
     @Post(value = "/rebuildDbPartially", consumes = "application/json", produces = "application/json")
+    @Blocking
     public HttpResponse<?> rebuildDbPartial() {
         val injestionMode = InjestionMode.CURRENT_EPOCH_AND_AGGREGATES;
 
@@ -90,6 +94,7 @@ public class InternalResource {
     }
 
     @Post(value = "/rebuildScriptStatsDb", consumes = "application/json", produces = "application/json")
+    @Blocking
     public HttpResponse<?> rebuildScriptStats() {
         log.info("rebuilding script stats...");
         scriptHashesService.ingestAll();
@@ -99,6 +104,7 @@ public class InternalResource {
     }
 
     @Post(value = "/rebuildPoolsDb", consumes = "application/json", produces = "application/json")
+    @Blocking
     public HttpResponse<?> rebuildPoolsDb() {
         log.info("rebuilding pools db...");
         poolService.updatePools();

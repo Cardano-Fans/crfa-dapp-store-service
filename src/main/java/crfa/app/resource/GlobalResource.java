@@ -8,6 +8,7 @@ import crfa.app.resource.model.GlobalCategoryEpochStatsResult;
 import crfa.app.resource.model.GlobalCategoryStatsResult;
 import crfa.app.resource.model.GlobalStatsEpochResult;
 import crfa.app.resource.model.GlobalStatsResult;
+import io.micronaut.core.annotation.Blocking;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import jakarta.inject.Inject;
@@ -38,6 +39,7 @@ public class GlobalResource {
     private GlobalCategoryStatsEpochRepository globalCategoryStatsEpochRepository;
 
     @Get(uri = "/stats", produces = "application/json")
+    @Blocking
     public Optional<GlobalStatsResult> globalStats() {
         return globalStatsRepository.findGlobalStats().map(globalStats -> {
             val b = GlobalStatsResult.builder();
@@ -60,6 +62,7 @@ public class GlobalResource {
     }
 
     @Get(uri = "/stats/epochs", produces = "application/json")
+    @Blocking
     public Map<Integer, GlobalStatsEpochResult> globalEpochStats() {
         return globalStatsEpochRepository.listGlobalStats().stream().map(globalStats -> {
             val b = GlobalStatsEpochResult.builder();
@@ -77,6 +80,7 @@ public class GlobalResource {
     }
 
     @Get(uri = "/stats/category", produces = "application/json")
+    @Blocking
     public Map<String, GlobalCategoryStatsResult> globalCategoryStats() {
         return globalCategoryStatsRepository.list().stream().map(globalStats -> {
             val b = GlobalCategoryStatsResult.builder();
@@ -96,6 +100,7 @@ public class GlobalResource {
     }
 
     @Get(uri = "/stats/category/epochs", produces = "application/json")
+    @Blocking
     public Map<String, GlobalCategoryEpochStatsResult> globalCategoryStatsEpochs() {
 
         return globalCategoryStatsEpochRepository.list().stream().map(globalCategoryStats -> {

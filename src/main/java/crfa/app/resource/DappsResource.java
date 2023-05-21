@@ -8,6 +8,7 @@ import crfa.app.resource.model.EpochLevelDataResult;
 import crfa.app.resource.model.EpochLevelResult;
 import crfa.app.resource.model.EpochLevelStatsResult;
 import crfa.app.service.DappService;
+import io.micronaut.core.annotation.Blocking;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
@@ -32,6 +33,7 @@ public class DappsResource {
     private DappService dappService;
 
     @Get(uri = "/find-dapp/{id}", produces = "application/json")
+    @Blocking
     public Optional<DappResult> findDappById(String id) {
 
         return dappsRepository.findById(id)
@@ -96,6 +98,7 @@ public class DappsResource {
     }
 
     @Get(uri = "/list-dapps", produces = "application/json")
+    @Blocking
     public List<DappResult> listDapps(@QueryValue Optional<SortBy> sortBy,
                                       @QueryValue Optional<SortOrder> sortOrder) {
          return dappsRepository.listDapps(sortBy.orElse(SCRIPTS_INVOKED), sortOrder.orElse(DESC))

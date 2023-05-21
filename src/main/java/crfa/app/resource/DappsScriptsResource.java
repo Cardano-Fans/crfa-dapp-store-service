@@ -10,6 +10,7 @@ import crfa.app.resource.model.*;
 import crfa.app.service.DappReleaseCacheHelper;
 import crfa.app.service.DappService;
 import crfa.app.utils.Json;
+import io.micronaut.core.annotation.Blocking;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
@@ -41,6 +42,7 @@ public class DappsScriptsResource {
     private Json json;
 
     @Get(uri = "/by-release-key/{releaseKey}", produces = "application/json")
+    @Blocking
     public Optional<DappScriptsResult> listScriptsResponse(@PathVariable String releaseKey,
                                                            @QueryValue Optional<SortBy> sortBy,
                                                            @QueryValue Optional<SortOrder> sortOrder) {
